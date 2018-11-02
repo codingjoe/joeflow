@@ -1,0 +1,11 @@
+digraph {
+	graph [rankdir=LR]
+	node [fillcolor=white fontname="sans-serif" shape=rect style=filled]
+	"save the princess" [color=black fontcolor=black style="filled, rounded"]
+	end [color=black fontcolor=black style=filled]
+	"start view" [color=black fontcolor=black style="filled, rounded"]
+	"start method" [color=black fontcolor=black style=filled]
+	"start view" -> "save the princess"
+	"start method" -> "save the princess"
+	"save the princess" -> end
+}

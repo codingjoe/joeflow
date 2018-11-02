@@ -1,0 +1,18 @@
+{% extends 'testapp/base.html' %}
+
+{% block body %}
+<div class="w3-card w3-content w3-card-4 w3-white">
+  <div class="w3-center">
+    {{ object.get_process_graph }}
+  </div>
+  <form method="POST" class="w3-container">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p>
+      {% block form-actions %}
+      <button type="submit" class="w3-btn w3-padding w3-teal" style="width:120px">Save &nbsp; ❯</button>
+      {% endblock %}
+    </p>
+  </form>
+</div>
+{% endblock body %}

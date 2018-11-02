@@ -1,0 +1,5 @@
+django>=2.0
+django-appconf
+celery>=4.0.0
+redis
+graphviz
