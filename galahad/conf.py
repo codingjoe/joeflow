@@ -30,8 +30,3 @@ class GalahadAppConfig(AppConf):
     """
     Queue name in which all machine tasks will be queued.
     """
-
-    GALAHAD_CELERY_QUEUE_NAME = 'celery'
-    """
-    Queue name in which all machine tasks will be queued.
-    """

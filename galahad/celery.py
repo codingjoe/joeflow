@@ -12,7 +12,7 @@ logger = logging.getLogger('galahad')
 
 def jitter():
     """Return a random number between 0 and 1."""
-    return random.randrange(1)
+    return random.randrange(2)
 
 
 def backoff(retries):
@@ -20,11 +20,11 @@ def backoff(retries):
     return min(600, 2 ** retries) + jitter()
 
 
-@shared_task(bind=True, ignore_results=True)
-def task_wrapper(self, task_pk, process_pk, retries=0):
+@shared_task(bind=True, ignore_results=True, max_retries=None)
+def task_wrapper(self, task_pk, process_pk):
     with locking.lock(process_pk) as lock_result:
+        countdown = backoff(self.request.retries)
         if not lock_result:
-            countdown = backoff(self.request.retries)
             logger.info("Process is locked, retrying in %s seconds", countdown)
             self.retry(countdown=countdown)
         Task = apps.get_model('galahad', 'Task')
@@ -43,9 +43,8 @@ def task_wrapper(self, task_pk, process_pk, retries=0):
             logger.exception("Execution of %r failed", task)
         else:
             if result is False:
-                countdown = backoff(retries)
                 logger.info("Task returned False, retrying in %s seconds", countdown)
-                transaction.on_commit(lambda: task.enqueue(countdown=countdown, retires=retries+1))
+                transaction.on_commit(lambda: self.retry(countdown=countdown))
                 return
             elif result is True:
                 result = None

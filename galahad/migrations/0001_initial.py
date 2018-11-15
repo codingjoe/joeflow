@@ -23,9 +23,6 @@ class Migration(migrations.Migration):
                 ('started', models.DateTimeField(auto_now_add=True, db_index=True)),
                 ('completed', models.DateTimeField(blank=True, db_index=True, editable=False, null=True)),
             ],
-            options={
-                'abstract': False,
-            },
         ),
         migrations.CreateModel(
             name='Task',

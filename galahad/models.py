@@ -59,18 +59,7 @@ class BaseProcess(models.base.ModelBase):
         return klass
 
 
-class AbstractProcessState(models.Model, metaclass=BaseProcess):
-    id = models.BigAutoField(primary_key=True, editable=False)
-    started = models.DateTimeField(auto_now_add=True, db_index=True)
-    completed = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
-
-    task_set = GenericRelation('galahad.Task', object_id_field='_process_id')
-
-    class Meta:
-        abstract = True
-
-
-class Process(AbstractProcessState):
+class Process(models.Model, metaclass=BaseProcess):
     """
     The `Process` object holds the state of a workflow instances.
 
@@ -80,6 +69,11 @@ class Process(AbstractProcessState):
     Processes are also the vehicle for the other two components tasks and
     :attr:`.edges`.
     """
+    id = models.BigAutoField(primary_key=True, editable=False)
+    started = models.DateTimeField(auto_now_add=True, db_index=True)
+    completed = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
+
+    task_set = GenericRelation('galahad.Task', object_id_field='_process_id')
 
     edges = None
     """
@@ -363,7 +357,7 @@ class Task(models.Model):
         self.stacktrace = "".join(tb)
         self.save(update_fields=['failed', 'exception', 'stacktrace'])
 
-    def enqueue(self, countdown=None, eta=None, retries=0):
+    def enqueue(self, countdown=None, eta=None):
         """
         Schedule the tasks for execution.
 
@@ -379,7 +373,7 @@ class Task(models.Model):
 
         """
         return celery.task_wrapper.apply_async(
-            args=(self.pk, self._process_id, retries),
+            args=(self.pk, self._process_id),
             countdown=countdown,
             eta=eta,
             queue=settings.GALAHAD_CELERY_QUEUE_NAME,
