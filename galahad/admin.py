@@ -14,7 +14,7 @@ class TaskAdmin(admin.ModelAdmin):
         if succeeded:
             messages.warning(request, "Only failed tasks can be retried. %s tasks have been skipped" % succeeded)
         counter = 0
-        for obj in queryset.filter(~queryset.is_completed).iterator():
+        for obj in queryset.not_succeeded().iterator():
             obj.enqueue()
             counter += 1
         messages.success(request, "%s tasks have been successfully queued" % counter)
@@ -37,32 +37,48 @@ class TaskAdmin(admin.ModelAdmin):
     actions = ('rerun',)
 
     list_display = (
-        'content_type',
         'node_name',
+        'status',
+        'node_type',
+        'content_type',
         'completed',
-        'failed',
+        'modified',
+        'created',
     )
 
     readonly_fields = (
         'process',
         'node_name',
+        'node_type',
         'parent_task_set',
         'child_tasks',
         'completed',
-        'failed',
+        'created',
+        'modified',
         'exception',
         'pretty_stacktrace',
     )
 
     list_filter = (
-        'completed',
-        'failed',
+        'status',
+        'node_type',
         'content_type',
+        'completed',
+        'created',
     )
 
     fieldsets = (
         (None, {
-            'fields': ('process', 'node_name', 'parent_task_set', 'child_tasks', 'completed', 'failed', 'exception')
+            'fields': (
+                'process',
+                'node_name',
+                'parent_task_set',
+                'child_tasks',
+                'completed',
+                'modified',
+                'created',
+                'exception'
+            ),
         }),
         (t('Traceback'), {
             'classes': ('collapse',),

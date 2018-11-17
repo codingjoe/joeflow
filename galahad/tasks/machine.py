@@ -101,7 +101,11 @@ class Join:
         return set(task.parent_task_set.values_list('node_name', flat=True)) == self.parents
 
     def create_task(self, process):
-        return process.task_set.get_or_create(node_name=self.node_name, completed=None, failed=None)[0]
+        return process.task_set.get_or_create(
+            node_name=self.node_name,
+            node_type=self.node_type,
+            completed=None,
+        )[0]
 
 
 class NonBlockingJoin(Join):
@@ -111,7 +115,10 @@ class NonBlockingJoin(Join):
             return tuple()
 
     def create_task(self, process):
-        return process.task_set.get_or_create(node_name=self.node_name, failed=None)[0]
+        return process.task_set.get_or_create(
+            node_name=self.node_name,
+            node_type=self.node_type,
+        )[0]
 
 
 class Wait:

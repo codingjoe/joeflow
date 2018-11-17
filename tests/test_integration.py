@@ -1,6 +1,7 @@
 """High level integration tests."""
 import sys
 import time
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -61,7 +62,8 @@ class TestSimpleProcess:
 
 class TestSplitJoinProcess:
 
-    def test_join(self, db, client):
+    @patch('galahad.celery.task_wrapper.retry')
+    def test_join(self, retry, db, client):
         url = reverse('splitjoinprocess:start')
         response = client.post(url)
         assert response.status_code == 302

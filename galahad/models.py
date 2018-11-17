@@ -1,5 +1,4 @@
 import logging
-import random
 import sys
 import traceback
 
@@ -70,8 +69,8 @@ class Process(models.Model, metaclass=BaseProcess):
     :attr:`.edges`.
     """
     id = models.BigAutoField(primary_key=True, editable=False)
-    started = models.DateTimeField(auto_now_add=True, db_index=True)
-    completed = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    modified = models.DateTimeField(auto_now=True, db_index=True)
 
     task_set = GenericRelation('galahad.Task', object_id_field='_process_id')
 
@@ -267,59 +266,111 @@ class Process(models.Model, metaclass=BaseProcess):
         graph.format = output_format
         return SafeString(graph.pipe().decode('utf-8'))
 
+    def save(self, **kwargs):
+        if self.pk:
+            try:
+                update_fields = kwargs['update_fields']
+            except KeyError:
+                pass
+            else:
+                update_fields.append('modified')
+        super().save(**kwargs)
+
 
 def process_subclasses():
     from django.apps import apps
 
     apps.check_models_ready()
     query = models.Q()
-    for app_models in apps.all_models.values():
-        for model in app_models.values():
-            if issubclass(model, Process) and model is not Process:
-                opts = model._meta
-                query |= models.Q(app_label=opts.app_label, model=opts.model_name)
+    for model in apps.get_models():
+        if issubclass(model, Process) and model is not Process:
+            opts = model._meta
+            query |= models.Q(app_label=opts.app_label, model=opts.model_name)
     return query
 
 
 class TasksQuerySet(models.query.QuerySet):
-    is_completed = models.Q(completed__isnull=False)
-    is_failed = models.Q(failed__isnull=False)
 
     def scheduled(self):
-        return self.filter(~(self.is_failed | self.is_completed))
+        return self.filter(status=self.model.SCHEDULED)
 
     def succeeded(self):
-        return self.filter(self.is_completed)
+        return self.filter(status=self.model.SUCCEEDED)
+
+    def not_succeeded(self):
+        return self.exclude(status=self.model.SUCCEEDED)
 
     def failed(self):
-        return self.filter(self.is_failed)
+        return self.filter(status=self.model.FAILED)
 
 
 class Task(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
-    _process = models.ForeignKey('galahad.Process', on_delete=models.CASCADE, db_column='process_id', editable=False)
+    _process = models.ForeignKey(
+        'galahad.Process',
+        on_delete=models.CASCADE,
+        db_column='process_id'
+        , editable=False,
+    )
     content_type = models.ForeignKey(
-        'contenttypes.ContentType', on_delete=models.CASCADE,
-        editable=False, limit_choices_to=process_subclasses,
+        'contenttypes.ContentType',
+        on_delete=models.CASCADE,
+        editable=False,
+        limit_choices_to=process_subclasses,
         related_name='galahad_task_set',
     )
     process = GenericForeignKey('content_type', '_process_id')
-    node_name = models.TextField(db_index=True, editable=False)
-    parent_task_set = models.ManyToManyField('self', related_name='child_task_set', editable=False, symmetrical=False)
 
-    assignees = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=t('assignees'), related_name='galahad_task_set')
+    node_name = models.TextField(db_index=True, editable=False)
+
+    HUMAN = 'human'
+    MACHINE = 'machine'
+    _node_type_choices = (
+        (HUMAN, t(HUMAN)),
+        (MACHINE, t(MACHINE)),
+    )
+    node_type = models.TextField(
+        choices=_node_type_choices,
+        editable=False,
+        db_index=True,
+    )
+
+    parent_task_set = models.ManyToManyField(
+        'self',
+        related_name='child_task_set',
+        editable=False,
+        symmetrical=False,
+    )
+
+    FAILED = 'failed'
+    SUCCEEDED = 'succeeded'
+    SCHEDULED = 'scheduled'
+    _status_choices = (
+        (FAILED, t(FAILED)),
+        (SUCCEEDED, t(SUCCEEDED)),
+        (SCHEDULED, t(SCHEDULED)),
+    )
+    status = models.TextField(
+        choices=_status_choices,
+        default=SCHEDULED,
+        editable=False,
+        db_index=True,
+    )
+
+    assignees = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=t('assignees'),
+        related_name='galahad_task_set',
+    )
 
     created = models.DateTimeField(auto_now_add=True, db_index=True)
+    modified = models.DateTimeField(auto_now=True, db_index=True)
     completed = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
-    failed = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
 
     exception = models.TextField(blank=True)
     stacktrace = models.TextField(blank=True)
 
     objects = TasksQuerySet.as_manager()
-
-    def __str__(self):
-        return '%s (%s)' % (self.node_name, self.pk)
 
     class Meta:
         ordering = ('-completed', '-created')
@@ -329,6 +380,21 @@ class Task(models.Model):
             ('override', t('Can override a process.')),
         )
         default_manager_name = 'objects'
+
+    def __str__(self):
+        return '%s (%s)' % (self.node_name, self.pk)
+
+    def save(self, **kwargs):
+        if self.pk:
+            try:
+                update_fields = kwargs['update_fields']
+            except KeyError as e:
+                raise ValueError(
+                    "You need to provide explicit 'update_fields' to avoid race conditions."
+                ) from e
+            else:
+                update_fields.append('modified')
+        super().save(**kwargs)
 
     def get_absolute_url(self):
         if self.completed:
@@ -345,17 +411,19 @@ class Task(models.Model):
 
     def finish(self):
         self.completed = timezone.now()
+        self.status = self.SUCCEEDED
         if self.pk:
-            self.save(update_fields=['completed'])
+            self.save(update_fields=['status', 'completed'])
         else:
             self.save()
 
     def fail(self):
-        self.failed = timezone.now()
+        self.completed = timezone.now()
+        self.status = self.FAILED
         tb = traceback.format_exception(*sys.exc_info())
         self.exception = tb[-1].strip()
         self.stacktrace = "".join(tb)
-        self.save(update_fields=['failed', 'exception', 'stacktrace'])
+        self.save(update_fields=['status', 'exception', 'stacktrace'])
 
     def enqueue(self, countdown=None, eta=None):
         """
@@ -372,12 +440,22 @@ class Task(models.Model):
             celery.result.AsyncResult: Celery task result.
 
         """
-        return celery.task_wrapper.apply_async(
+        self.status = self.SCHEDULED
+        self.completed = None
+        self.exception = ''
+        self.stacktrace = ''
+        self.save(update_fields=[
+            'status',
+            'completed',
+            'exception',
+            'stacktrace',
+        ])
+        transaction.on_commit(lambda: celery.task_wrapper.apply_async(
             args=(self.pk, self._process_id),
             countdown=countdown,
             eta=eta,
             queue=settings.GALAHAD_CELERY_QUEUE_NAME,
-        )
+        ))
 
     @transaction.atomic()
     def start_next_tasks(self, next_nodes: list = None):
@@ -400,11 +478,12 @@ class Task(models.Model):
                 # Some nodes – like Join – implement their own method to create new tasks.
                 task = node.create_task(self.process)
             except AttributeError:
-                task = self.process.task_set.create(node_name=node.node_name, completed=None, failed=None)
+                task = self.process.task_set.create(
+                    node_name=node.node_name,
+                    node_type=node.node_type,
+                )
             task.parent_task_set.add(self)
             if callable(node):
                 transaction.on_commit(task.enqueue)
             tasks.append(task)
-        else:
-            self.process.finish()
         return tasks

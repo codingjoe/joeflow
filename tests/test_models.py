@@ -1,10 +1,12 @@
+from unittest.mock import patch
+
 import pytest
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import SafeString
 from graphviz import Digraph
 
-from galahad.models import Process
+from galahad.models import Process, Task
 from galahad.tasks import StartView, HUMAN, MACHINE
 from .testapp import models
 
@@ -184,7 +186,8 @@ class TestTask:
 
     def test_start_next_tasks__default(self, db):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='start_method', completed=timezone.now())
+        task = process.task_set.create(node_name='start_method')
+        task.finish()
         tasks = task.start_next_tasks()
         assert len(tasks) == 1
         assert tasks[0].node_name == 'save_the_princess'
@@ -192,13 +195,15 @@ class TestTask:
 
     def test_start_next_tasks__specific_next_task(self, db):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='start_method', completed=timezone.now())
+        task = process.task_set.create(node_name='start_method')
+        task.finish()
         tasks = task.start_next_tasks(next_nodes=[models.SimpleProcess.end])
         assert len(tasks) == 1
         assert tasks[0].node_name == 'end'
         assert process.task_set.latest() == tasks[0]
 
-    def test_start_next_tasks__multiple_next_tasks(self, db, settings):
+    @patch('galahad.celery.task_wrapper.retry')
+    def test_start_next_tasks__multiple_next_tasks(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(node_name='split')
         tasks = task.start_next_tasks(next_nodes=[
@@ -206,7 +211,8 @@ class TestTask:
         ])
         assert len(tasks) == 2
 
-    def test_start_next_tasks__custom_task_creation(self, db, settings):
+    @patch('galahad.celery.task_wrapper.retry')
+    def test_start_next_tasks__custom_task_creation(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(node_name='batman')
         tasks = task.start_next_tasks(next_nodes=[
@@ -220,14 +226,6 @@ class TestTask:
         ])
         assert tasks[0] == join1
 
-    def test_start_next_task__finish_process(self, db):
-        process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='end', completed=timezone.now())
-        tasks = task.start_next_tasks()
-        assert not tasks
-        process.refresh_from_db()
-        assert process.completed
-
     def test_fail(self, db):
         process = models.SimpleProcess.objects.create()
         task = process.task_set.create()
@@ -236,7 +234,7 @@ class TestTask:
         except IOError:
             task.fail()
 
-        assert task.failed
+        assert task.status == task.FAILED
         assert task.exception == "OSError: nope"
         assert 'Traceback (most recent call last):\n' in task.stacktrace
         assert '    raise IOError("nope")\n' in task.stacktrace
