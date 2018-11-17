@@ -360,7 +360,16 @@ class Task(models.Model):
     assignees = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=t('assignees'),
-        related_name='galahad_task_set',
+        related_name='galahad_assignee_task_set',
+    )
+
+    completed_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=t('completed by'),
+        related_name='galahad_completed_by_task_set',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
     )
 
     created = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -409,11 +418,16 @@ class Task(models.Model):
     def node(self):
         return getattr(self.process, self.node_name)
 
-    def finish(self):
+    def finish(self, user=None):
         self.completed = timezone.now()
         self.status = self.SUCCEEDED
+        self.completed_by_user = user
         if self.pk:
-            self.save(update_fields=['status', 'completed'])
+            self.save(update_fields=[
+                'status',
+                'completed',
+                'completed_by_user'
+            ])
         else:
             self.save()
 

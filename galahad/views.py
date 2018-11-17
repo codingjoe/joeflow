@@ -56,7 +56,10 @@ class TaskViewMixin(ProcessTemplateNameViewMixin):
         response = super().post(request, *args, **kwargs)
         task = self.get_task()
         task.process = self.object
-        task.finish()
+        if request.user.is_authenticated:
+            task.finish(request.user)
+        else:
+            task.finish()
         task.start_next_tasks()
         return response
 
