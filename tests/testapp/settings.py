@@ -42,6 +42,13 @@ INSTALLED_APPS = [
     'django.forms',
 ]
 
+try:
+    import reversion
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS.append('reversion')
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

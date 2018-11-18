@@ -5,6 +5,7 @@ from celery import shared_task
 from django.apps import apps
 from django.db import transaction
 
+from galahad.contrib.reversion import with_reversion
 from . import locking
 
 logger = logging.getLogger('galahad')
@@ -34,10 +35,12 @@ def task_wrapper(self, task_pk, process_pk):
         try:
             logger.info("Executing %r", task)
             node = getattr(type(process), task.node_name)
-            if getattr(node, 'with_task', False):
-                result = node(process, task)
-            else:
-                result = node(process)
+            with_task = getattr(node, 'with_task', False)
+            kwargs = {}
+            if with_task:
+                kwargs['task'] = task
+            with with_reversion(task):
+                result = node(process, **kwargs)
         except:  # NoQA
             task.fail()
             logger.exception("Execution of %r failed", task)

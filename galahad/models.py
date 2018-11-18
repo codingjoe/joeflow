@@ -11,7 +11,7 @@ from django.utils.safestring import SafeString
 from django.utils.translation import ugettext_lazy as t
 from django.views.generic.edit import BaseCreateView
 
-from galahad import views, celery, tasks
+from galahad import views, celery, tasks, utils
 from .conf import settings
 
 logger = logging.getLogger(__name__)
@@ -282,8 +282,7 @@ def process_subclasses():
 
     apps.check_models_ready()
     query = models.Q()
-    for model in apps.get_models():
-        if issubclass(model, Process) and model is not Process:
+    for model in utils.get_processes():
             opts = model._meta
             query |= models.Q(app_label=opts.app_label, model=opts.model_name)
     return query
@@ -421,6 +420,8 @@ class Task(models.Model):
     def finish(self, user=None):
         self.completed = timezone.now()
         self.status = self.SUCCEEDED
+        if user and not user.is_authenticated:
+            user = None
         self.completed_by_user = user
         if self.pk:
             self.save(update_fields=[

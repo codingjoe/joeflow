@@ -4,22 +4,31 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as t
 
 from . import models
+from .contrib.reversion import VersionAdmin
+
+
+__all__ = (
+    'ProcessAdmin',
+)
+
+
+def rerun(modeladmin, request, queryset):
+    succeeded = queryset.succeeded().count()
+    if succeeded:
+        messages.warning(request, "Only failed tasks can be retried. %s tasks have been skipped" % succeeded)
+    counter = 0
+    for obj in queryset.not_succeeded().iterator():
+        obj.enqueue()
+        counter += 1
+    messages.success(request, "%s tasks have been successfully queued" % counter)
+
+
+rerun.short_description = t('Rerun selected tasks')
+rerun.allowed_permissions = ('rerun',)
 
 
 @admin.register(models.Task)
-class TaskAdmin(admin.ModelAdmin):
-    @staticmethod
-    def rerun(modeladmin, request, queryset):
-        succeeded = queryset.succeeded().count()
-        if succeeded:
-            messages.warning(request, "Only failed tasks can be retried. %s tasks have been skipped" % succeeded)
-        counter = 0
-        for obj in queryset.not_succeeded().iterator():
-            obj.enqueue()
-            counter += 1
-        messages.success(request, "%s tasks have been successfully queued" % counter)
-    rerun.short_description = t('Rerun tasks')
-    rerun.allowed_permissions = ('rerun',)
+class TaskAdmin(VersionAdmin):
 
     def has_rerun_permission(self, request):
         opts = self.opts
@@ -28,13 +37,15 @@ class TaskAdmin(admin.ModelAdmin):
 
     def pretty_stacktrace(self, obj):
         return format_html('<pre class="readonly collapse">{}<pre>', obj.stacktrace)
+
     pretty_stacktrace.short_description = t('Traceback')
 
     def child_tasks(self, obj):
         return ", ".join(str(task) for task in obj.child_task_set.all().iterator())
+
     child_tasks.short_description = t('Child tasks')
 
-    actions = ('rerun',)
+    actions = (rerun,)
 
     list_display = (
         'node_name',
@@ -84,4 +95,16 @@ class TaskAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': ('pretty_stacktrace',),
         }),
+    )
+
+
+class ProcessAdmin(VersionAdmin):
+    readonly_fields = (
+        'modified',
+        'created',
+    )
+
+    list_filter = (
+        'modified',
+        'created',
     )

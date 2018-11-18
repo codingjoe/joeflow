@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as t
 from django.views import generic
 
 from . import models
+from .contrib.reversion import RevisionMixin
 
 
 class ProcessTemplateNameViewMixin:
@@ -27,7 +28,7 @@ class ProcessTemplateNameViewMixin:
         return names
 
 
-class TaskViewMixin(ProcessTemplateNameViewMixin):
+class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
     node_name = None
 
     def __init__(self, **kwargs):
@@ -56,10 +57,7 @@ class TaskViewMixin(ProcessTemplateNameViewMixin):
         response = super().post(request, *args, **kwargs)
         task = self.get_task()
         task.process = self.object
-        if request.user.is_authenticated:
-            task.finish(request.user)
-        else:
-            task.finish()
+        task.finish(request.user)
         task.start_next_tasks()
         return response
 
@@ -68,7 +66,7 @@ class ProcessDetailView(ProcessTemplateNameViewMixin, generic.DetailView):
     pass
 
 
-class ManualOverrideView(PermissionRequiredMixin, ProcessTemplateNameViewMixin, generic.UpdateView):
+class ManualOverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameViewMixin, generic.UpdateView):
     permission_required = 'override'
     node_name = 'manual_override'
     fields = '__all__'

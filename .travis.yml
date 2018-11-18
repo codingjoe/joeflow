@@ -20,6 +20,7 @@ env:
   - DJANGO=21
   - DJANGO=master
   - TOXENV=docs
+  - TOXENV=reversion
 matrix:
   fast_finish: true
   allow_failures:
@@ -29,6 +30,10 @@ matrix:
     env: TOXENV=docs
   - python: "3.7"
     env: TOXENV=docs
+  - python: "3.5"
+    env: TOXENV=reversion
+  - python: "3.6"
+    env: TOXENV=reversion
 before_script:
 - |
   if [[ -z $TOXENV ]]; then
