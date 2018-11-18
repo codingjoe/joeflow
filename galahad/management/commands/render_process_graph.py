@@ -13,6 +13,7 @@ class Command(BaseCommand):
             'model',
             nargs='*',
             type=str,
+            help="List of models to render in the form app_label.model_name"
         )
         parser.add_argument(
             '-f', '--format',
