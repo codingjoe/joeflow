@@ -1,13 +1,19 @@
 from django.apps import apps
 from django.core.management import BaseCommand
 
+from galahad import utils
 from galahad.models import Process
 
 
 class Command(BaseCommand):
-    help = "Render graphs for all processes as SVG files to the working directory"
+    help = "Render process graph to file."
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            'model',
+            nargs='*',
+            type=str,
+        )
         parser.add_argument(
             '-f', '--format',
             dest='format', type=str,
@@ -28,12 +34,18 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        models = options['model']
         verbosity = options['verbosity']
         file_format = options['format']
         cleanup = options['cleanup']
         directory = options.get('directory', None)
 
-        for model in apps.get_models():
+        models = [
+            apps.get_model(s)
+            for s in models
+        ] or utils.get_processes()
+
+        for model in models:
             if issubclass(model, Process) and model != Process:
                 opt = model._meta
                 if verbosity > 0:
@@ -47,3 +59,5 @@ class Command(BaseCommand):
                 graph.render(filename=filename, directory=directory, cleanup=cleanup)
                 if verbosity > 0:
                     self.stdout.write("Done!", self.style.SUCCESS)
+            else:
+                self.stderr.write("%r is not a Process subclass" % model, self.style.WARNING)
