@@ -2,7 +2,7 @@ import types
 
 
 def get_processes() -> types.GeneratorType:
-    """Return all processes"""
+    """Return all registered processes."""
     from django.apps import apps
     from .models import Process
 
