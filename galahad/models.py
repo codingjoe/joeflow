@@ -68,6 +68,7 @@ class Process(models.Model, metaclass=BaseProcess):
     Processes are also the vehicle for the other two components tasks and
     :attr:`.edges`.
     """
+
     id = models.BigAutoField(primary_key=True, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
@@ -109,9 +110,7 @@ class Process(models.Model, metaclass=BaseProcess):
         """
         Return all URLs to process related task and other special views.
 
-        Examples:
-
-        .. code-block:: python
+        Example::
 
             from django.urls import path, include
 

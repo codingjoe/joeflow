@@ -19,6 +19,7 @@ class StartView(TaskViewMixin, generic.CreateView):
     Similar to Django's :class:`CreateView<django.views.generic.edit.CreateView>`
     but does not only create the process but also completes a tasks.
     """
+
     pass
 
 
@@ -29,4 +30,5 @@ class UpdateView(TaskViewMixin, generic.UpdateView):
     Similar to Django's :class:`UpdateView<django.views.generic.edit.UpdateView>`
     but does not only update the process but also completes a tasks.
     """
+
     pass
