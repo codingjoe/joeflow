@@ -13,7 +13,7 @@ logger = logging.getLogger('galahad')
 
 def jitter():
     """Return a random number between 0 and 1."""
-    return random.randrange(2)
+    return random.randrange(2)  # nosec
 
 
 def backoff(retries):

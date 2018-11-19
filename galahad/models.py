@@ -213,7 +213,7 @@ class Process(models.Model, metaclass=BaseProcess):
         """
         graph = cls.get_graph()
         graph.format = 'svg'
-        return SafeString(graph.pipe().decode('utf-8'))
+        return SafeString(graph.pipe().decode('utf-8'))  # nosec
 
     def get_instance_graph(self):
         """Return process instance graph."""
@@ -264,7 +264,7 @@ class Process(models.Model, metaclass=BaseProcess):
         """
         graph = self.get_instance_graph()
         graph.format = output_format
-        return SafeString(graph.pipe().decode('utf-8'))
+        return SafeString(graph.pipe().decode('utf-8'))  # nosec
 
     def save(self, **kwargs):
         if self.pk:
