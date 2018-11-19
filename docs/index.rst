@@ -1,11 +1,46 @@
 =======
-Galahad
+galahad
 =======
 
 **The lean workflow automation framework for machines with heart.**
 
+.. image:: img/pexels-photo-1020325.jpeg
+   :alt: a hand drawn robot
+
 Galahad is a free workflow automation framework designed to bring simplicity
-to complex workflows.
+to complex workflows. Galahad written in Python_ based on the world famous
+Django_ web framework.
+
+.. _Python: https://python.org
+.. _Django: https://www.djangoproject.com/
+
+Here is a little sample of what a process written wis galahad may look like::
+
+    class WelcomeProcess(Process):
+        user = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            blank=True, null=True,
+        )
+
+        start = tasks.StartView(fields=['user'])
+
+        def has_user(self, task):
+            if self.user_id is None:
+                return []
+            else:
+                return [self.send_welcome_email]
+
+        def send_welcome_email(self, task):
+            self.user.email_user(
+                subject='Welcome',
+                message='Hello %s!' % self.user.get_short_name(),
+            )
+
+        edges = (
+            (start, has_user),
+            (has_user, send_welcome_email),
+        )
 
 Design Principles
 =================
@@ -38,6 +73,12 @@ Galahad is build with all users in mind. Managers should be able to develop
 better processes. Users should able to interact with the tasks every single
 day. And developers should be able to rapidly develop and test new features.
 
+Free
+----
+
+Galahad is open source and collaboratively developed by industry leaders in
+automation and digital innovation.
+
 All Contents
 ============
 
@@ -51,3 +92,5 @@ All Contents
    tasks
    settings
    *
+
+*Photo by rawpixel.com from Pexels*

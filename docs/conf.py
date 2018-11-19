@@ -60,6 +60,7 @@ def linkcode_resolve(domain, info):
 
 # The master toctree document.
 master_doc = 'index'
+project = 'Galahad'
 
 html_theme = 'alabaster'
 

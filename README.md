@@ -1,24 +1,59 @@
-# Galahad
+galahad
+=======
 
 **The lean workflow automation framework for machines with heart.**
 
+![a hand drawn robot](docs/img/pexels-photo-1020325.jpeg)
+
 Galahad is a free workflow automation framework designed to bring simplicity
-to complex workflows.
+to complex workflows. Galahad written in [Python][python] based on the world famous
+[Django][django] web framework.
 
+[python]: https://python.org
+[django]: https://www.djangoproject.com/
 
-## Design
+Here is a little sample of what a process written wis galahad may look like::
 
-### Principles 
+    class WelcomeProcess(Process):
+        user = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            blank=True, null=True,
+        )
 
-#### Common sense is better than convention
+        start = tasks.StartView(fields=['user'])
 
-Galahad does not follow any academic modeling notation developed by a poor Phd
+        def has_user(self, task):
+            if self.user_id is None:
+                return []
+            else:
+                return [self.send_welcome_email]
+
+        def send_welcome_email(self, task):
+            self.user.email_user(
+                subject='Welcome',
+                message='Hello %s!' % self.user.get_short_name(),
+            )
+
+        edges = (
+            (start, has_user),
+            (has_user, send_welcome_email),
+        )
+
+Design Principles
+=================
+
+Common sense is better than convention
+--------------------------------------
+
+Galahad does not follow any academic modeling notation developed by a poor PhD
 student who actually never worked a day in their life. Businesses are already
 complex which is why Galahad is rather simple. There are only two types of
 tasks – human & machine – as well as edges to connect them. It's so simple a
 toddler (or your CEO) could design a workflow.
 
-#### Lean Automation (breaking the rules)
+Lean Automation (breaking the rules)
+------------------------------------
 
 Things don't always go according to plan especially when humans are involved.
 Even the best workflow can't cover all possible edge cases. Galahad
@@ -29,42 +64,17 @@ This allows you businesses to ship prototypes and MVPs of workflows.
 Improvements can be shipped in multiple iterations without disrupting the
 business.
 
-#### People
+People
+------
 
 Galahad is build with all users in mind. Managers should be able to develop
 better processes. Users should able to interact with the tasks every single
 day. And developers should be able to rapidly develop and test new features.
 
-## Core Components
+Free
+----
 
-### Process
+Galahad is open source and collaboratively developed by industry leaders in
+automation and digital innovation.
 
-The `Process` object holds the state of a workflow instances. It is represented
-by a Django Model. This way all process states are persisted in your database.
-
-Processes are also the vehicle for the other two components `Tasks` and
-`edges`.
-
-### Task
-
-A task defines the behavior or a process. It can be considered as a simple
-transaction that changes state of a process. There are two types of tasks,
-human and machine tasks.
-
-Human tasks are represented by Django `View`s. A user can change the processes
-state via a Django form or a JSON API. 
-
-Machine tasks are represented by simple methods on the `Process` class. They
-can change the state and perform any action you can think of. They can decide
-which task to execute next (exclusive gateway) but also start or wait for multiple
-other tasks (split/join gateways).
-
-Furthermore tasks can implement things like sending emails or fetching data
-from an 3rd party API. All tasks are executed asynchronously to avoid blocking
-IO and locked to prevent raise conditions.
-
-### Edges
-
-Edges are the glue that binds tasks together. They define the transitions
-between tasks. They are represented by a simple list of tuples. Edges have no
-behavior but define the structure of a workflow.
+*Photo by rawpixel.com from Pexels*
