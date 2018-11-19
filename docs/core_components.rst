@@ -36,8 +36,8 @@ Edges are the glue that binds tasks together. They define the transitions
 between tasks. They are represented by a simple list of tuples. Edges have no
 behavior but define the structure of a workflow.
 
-Component API
--------------
+Advanced Process API
+--------------------
 
 .. autoclass:: galahad.models.Process
     :show-inheritance:

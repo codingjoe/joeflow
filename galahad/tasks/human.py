@@ -1,3 +1,4 @@
+"""Set of reusable human tasks."""
 from django.views import generic
 
 from galahad.views import TaskViewMixin

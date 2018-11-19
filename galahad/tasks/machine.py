@@ -1,3 +1,4 @@
+"""Set of reusable machine tasks."""
 from typing import Iterable
 from django.utils import timezone
 
