@@ -109,19 +109,6 @@ class Join:
         )[0]
 
 
-class NonBlockingJoin(Join):
-
-    def __call__(self, process, task):
-        if task.child_task_set.exists():
-            return tuple()
-
-    def create_task(self, process):
-        return process.task_set.get_or_create(
-            node_name=self.node_name,
-            node_type=self.node_type,
-        )[0]
-
-
 class Wait:
     """
     Wait for a certain amount of time and then continue with the next tasks.
