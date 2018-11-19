@@ -45,11 +45,11 @@ Return values
 Machine tasks have three different allowed return values all of which will
 cause the process to behave differently:
 
-``None``:
+:class:`None`:
     If a task returns ``None`` or anything at all the process will just
     proceed as planed and follow all outgoing edges and execute the nexttasks.
 
-``Iterable``:
+:class:`Iterable`:
     A task can return also an explicit list of tasks that should be executed
     next. This can be used to create exclusive gateways::
 
@@ -84,7 +84,10 @@ cause the process to behave differently:
     A task can also return am empty list. This will cause the process branch
     to come to a halt and no further stats will be started.
 
-``False``:
+    .. warning::
+        A task can not be a generator (*yield* results).
+
+:class:`False`:
     A task can also return a boolean. Should a task return ``False`` the
     process will wait until the condition changes to ``True`` (or anything but
     ``False``)::
