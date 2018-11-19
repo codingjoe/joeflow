@@ -1,6 +1,6 @@
 # Galahad
 
-**The workflow automation framework for machines with heart.**
+**The lean workflow automation framework for machines with heart.**
 
 Galahad is a free workflow automation framework designed to bring simplicity
 to complex workflows.
