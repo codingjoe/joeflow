@@ -1,6 +1,8 @@
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import SafeString
@@ -181,6 +183,86 @@ class TestProcess:
         svg = process.get_instance_graph_svg()
         assert isinstance(svg, SafeString)
 
+    def test_cancel(self, db):
+        process = models.SimpleProcess.objects.create()
+        process.task_set.create()
+        assert process.task_set.scheduled().exists()
+        process.cancel()
+        assert not process.task_set.scheduled().exists()
+        assert process.task_set.latest().completed_by_user is None
+        assert process.task_set.latest().completed
+
+    def test_cancel__with_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        process.task_set.create()
+        user = get_user_model().objects.create(
+            email='spiderman@avengers.com',
+            first_name='Peter',
+            last_name='Parker',
+            username='spidy',
+        )
+        process.cancel(user=user)
+        assert process.task_set.latest().completed_by_user == user
+
+    def test_cancel__with_anonymous_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        process.task_set.create()
+        user = AnonymousUser()
+        process.cancel(user=user)
+        assert process.task_set.latest().completed_by_user is None
+
+
+class TestTaskQuerySet:
+
+    def test_scheduled(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        process.task_set.create(status=Task.CANCELED)
+        assert process.task_set.scheduled().get() == task
+
+    def test_succeeded(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create(status=Task.SUCCEEDED)
+        process.task_set.create(status=Task.CANCELED)
+        assert process.task_set.succeeded().get() == task
+
+    def test_not_succeeded(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        process.task_set.create(status=Task.SUCCEEDED)
+        assert process.task_set.not_succeeded().get() == task
+
+    def test_failed(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create(status=Task.FAILED)
+        process.task_set.create(status=Task.CANCELED)
+        assert process.task_set.failed().get() == task
+
+    def test_canceled(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create(status=Task.CANCELED)
+        process.task_set.create()
+        assert process.task_set.canceled().get() == task
+
+    def test_cancel__with_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        process.task_set.create()
+        user = get_user_model().objects.create(
+            email='spiderman@avengers.com',
+            first_name='Peter',
+            last_name='Parker',
+            username='spidy',
+        )
+        process.task_set.cancel(user=user)
+        assert process.task_set.latest().completed_by_user == user
+
+    def test_cancel__with_anonymous_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        process.task_set.create()
+        user = AnonymousUser()
+        process.task_set.cancel(user=user)
+        assert process.task_set.latest().completed_by_user is None
+
 
 class TestTask:
 
@@ -239,3 +321,45 @@ class TestTask:
         assert 'Traceback (most recent call last):\n' in task.stacktrace
         assert '    raise IOError("nope")\n' in task.stacktrace
         assert 'OSError: nope\n' in task.stacktrace
+
+    def test_cancel(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        task.cancel()
+        assert task.status == task.CANCELED
+        assert task.completed_by_user is None
+        assert task.completed
+
+    def test_cancel__with_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        user = get_user_model().objects.create(
+            email='spiderman@avengers.com',
+            first_name='Peter',
+            last_name='Parker',
+            username='spidy',
+        )
+        task.cancel(user=user)
+        assert task.completed_by_user == user
+
+    def test_cancel__with_anonymous_user(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        user = AnonymousUser()
+        task.cancel(user=user)
+        assert task.completed_by_user is None
+
+    def test_save__modified_date(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        modified_date = task.modified
+        task.save(update_fields=[])
+        task.refresh_from_db()
+        assert task.modified > modified_date
+
+    def test_save__no_update_fields(self, db):
+        process = models.SimpleProcess.objects.create()
+        task = process.task_set.create()
+        with pytest.raises(ValueError) as e:
+            task.save()
+        assert "You need to provide explicit 'update_fields' to avoid race conditions." in str(e)

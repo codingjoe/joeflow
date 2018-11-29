@@ -153,10 +153,6 @@ class Process(models.Model, metaclass=BaseProcess):
             if start.node_name == prev_node.node_name:
                 yield end
 
-    def finish(self):
-        self.completed = timezone.now()
-        self.save(update_fields=['completed'])
-
     @classmethod
     def get_url_namespace(cls):
         return cls.__name__.lower()
@@ -296,6 +292,9 @@ class TasksQuerySet(models.query.QuerySet):
 
     def scheduled(self):
         return self.filter(status=self.model.SCHEDULED)
+
+    def not_scheduled(self):
+        return self.exclude(status=self.model.SCHEDULED)
 
     def succeeded(self):
         return self.filter(status=self.model.SUCCEEDED)
@@ -496,6 +495,7 @@ class Task(models.Model):
             'exception',
             'stacktrace',
         ])
+        print(self.status)
         transaction.on_commit(lambda: celery.task_wrapper.apply_async(
             args=(self.pk, self._process_id),
             countdown=countdown,

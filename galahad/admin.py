@@ -28,11 +28,11 @@ rerun.allowed_permissions = ('rerun',)
 
 
 def cancel(modeladmin, request, queryset):
-    succeeded = queryset.succeeded().count()
-    if succeeded:
-        messages.warning(request, "Only failed tasks can be retried. %s tasks have been skipped" % succeeded)
-    queryset.not_succeeded().cancel(request.user)
-    messages.success(request, "Tasks have been successfully queued")
+    not_scheduled = queryset.not_scheduled().count()
+    if not_scheduled:
+        messages.warning(request, "Only scheduled tasks can be canceled. %s tasks have been skipped" % not_scheduled)
+    queryset.scheduled().cancel(request.user)
+    messages.success(request, "Tasks have been successfully canceled")
 
 
 cancel.short_description = t('Cancel selected tasks')
@@ -47,6 +47,11 @@ class TaskAdmin(VersionAdmin):
         codename = get_permission_codename('rerun', opts)
         return request.user.has_perm('%s.%s' % (opts.app_label, codename))
 
+    def has_cancel_permission(self, request):
+        opts = self.opts
+        codename = get_permission_codename('cancel', opts)
+        return request.user.has_perm('%s.%s' % (opts.app_label, codename))
+
     def pretty_stacktrace(self, obj):
         return format_html('<pre class="readonly collapse">{}<pre>', obj.stacktrace)
 
@@ -57,7 +62,7 @@ class TaskAdmin(VersionAdmin):
 
     child_tasks.short_description = t('Child tasks')
 
-    actions = (rerun,)
+    actions = (rerun, cancel)
 
     list_display = (
         'node_name',

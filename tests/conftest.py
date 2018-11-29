@@ -9,6 +9,7 @@ import pytest
 def testdir():
     return pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
+
 @pytest.fixture()
 def fixturedir(testdir):
     return testdir / 'fixtures'
@@ -18,6 +19,14 @@ def fixturedir(testdir):
 def instant_commit(monkeypatch):
     def on_commit(f):
         f()
+
+    monkeypatch.setattr('django.db.transaction.on_commit', on_commit)
+
+
+@pytest.fixture()
+def no_on_commit(instant_commit, monkeypatch):
+    def on_commit(f):
+        pass
 
     monkeypatch.setattr('django.db.transaction.on_commit', on_commit)
 
