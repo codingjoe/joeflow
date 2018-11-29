@@ -14,7 +14,7 @@ Django_ web framework.
 .. _Python: https://python.org
 .. _Django: https://www.djangoproject.com/
 
-Here is a little sample of what a process written wis galahad may look like::
+Here is a little sample of what a process written with galahad may look like::
 
     class WelcomeProcess(Process):
         user = models.ForeignKey(

@@ -47,7 +47,8 @@ cause the process to behave differently:
 
 :class:`None`:
     If a task returns ``None`` or anything at all the process will just
-    proceed as planed and follow all outgoing edges and execute the nexttasks.
+    proceed as planed and follow all outgoing edges and execute the next
+    tasks.
 
 :class:`Iterable`:
     A task can return also an explicit list of tasks that should be executed

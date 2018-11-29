@@ -1,5 +1,7 @@
+boolean
 Django
 jitter
+mixins
 namespace
 Redis
 tuple
