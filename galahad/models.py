@@ -5,6 +5,7 @@ import traceback
 import graphviz as gv
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.db import models, transaction
+from django.db.models.functions import Now
 from django.urls import path, reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.safestring import SafeString
@@ -89,6 +90,7 @@ class Process(models.Model, metaclass=BaseProcess):
     """
 
     manual_override = views.ManualOverrideView
+    detail_view = views.ProcessDetailView
 
     @classmethod
     def _wrap_view_instance(cls, name, view_instance):
@@ -134,9 +136,9 @@ class Process(models.Model, metaclass=BaseProcess):
                     route = '{name}/<pk>/'.format(name=name)
                 urls.append(path(route, cls._wrap_view_instance(name, node), name=name))
         urls.extend((
-            path('<pk>/', views.ProcessDetailView.as_view(model=cls),
+            path('<pk>/', cls.detail_view.as_view(model=cls),
                  name='detail'),
-            path('<pk>/override', views.ManualOverrideView.as_view(model=cls), name='override'),
+            path('<pk>/override', cls.manual_override.as_view(model=cls), name='override'),
         ))
         return urls, cls.get_url_namespace()
 
@@ -275,6 +277,9 @@ class Process(models.Model, metaclass=BaseProcess):
                 update_fields.append('modified')
         super().save(**kwargs)
 
+    def cancel(self, user=None):
+        self.task_set.cancel(user)
+
 
 def process_subclasses():
     from django.apps import apps
@@ -300,6 +305,18 @@ class TasksQuerySet(models.query.QuerySet):
 
     def failed(self):
         return self.filter(status=self.model.FAILED)
+
+    def canceled(self):
+        return self.filter(status=self.model.CANCELED)
+
+    def cancel(self, user=None):
+        if user and not user.is_authenticated:
+            user = None
+        return self.update(
+            status=self.model.CANCELED,
+            completed_by_user=user,
+            completed=Now(),
+        )
 
 
 class Task(models.Model):
@@ -343,10 +360,12 @@ class Task(models.Model):
     FAILED = 'failed'
     SUCCEEDED = 'succeeded'
     SCHEDULED = 'scheduled'
+    CANCELED = 'canceled'
     _status_choices = (
         (FAILED, t(FAILED)),
         (SUCCEEDED, t(SUCCEEDED)),
         (SCHEDULED, t(SCHEDULED)),
+        (CANCELED, t(CANCELED)),
     )
     status = models.TextField(
         choices=_status_choices,
@@ -384,6 +403,7 @@ class Task(models.Model):
         get_latest_by = ('created',)
         permissions = (
             ('rerun', t('Can rerun failed tasks.')),
+            ('cancel', t('Can cancel failed tasks.')),
             ('override', t('Can override a process.')),
         )
         default_manager_name = 'objects'
@@ -430,6 +450,18 @@ class Task(models.Model):
             ])
         else:
             self.save()
+
+    def cancel(self, user=None):
+        self.completed = timezone.now()
+        self.status = self.CANCELED
+        if user and not user.is_authenticated:
+            user = None
+        self.completed_by_user = user
+        self.save(update_fields=[
+            'status',
+            'completed',
+            'completed_by_user'
+        ])
 
     def fail(self):
         self.completed = timezone.now()

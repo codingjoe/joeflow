@@ -27,6 +27,18 @@ rerun.short_description = t('Rerun selected tasks')
 rerun.allowed_permissions = ('rerun',)
 
 
+def cancel(modeladmin, request, queryset):
+    succeeded = queryset.succeeded().count()
+    if succeeded:
+        messages.warning(request, "Only failed tasks can be retried. %s tasks have been skipped" % succeeded)
+    queryset.not_succeeded().cancel(request.user)
+    messages.success(request, "Tasks have been successfully queued")
+
+
+cancel.short_description = t('Cancel selected tasks')
+cancel.allowed_permissions = ('cancel',)
+
+
 @admin.register(models.Task)
 class TaskAdmin(VersionAdmin):
 
