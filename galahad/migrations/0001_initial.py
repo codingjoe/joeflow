@@ -23,6 +23,9 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
                 ('modified', models.DateTimeField(auto_now=True, db_index=True)),
             ],
+            options={
+                'permissions': (('override', 'Can override a process.'),),
+            },
         ),
         migrations.CreateModel(
             name='Task',
@@ -44,7 +47,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'get_latest_by': ('created',),
-                'permissions': (('rerun', 'Can rerun failed tasks.'), ('cancel', 'Can cancel failed tasks.'), ('override', 'Can override a process.')),
+                'permissions': (('rerun', 'Can rerun failed tasks.'), ('cancel', 'Can cancel failed tasks.')),
                 'ordering': ('-completed', '-created'),
                 'default_manager_name': 'objects',
             },

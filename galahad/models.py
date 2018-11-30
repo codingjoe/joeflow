@@ -76,6 +76,11 @@ class Process(models.Model, metaclass=BaseProcess):
 
     task_set = GenericRelation('galahad.Task', object_id_field='_process_id')
 
+    class Meta:
+        permissions = (
+            ('override', t('Can override a process.')),
+        )
+
     edges = None
     """
     Edges define the transitions between tasks.
@@ -403,7 +408,6 @@ class Task(models.Model):
         permissions = (
             ('rerun', t('Can rerun failed tasks.')),
             ('cancel', t('Can cancel failed tasks.')),
-            ('override', t('Can override a process.')),
         )
         default_manager_name = 'objects'
 
