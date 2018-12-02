@@ -26,13 +26,24 @@ __all__ = (
 class NoDashDiGraph(gv.Digraph):
     """Like `.graphviz.Digraph` but removes underscores from labels."""
 
+    def __init__(self, *args, **kwargs):
+        self._edges = []
+        super().__init__(*args, **kwargs)
+
+    def edge(self, tail_name, head_name, label=None, _attributes=None, **attrs):
+        if not (tail_name, head_name) in self._edges:
+            self._edges.append((tail_name, head_name))
+            super().edge(tail_name, head_name, label=label, _attributes=_attributes, **attrs)
+
     @staticmethod
     def _quote(identifier, *args, **kwargs):
+        """Remove underscores from labels."""
         identifier = identifier.replace('_', ' ')
         return gv.lang.quote(identifier, *args, **kwargs)
 
     @staticmethod
     def _quote_edge(identifier):
+        """Remove underscores from labels."""
         identifier = identifier.replace('_', ' ')
         return gv.lang.quote_edge(identifier)
 
@@ -219,18 +230,19 @@ class Process(models.Model, metaclass=BaseProcess):
 
     def get_instance_graph(self):
         """Return process instance graph."""
-        graph = self.get_graph(color='#666666')
+        graph = self.get_graph(color='#888888')
 
-        for task in self.task_set.exclude(node_name='manual_override'):
-            node = task.node
+        node_names = dict(self.get_nodes()).keys()
+
+        for task in self.task_set.filter(node_name__in=node_names):
             href = task.get_absolute_url()
             style = 'filled'
 
-            if node.node_type == tasks.HUMAN:
+            if task.node_type == tasks.HUMAN:
                 style += ', rounded'
             if not task.completed:
                 style += ', bold'
-            graph.node(node.node_name, href=href, style=style, color='black', fontcolor='black')
+            graph.node(task.node_name, href=href, style=style, color='black', fontcolor='black')
 
         for task in self.task_set.filter(node_name='manual_override').prefetch_related(
             'parent_task_set', 'child_task_set'
@@ -241,6 +253,18 @@ class Process(models.Model, metaclass=BaseProcess):
                 graph.edge(parent.node_name, 'manual_override_%s' % task.pk, style='dashed')
             for child in task.child_task_set.all():
                 graph.edge('manual_override_%s' % task.pk, child.node_name, style='dashed')
+
+        for task in self.task_set.exclude(node_name__in=node_names).exclude(node_name='manual_override'):
+            style = 'filled, dashed'
+            if task.node_type == tasks.HUMAN:
+                style += ', rounded'
+            if not task.completed:
+                style += ', bold'
+            graph.node(task.node_name, style=style, color='black', fontcolor='black')
+            for parent in task.parent_task_set.all():
+                graph.edge(parent.node_name, task.node_name, style='dashed')
+            for child in task.child_task_set.all():
+                graph.edge(task.node_name, child.node_name, style='dashed')
 
         return graph
 
@@ -499,7 +523,6 @@ class Task(models.Model):
             'exception',
             'stacktrace',
         ])
-        print(self.status)
         transaction.on_commit(lambda: celery.task_wrapper.apply_async(
             args=(self.pk, self._process_id),
             countdown=countdown,
