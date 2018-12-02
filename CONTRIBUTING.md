@@ -34,4 +34,4 @@ We follow [semantic versioning](https://semver.org/). To release a new version
 simply [create a new GitHub release][create-release], specify the version and
 add the changelog into the release description.
 
-[create-release]: https://github.com/codingjoe/galahad/releases/new
+[create-release]: https://github.com/codingjoe/joeflow/releases/new

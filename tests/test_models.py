@@ -7,8 +7,8 @@ from django.urls import reverse
 from django.utils.safestring import SafeString
 from graphviz import Digraph
 
-from galahad.models import Process, Task
-from galahad.tasks import StartView, HUMAN, MACHINE
+from joeflow.models import Process, Task
+from joeflow.tasks import StartView, HUMAN, MACHINE
 from .testapp import models
 
 
@@ -338,7 +338,7 @@ class TestTask:
         assert tasks[0].name == 'end'
         assert process.task_set.latest() == tasks[0]
 
-    @patch('galahad.celery.task_wrapper.retry')
+    @patch('joeflow.celery.task_wrapper.retry')
     def test_start_next_tasks__multiple_next_tasks(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(name='split')
@@ -347,7 +347,7 @@ class TestTask:
         ])
         assert len(tasks) == 2
 
-    @patch('galahad.celery.task_wrapper.retry')
+    @patch('joeflow.celery.task_wrapper.retry')
     def test_start_next_tasks__custom_task_creation(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(name='batman')

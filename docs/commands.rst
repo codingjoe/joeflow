@@ -2,7 +2,7 @@
 Management Commands
 ===================
 
-.. automodule:: galahad.management.commands
+.. automodule:: joeflow.management.commands
 
 render_process_graph
 --------------------

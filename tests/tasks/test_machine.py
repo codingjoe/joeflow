@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from galahad import tasks
-from galahad.models import Task
+from joeflow import tasks
+from joeflow.models import Task
 from tests.testapp import models
 
 

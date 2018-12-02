@@ -62,7 +62,7 @@ class TestSimpleProcess:
 
 class TestSplitJoinProcess:
 
-    @patch('galahad.celery.task_wrapper.retry')
+    @patch('joeflow.celery.task_wrapper.retry')
     def test_join(self, retry, db, client):
         url = reverse('splitjoinprocess:start')
         response = client.post(url)
@@ -87,13 +87,13 @@ class TestLoopProcess:
 class TestTaskAdmin:
     def test_changelist(self, db, admin_client):
         models.SimpleProcess.start_method()
-        url = reverse('admin:galahad_task_changelist')
+        url = reverse('admin:joeflow_task_changelist')
         response = admin_client.get(url)
         assert response.status_code == 200
 
     def test_change(self, db, admin_client):
         process = models.SimpleProcess.start_method()
         task = process.task_set.last()
-        url = reverse('admin:galahad_task_change', args=[task.pk])
+        url = reverse('admin:joeflow_task_change', args=[task.pk])
         response = admin_client.get(url)
         assert response.status_code == 200

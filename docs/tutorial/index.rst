@@ -12,9 +12,9 @@ the PyPi package…
 
 .. code:: shell
 
-    pip install galahad[reversion]
+    pip install joeflow[reversion]
 
-…and add ``galahad`` to the ``INSTALLED_APP`` setting. You will also need to have
+…and add ``joeflow`` to the ``INSTALLED_APP`` setting. You will also need to have
 celery setup.
 
 .. seealso::

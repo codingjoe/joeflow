@@ -1,18 +1,18 @@
-galahad
+joeflow
 =======
 
 **The lean workflow automation framework for machines with heart.**
 
 ![a hand drawn robot](docs/img/pexels-photo-1020325.jpeg)
 
-Galahad is a free workflow automation framework designed to bring simplicity
-to complex workflows. Galahad written in [Python][python] based on the world famous
+Joeflow is a free workflow automation framework designed to bring simplicity
+to complex workflows. Joeflow written in [Python][python] based on the world famous
 [Django][django] web framework.
 
 [python]: https://python.org
 [django]: https://www.djangoproject.com/
 
-Here is a little sample of what a process written wis galahad may look like::
+Here is a little sample of what a process written wis joeflow may look like::
 
     class WelcomeProcess(Process):
         user = models.ForeignKey(
@@ -46,9 +46,9 @@ Design Principles
 Common sense is better than convention
 --------------------------------------
 
-Galahad does not follow any academic modeling notation developed by a poor PhD
+Joeflow does not follow any academic modeling notation developed by a poor PhD
 student who actually never worked a day in their life. Businesses are already
-complex which is why Galahad is rather simple. There are only two types of
+complex which is why Joeflow is rather simple. There are only two types of
 tasks – human & machine – as well as edges to connect them. It's so simple a
 toddler (or your CEO) could design a workflow.
 
@@ -56,7 +56,7 @@ Lean Automation (breaking the rules)
 ------------------------------------
 
 Things don't always go according to plan especially when humans are involved.
-Even the best workflow can't cover all possible edge cases. Galahad
+Even the best workflow can't cover all possible edge cases. Joeflow
 embraces that fact. It allows uses to interrupt a process at any given point
 and modify it's current state. All while tracking all changes. This allows
 developers to automate the main cases and users handle manually exceptions.
@@ -67,14 +67,14 @@ business.
 People
 ------
 
-Galahad is build with all users in mind. Managers should be able to develop
+Joeflow is build with all users in mind. Managers should be able to develop
 better processes. Users should able to interact with the tasks every single
 day. And developers should be able to rapidly develop and test new features.
 
 Free
 ----
 
-Galahad is open source and collaboratively developed by industry leaders in
+Joeflow is open source and collaboratively developed by industry leaders in
 automation and digital innovation.
 
 *Photo by rawpixel.com from Pexels*

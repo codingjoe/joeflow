@@ -1,6 +1,6 @@
 import pytest
 
-from galahad import locking
+from joeflow import locking
 
 
 def raise_inside_lock_context(process_pk):

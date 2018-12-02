@@ -37,7 +37,7 @@ def fake_lock(monkeypatch):
     def _fake_lock(key):
         yield True
 
-    monkeypatch.setattr('galahad.locking.lock', _fake_lock)
+    monkeypatch.setattr('joeflow.locking.lock', _fake_lock)
 
 
 @pytest.fixture(autouse=True)

@@ -11,57 +11,57 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('galahad', '0001_initial'),
+        ('joeflow', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='GatewayProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
             ],
-            bases=('galahad.process',),
+            bases=('joeflow.process',),
         ),
         migrations.CreateModel(
             name='LoopProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
                 ('counter', models.PositiveIntegerField(default=0)),
             ],
-            bases=('galahad.process',),
+            bases=('joeflow.process',),
         ),
         migrations.CreateModel(
             name='SimpleProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
             ],
-            bases=('galahad.process',),
+            bases=('joeflow.process',),
         ),
         migrations.CreateModel(
             name='SplitJoinProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
                 ('parallel_task_value', models.PositiveIntegerField(default=0)),
             ],
-            bases=('galahad.process',),
+            bases=('joeflow.process',),
         ),
         migrations.CreateModel(
             name='WaitProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
                 ('parallel_task_value', models.PositiveIntegerField(default=0)),
             ],
-            bases=('galahad.process',),
+            bases=('joeflow.process',),
         ),
         migrations.CreateModel(
             name='WelcomeProcess',
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='galahad.Process')),
+                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
             },
-            bases=('galahad.process', models.Model),
+            bases=('joeflow.process', models.Model),
         ),
     ]

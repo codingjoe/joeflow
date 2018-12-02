@@ -3,8 +3,8 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import models
 
-from galahad import tasks
-from galahad.models import Process
+from joeflow import tasks
+from joeflow.models import Process
 from tests.testapp import views
 
 

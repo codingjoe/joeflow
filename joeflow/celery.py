@@ -5,10 +5,10 @@ from celery import shared_task
 from django.apps import apps
 from django.db import transaction
 
-from galahad.contrib.reversion import with_reversion
+from joeflow.contrib.reversion import with_reversion
 from . import locking
 
-logger = logging.getLogger('galahad')
+logger = logging.getLogger('joeflow')
 
 
 def jitter():
@@ -28,7 +28,7 @@ def task_wrapper(self, task_pk, process_pk):
         if not lock_result:
             logger.info("Process is locked, retrying in %s seconds", countdown)
             self.retry(countdown=countdown)
-        Task = apps.get_model('galahad', 'Task')
+        Task = apps.get_model('joeflow', 'Task')
         task = Task.objects.get(pk=task_pk, completed=None)
         process = task.process
 

@@ -1,5 +1,5 @@
 Settings
 ========
 
-.. autoclass:: galahad.conf.GalahadAppConfig
+.. autoclass:: joeflow.conf.JoeflowAppConfig
     :members:

@@ -3,8 +3,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 
-from galahad import admin
-from galahad.models import Task
+from joeflow import admin
+from joeflow.models import Task
 from tests.testapp import models
 
 

@@ -24,8 +24,8 @@ def _lock(process_pk):
     The lock is not blocking to free CPU time for other tasks on celery
     workers.
     """
-    connection = redis.StrictRedis.from_url(settings.GALAHAD_REDIS_LOCK_URL)
-    __lock = connection.lock('galahad_process_{}'.format(process_pk), timeout=settings.GALAHAD_REDIS_LOCK_TIMEOUT)
+    connection = redis.StrictRedis.from_url(settings.JOEFLOW_REDIS_LOCK_URL)
+    __lock = connection.lock('joeflow_process_{}'.format(process_pk), timeout=settings.JOEFLOW_REDIS_LOCK_TIMEOUT)
     successful = __lock.acquire(blocking=False)
     try:
         yield successful

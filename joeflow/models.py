@@ -12,7 +12,7 @@ from django.utils.safestring import SafeString
 from django.utils.translation import ugettext_lazy as t
 from django.views.generic.edit import BaseCreateView
 
-from galahad import views, celery, tasks, utils
+from joeflow import views, celery, tasks, utils
 from .conf import settings
 
 logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ class Process(models.Model, metaclass=BaseProcess):
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
 
-    task_set = GenericRelation('galahad.Task', object_id_field='_process_id')
+    task_set = GenericRelation('joeflow.Task', object_id_field='_process_id')
 
     class Meta:
         permissions = (
@@ -353,7 +353,7 @@ class TasksQuerySet(models.query.QuerySet):
 class Task(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
     _process = models.ForeignKey(
-        'galahad.Process',
+        'joeflow.Process',
         on_delete=models.CASCADE,
         db_column='process_id'
         , editable=False,
@@ -363,7 +363,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         editable=False,
         limit_choices_to=process_subclasses,
-        related_name='galahad_task_set',
+        related_name='joeflow_task_set',
     )
     process = GenericForeignKey('content_type', '_process_id')
 
@@ -408,13 +408,13 @@ class Task(models.Model):
     assignees = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=t('assignees'),
-        related_name='galahad_assignee_task_set',
+        related_name='joeflow_assignee_task_set',
     )
 
     completed_by_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=t('completed by'),
-        related_name='galahad_completed_by_task_set',
+        related_name='joeflow_completed_by_task_set',
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -530,7 +530,7 @@ class Task(models.Model):
             args=(self.pk, self._process_id),
             countdown=countdown,
             eta=eta,
-            queue=settings.GALAHAD_CELERY_QUEUE_NAME,
+            queue=settings.JOEFLOW_CELERY_QUEUE_NAME,
         ))
 
     @transaction.atomic()

@@ -49,8 +49,8 @@ Next we add the behavior:
 
 .. code-block:: python
 
-    from galahad.models import Process
-    from galahad import tasks
+    from joeflow.models import Process
+    from joeflow import tasks
 
 
     class WelcomeProcess(WelcomeProcessState, Process):
@@ -100,8 +100,8 @@ like this:
 
     from django.conf import settings
     from django.db import models
-    from galahad.models import Process
-    from galahad import tasks
+    from joeflow.models import Process
+    from joeflow import tasks
 
 
     class WelcomeProcessState(models.Model):

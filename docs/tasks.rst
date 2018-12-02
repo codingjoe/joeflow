@@ -2,7 +2,7 @@
 Tasks
 =====
 
-.. automodule:: galahad.tasks
+.. automodule:: joeflow.tasks
     :members:
 
 Human
@@ -23,7 +23,7 @@ to create your own tasks that are only available to certain users.
 Generic human tasks
 ~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: galahad.tasks.human
+.. automodule:: joeflow.tasks.human
     :members:
 
 Machine
@@ -55,8 +55,8 @@ cause the process to behave differently:
     next. This can be used to create exclusive gateways::
 
         from django.utils import timezone
-        from galahad.models import Process
-        from galahad import tasks
+        from joeflow.models import Process
+        from joeflow import tasks
 
 
         class ExclusiveProcess(Process):
@@ -93,8 +93,8 @@ cause the process to behave differently:
     process will wait until the condition changes to ``True`` (or anything but
     ``False``)::
 
-        from galahad.models import Process
-        from galahad import tasks
+        from joeflow.models import Process
+        from joeflow import tasks
         from django.utils import timezone
 
 
@@ -124,5 +124,5 @@ Django's admin interface.
 Generic machine tasks
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: galahad.tasks.machine
+.. automodule:: joeflow.tasks.machine
     :members:

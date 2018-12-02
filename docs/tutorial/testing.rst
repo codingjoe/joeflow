@@ -3,7 +3,7 @@
 Testing your process
 ====================
 
-Galahad is designed to make testing as simple as possible. Machine tasks are
+Joeflow is designed to make testing as simple as possible. Machine tasks are
 the simplest to test. You just call the method on the Process. Following our
 example, your tests could looks something like this:
 

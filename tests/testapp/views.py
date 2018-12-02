@@ -1,6 +1,6 @@
 from django.views import generic
 
-from galahad.views import TaskViewMixin
+from joeflow.views import TaskViewMixin
 
 
 class StartView(TaskViewMixin, generic.CreateView):

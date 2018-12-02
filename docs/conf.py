@@ -30,7 +30,7 @@ else:
 
 def linkcode_resolve(domain, info):
     """Link source code to GitHub."""
-    project = 'galahad'
+    project = 'joeflow'
     github_user = 'codingjoe'
     head = 'master'
 
@@ -60,7 +60,7 @@ def linkcode_resolve(domain, info):
 
 # The master toctree document.
 master_doc = 'index'
-project = 'Galahad'
+project = 'Joeflow'
 
 html_theme = 'alabaster'
 

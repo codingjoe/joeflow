@@ -39,7 +39,7 @@ behavior but define the structure of a workflow.
 Advanced Process API
 --------------------
 
-.. autoclass:: galahad.models.Process
+.. autoclass:: joeflow.models.Process
     :show-inheritance:
     :members:
         urls,
@@ -48,7 +48,7 @@ Advanced Process API
         get_graph_svg,
         get_instance_graph_svg
 
-.. autoclass:: galahad.models.Task
+.. autoclass:: joeflow.models.Task
     :show-inheritance:
     :members:
         start_next_tasks,

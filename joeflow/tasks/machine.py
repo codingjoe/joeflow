@@ -22,8 +22,8 @@ class Start:
     .. code-block:: python
 
         from django.db import models
-        from galahad.models import Process
-        from galahad import tasks
+        from joeflow.models import Process
+        from joeflow import tasks
 
 
         class StartProcess(Process):
@@ -61,8 +61,8 @@ class Join:
     .. code-block:: python
 
         from django.db import models
-        from galahad.models import Process
-        from galahad import tasks
+        from joeflow.models import Process
+        from joeflow import tasks
 
 
         class SplitJoinProcess(Process):
@@ -123,8 +123,8 @@ class Wait:
         import datetime
 
         from django.db import models
-        from galahad.models import Process
-        from galahad import tasks
+        from joeflow.models import Process
+        from joeflow import tasks
 
 
         class WaitProcess(Process):

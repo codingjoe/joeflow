@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import galahad.models
+import joeflow.models
 
 
 class Migration(migrations.Migration):
@@ -39,11 +39,11 @@ class Migration(migrations.Migration):
                 ('completed', models.DateTimeField(blank=True, db_index=True, editable=False, null=True)),
                 ('exception', models.TextField(blank=True)),
                 ('stacktrace', models.TextField(blank=True)),
-                ('_process', models.ForeignKey(db_column='process_id', editable=False, on_delete=django.db.models.deletion.CASCADE, to='galahad.Process')),
-                ('assignees', models.ManyToManyField(related_name='galahad_assignee_task_set', to=settings.AUTH_USER_MODEL, verbose_name='assignees')),
-                ('completed_by_user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='galahad_completed_by_task_set', to=settings.AUTH_USER_MODEL, verbose_name='completed by')),
-                ('content_type', models.ForeignKey(editable=False, limit_choices_to=galahad.models.process_subclasses, on_delete=django.db.models.deletion.CASCADE, related_name='galahad_task_set', to='contenttypes.ContentType')),
-                ('parent_task_set', models.ManyToManyField(editable=False, related_name='child_task_set', to='galahad.Task')),
+                ('_process', models.ForeignKey(db_column='process_id', editable=False, on_delete=django.db.models.deletion.CASCADE, to='joeflow.Process')),
+                ('assignees', models.ManyToManyField(related_name='joeflow_assignee_task_set', to=settings.AUTH_USER_MODEL, verbose_name='assignees')),
+                ('completed_by_user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='joeflow_completed_by_task_set', to=settings.AUTH_USER_MODEL, verbose_name='completed by')),
+                ('content_type', models.ForeignKey(editable=False, limit_choices_to=joeflow.models.process_subclasses, on_delete=django.db.models.deletion.CASCADE, related_name='joeflow_task_set', to='contenttypes.ContentType')),
+                ('parent_task_set', models.ManyToManyField(editable=False, related_name='child_task_set', to='joeflow.Task')),
             ],
             options={
                 'get_latest_by': ('created',),

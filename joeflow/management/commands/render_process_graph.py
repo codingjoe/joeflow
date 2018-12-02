@@ -1,8 +1,8 @@
 from django.apps import apps
 from django.core.management import BaseCommand
 
-from galahad import utils
-from galahad.models import Process
+from joeflow import utils
+from joeflow.models import Process
 
 
 class Command(BaseCommand):
