@@ -144,3 +144,14 @@ class WaitProcess(Process):
         (start, wait),
         (wait, end),
     )
+
+
+class FailingProcess(Process):
+    start = tasks.Start()
+
+    def fail(self):
+        raise ValueError("Boom!")
+
+    edges = (
+        (start, fail),
+    )

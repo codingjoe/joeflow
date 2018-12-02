@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
+from joeflow.models import Task
 from tests.testapp import models
 
 
@@ -97,3 +98,12 @@ class TestTaskAdmin:
         url = reverse('admin:joeflow_task_change', args=[task.pk])
         response = admin_client.get(url)
         assert response.status_code == 200
+
+
+class TestFailingProcess:
+    def test_fail(self, db):
+        process = models.FailingProcess.start()
+        failed_task = process.task_set.latest()
+        assert failed_task.status == Task.FAILED
+        assert failed_task.exception == 'ValueError: Boom!'
+        assert 'Traceback (most recent call last):' in failed_task.stacktrace
