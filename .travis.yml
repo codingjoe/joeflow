@@ -6,9 +6,9 @@ services:
 - rabbitmq
 cache: pip
 python:
-- "3.5"
-- "3.6"
-- "3.7"
+- '3.5'
+- '3.6'
+- '3.7'
 addons:
   apt:
     packages:
@@ -26,13 +26,13 @@ matrix:
   allow_failures:
   - env: DJANGO=master
   exclude:
-  - python: "3.6"
+  - python: '3.6'
     env: TOXENV=docs
-  - python: "3.7"
+  - python: '3.7'
     env: TOXENV=docs
-  - python: "3.5"
+  - python: '3.5'
     env: TOXENV=reversion
-  - python: "3.6"
+  - python: '3.6'
     env: TOXENV=reversion
 before_script:
 - |
@@ -44,3 +44,18 @@ install:
 - pip install -U codecov tox
 script: tox -e $TOXENV
 after_success: codecov
+jobs:
+  include:
+    - stage: PyPI release
+      script: echo "Deploying to PyPI ..."
+      env: TOXENV=docs
+      if: tag IS present
+      deploy:
+        provider: pypi
+        user: codingjoe
+        password:
+          secure: cXjajc1UQ+I4ZcHJhHpfGmgbLntQEdfyPrZQuHJDr5yxBeH/I+BUReaUcHZSoYJjCPa51zxXePs0cDrbG6XDZ8gFKf7yCfQNvNvmLmXK1Pmn2mzwYn9/U9QmotHseU3BRny2dRUJqcQ3svNjVZd7DDrEJrAbSEBFqnGZF/K3L6gYRWliByAx90kDp7RSayCYf5wjptifm4Kdiuk0/lZqu9Sr9P9INN3jHzD4tSJEDuWvbJbYqU4re1MxrxVdLx0+Scxtj/jeTpdE3oDi8EZR1ujeSXPRnhIy0UF2HvTxJp39DlhYAh5CWEWadGcOWNWsD2LAFCot6La7AHz6US7EO5ZxlNYJ2QClOISouix2xNNaGQFwH9PeJkudZai8oL/HwkJhdr22eIkQMkj/LOYNhTJEpsVME5SuuUBOcsEvJ/ovMeEDHiRh6htbgmmNnD32thSOcKEsEmX8+UNFD3+OMngi2r/rOITt8T5eH70mcruu2iCkMtmwVvqmTJQ659TntTu/XHPBpZKJxM7xtHD7LAOeS9sj1E/BmEWHLdL3nFkPQ7/1gKagMLc/fC/ufxLW7tkH990iWTbkm1GtoC6E5dP73f1vUjKIA4WCibbHgyNKzd6z9ifAfnVDFVLVXxbMKlXhAZYouhxOMLGi2pJWTU71FGOGBRN5dLTD46ZtMo0=
+        on:
+          tags: true
+          distributions: sdist bdist_wheel
+          repo: codingjoe/joeflow
