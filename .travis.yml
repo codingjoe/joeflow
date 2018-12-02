@@ -48,7 +48,8 @@ jobs:
   include:
     - stage: PyPI release
       script: echo "Deploying to PyPI ..."
-      env: TOXENV=docs
+      python: '3.7'
+      env: DJANGO=21
       if: tag IS present
       deploy:
         provider: pypi
