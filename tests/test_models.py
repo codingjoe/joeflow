@@ -4,7 +4,6 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.safestring import SafeString
 from graphviz import Digraph
 
@@ -210,6 +209,61 @@ class TestProcess:
         user = AnonymousUser()
         process.cancel(user=user)
         assert process.task_set.latest().completed_by_user is None
+
+    def test_urls(self):
+        patterns, namespace = models.SimpleProcess.urls()
+        assert namespace == 'simpleprocess'
+        names = {pattern.name for pattern in patterns}
+        assert names == {
+            'save_the_princess',
+            'start_view',
+            'override',
+            'detail',
+        }
+
+    def test_urls__no_override(self):
+        class TestProcess(Process):
+            override_view = None
+            start = StartView()
+            end = lambda s: None
+
+            edges = (
+                (start, end),
+            )
+
+            class Meta:
+                abstract = True
+                app_label = 'testappp'
+
+        patterns, namespace = TestProcess.urls()
+        assert namespace == 'testprocess'
+        names = {pattern.name for pattern in patterns}
+        assert names == {
+            'start',
+            'detail',
+        }
+
+    def test_urls__no_detail(self):
+        class TestProcess(Process):
+            detail_view = None
+            start = StartView()
+            end = lambda s: None
+
+            edges = (
+                (start, end),
+            )
+
+            class Meta:
+                abstract = True
+                app_label = 'testappp'
+
+        patterns, namespace = TestProcess.urls()
+        assert namespace == 'testprocess'
+        names = {pattern.name for pattern in patterns}
+        assert names == {
+            'start',
+            'override',
+        }
 
 
 class TestTaskQuerySet:

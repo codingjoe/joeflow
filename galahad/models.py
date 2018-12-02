@@ -105,7 +105,7 @@ class Process(models.Model, metaclass=BaseProcess):
             including start end end not of an edge.
     """
 
-    manual_override = views.ManualOverrideView
+    override_view = views.ManualOverrideView
     detail_view = views.ProcessDetailView
 
     @classmethod
@@ -151,11 +151,14 @@ class Process(models.Model, metaclass=BaseProcess):
                 else:
                     route = '{name}/<pk>/'.format(name=name)
                 urls.append(path(route, cls._wrap_view_instance(name, node), name=name))
-        urls.extend((
-            path('<pk>/', cls.detail_view.as_view(model=cls),
-                 name='detail'),
-            path('<pk>/override', cls.manual_override.as_view(model=cls), name='override'),
-        ))
+        if cls.detail_view:
+            urls.append(
+                path('<pk>/', cls.detail_view.as_view(model=cls), name='detail')
+            )
+        if cls.override_view:
+            urls.append(
+                path('<pk>/override', cls.override_view.as_view(model=cls), name='override')
+            )
         return urls, cls.get_url_namespace()
 
     @classmethod
