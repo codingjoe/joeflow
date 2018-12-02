@@ -82,10 +82,10 @@ to make your process feel more alive.
           <td>
             {% if task.get_absolute_url %}
             <a href="{{ task.get_absolute_url }}">
-              {{ task.node_name }}
+              {{ task.name }}
             </a>
             {% else %}
-            {{ task.node_name }}
+            {{ task.name }}
             {% endif %}
           </td>
           <td>{{ task.completed }}</td>

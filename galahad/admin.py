@@ -65,9 +65,9 @@ class TaskAdmin(VersionAdmin):
     actions = (rerun, cancel)
 
     list_display = (
-        'node_name',
+        'name',
         'status',
-        'node_type',
+        'type',
         'content_type',
         'completed',
         'modified',
@@ -76,8 +76,8 @@ class TaskAdmin(VersionAdmin):
 
     readonly_fields = (
         'process',
-        'node_name',
-        'node_type',
+        'name',
+        'type',
         'parent_task_set',
         'child_tasks',
         'completed',
@@ -89,7 +89,7 @@ class TaskAdmin(VersionAdmin):
 
     list_filter = (
         'status',
-        'node_type',
+        'type',
         'content_type',
         'completed',
         'created',
@@ -99,7 +99,7 @@ class TaskAdmin(VersionAdmin):
         (None, {
             'fields': (
                 'process',
-                'node_name',
+                'name',
                 'parent_task_set',
                 'child_tasks',
                 'completed',

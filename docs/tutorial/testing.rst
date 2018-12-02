@@ -84,7 +84,7 @@ example:
             self.assertTrue(process.user)
             self.assertTrue(
                 process.task_set.succeeded()
-                .filter(node_name='start').exists()
+                .filter(name='start').exists()
             )
 
         def test_start__post_without_user(self):
@@ -95,7 +95,7 @@ example:
             self.assertFalse(process.user)
             self.assertTrue(
                 process.task_set.succeeded()
-                .filter(node_name='start').exists()
+                .filter(name='start').exists()
             )
 
 Note that the start task is somewhat special, since it does not need a

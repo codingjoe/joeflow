@@ -27,7 +27,7 @@ class TestTaskAdmin:
 
     def test_rerun(self, db, no_on_commit, post_request):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(status=Task.FAILED, node_name='save_the_princess')
+        task = process.task_set.create(status=Task.FAILED, name='save_the_princess')
         admin.rerun(None, post_request, process.task_set.all())
         assert '1 tasks have been successfully queued' == str(post_request._messages._queued_messages[0])
         task.refresh_from_db()
@@ -35,7 +35,7 @@ class TestTaskAdmin:
 
     def test_rerun__succeeded(self, db, no_on_commit, post_request):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(status=Task.SUCCEEDED, node_name='save_the_princess')
+        task = process.task_set.create(status=Task.SUCCEEDED, name='save_the_princess')
         admin.rerun(None, post_request, process.task_set.all())
         assert 'Only failed tasks can be retried. 1 tasks have been skipped' == \
                str(post_request._messages._queued_messages[0])
@@ -46,7 +46,7 @@ class TestTaskAdmin:
 
     def test_cancel(self, db, post_request):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='save_the_princess')
+        task = process.task_set.create(name='save_the_princess')
         admin.cancel(None, post_request, process.task_set.all())
         assert "Tasks have been successfully canceled" == \
                str(post_request._messages._queued_messages[0])
@@ -55,7 +55,7 @@ class TestTaskAdmin:
 
     def test_cancel__not_scheduled(self, db, post_request):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(status=Task.SUCCEEDED, node_name='save_the_princess')
+        task = process.task_set.create(status=Task.SUCCEEDED, name='save_the_princess')
         admin.cancel(None, post_request, process.task_set.all())
         assert 'Only scheduled tasks can be canceled. 1 tasks have been skipped' == \
                str(post_request._messages._queued_messages[0])

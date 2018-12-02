@@ -30,7 +30,7 @@ def with_reversion(task):
     else:
         with reversion.create_revision():
             yield
-            reversion.set_comment(task.node_name)
+            reversion.set_comment(task.name)
 
 
 try:
@@ -40,7 +40,7 @@ try:
     class RevisionMixin(_RevisionMixin):
         def dispatch(self, request, *args, **kwargs):
             if self.revision_request_creates_revision(request):
-                reversion.set_comment(self.node_name)
+                reversion.set_comment(self.name)
             return super().dispatch(request, *args, **kwargs)
 
 except ImportError:

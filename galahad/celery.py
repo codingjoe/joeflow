@@ -34,7 +34,7 @@ def task_wrapper(self, task_pk, process_pk):
 
         try:
             logger.info("Executing %r", task)
-            node = getattr(type(process), task.node_name)
+            node = getattr(type(process), task.name)
             with_task = getattr(node, 'with_task', False)
             kwargs = {}
             if with_task:

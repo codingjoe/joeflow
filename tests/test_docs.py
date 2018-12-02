@@ -60,7 +60,7 @@ class WelcomeProcessHumanTest(TestCase):
         self.assertTrue(process.user)
         self.assertTrue(
             process.task_set.succeeded()
-            .filter(node_name='start').exists()
+            .filter(name='start').exists()
         )
 
     def test_start__post_without_user(self):
@@ -70,5 +70,5 @@ class WelcomeProcessHumanTest(TestCase):
         self.assertFalse(process.user)
         self.assertTrue(
             process.task_set.succeeded()
-            .filter(node_name='start').exists()
+            .filter(name='start').exists()
         )

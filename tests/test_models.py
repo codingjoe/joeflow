@@ -25,7 +25,7 @@ class TestBaseProcess:
             class Meta:
                 abstract = True
 
-    def test_node_name(self):
+    def test_name(self):
         class TestProcess(Process):
             a = lambda s, t: None
             b = lambda s, t: None
@@ -37,12 +37,12 @@ class TestBaseProcess:
             class Meta:
                 abstract = True
 
-        assert TestProcess.a.node_name == 'a'
-        assert TestProcess.b.node_name == 'b'
+        assert TestProcess.a.name == 'a'
+        assert TestProcess.b.name == 'b'
         with pytest.raises(AttributeError):
-            TestProcess.c.node_name
+            TestProcess.c.name
 
-    def test_node_type(self):
+    def test_type(self):
         class TestProcess(Process):
             a = StartView()
             b = lambda s, t: None
@@ -54,12 +54,12 @@ class TestBaseProcess:
             class Meta:
                 abstract = True
 
-        assert TestProcess.a.node_type == HUMAN
-        assert TestProcess.b.node_type == MACHINE
+        assert TestProcess.a.type == HUMAN
+        assert TestProcess.b.type == MACHINE
         with pytest.raises(AttributeError):
-            TestProcess.c.node_type
+            TestProcess.c.type
 
-    def test_node_type(self):
+    def test_type(self):
         class TestProcess(Process):
             a = StartView()
             b = lambda s, t: None
@@ -172,7 +172,7 @@ class TestProcess:
         url = reverse('simpleprocess:override', args=[process.pk])
         response = admin_client.post(url, data={'next_tasks': ['end']})
         assert response.status_code == 302
-        assert process.task_set.get(node_name='manual_override')
+        assert process.task_set.get(name='manual_override')
         graph = process.get_instance_graph()
         with open(str(fixturedir / 'simpleprocess_instance_manual_override.dot')) as fp:
             expected_graph = fp.read().splitlines()
@@ -268,26 +268,26 @@ class TestTask:
 
     def test_start_next_tasks__default(self, db):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='start_method')
+        task = process.task_set.create(name='start_method')
         task.finish()
         tasks = task.start_next_tasks()
         assert len(tasks) == 1
-        assert tasks[0].node_name == 'save_the_princess'
+        assert tasks[0].name == 'save_the_princess'
         assert process.task_set.scheduled().get() == tasks[0]
 
     def test_start_next_tasks__specific_next_task(self, db):
         process = models.SimpleProcess.objects.create()
-        task = process.task_set.create(node_name='start_method')
+        task = process.task_set.create(name='start_method')
         task.finish()
         tasks = task.start_next_tasks(next_nodes=[models.SimpleProcess.end])
         assert len(tasks) == 1
-        assert tasks[0].node_name == 'end'
+        assert tasks[0].name == 'end'
         assert process.task_set.latest() == tasks[0]
 
     @patch('galahad.celery.task_wrapper.retry')
     def test_start_next_tasks__multiple_next_tasks(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
-        task = process.task_set.create(node_name='split')
+        task = process.task_set.create(name='split')
         tasks = task.start_next_tasks(next_nodes=[
             models.SplitJoinProcess.batman, models.SplitJoinProcess.robin
         ])
@@ -296,13 +296,13 @@ class TestTask:
     @patch('galahad.celery.task_wrapper.retry')
     def test_start_next_tasks__custom_task_creation(self, retry, db):
         process = models.SplitJoinProcess.objects.create()
-        task = process.task_set.create(node_name='batman')
+        task = process.task_set.create(name='batman')
         tasks = task.start_next_tasks(next_nodes=[
             models.SplitJoinProcess.join
         ])
         join1 = tasks[0]
 
-        task = process.task_set.create(node_name='robin')
+        task = process.task_set.create(name='robin')
         tasks = task.start_next_tasks(next_nodes=[
             models.SplitJoinProcess.join
         ])

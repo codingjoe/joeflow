@@ -13,7 +13,7 @@ class TestSimpleProcess:
 
     def test_url__get(self, db, client):
         p = models.SimpleProcess.objects.create()
-        t = p.task_set.create(node_name='save_the_princess')
+        t = p.task_set.create(name='save_the_princess')
         url = reverse('simpleprocess:save_the_princess', args=[t.pk])
         assert list(models.SimpleProcess.urls())
         response = client.get(url)
@@ -29,7 +29,7 @@ class TestSimpleProcess:
 
     def test_url__post(self, db, client):
         p = models.SimpleProcess.objects.create()
-        t = p.task_set.create(node_name='save_the_princess')
+        t = p.task_set.create(name='save_the_princess')
         url = reverse('simpleprocess:save_the_princess', args=[t.pk])
         assert list(models.SimpleProcess.urls())
         response = client.get(url)
@@ -39,7 +39,7 @@ class TestSimpleProcess:
         assert response.status_code == 302
         t.refresh_from_db()
         assert t.completed
-        obj = p.task_set.get(node_name='end')
+        obj = p.task_set.get(name='end')
         assert obj.completed
 
     def test_start_view_get(self, db, client):
@@ -57,7 +57,7 @@ class TestSimpleProcess:
 
     def test_start_method(self, db):
         obj = models.SimpleProcess.start_method()
-        assert obj.task_set.filter(node_name='start_method').count() == 1
+        assert obj.task_set.filter(name='start_method').count() == 1
 
 
 class TestSplitJoinProcess:
@@ -69,7 +69,7 @@ class TestSplitJoinProcess:
         assert response.status_code == 302
         obj = models.SplitJoinProcess.objects.get()
         assert obj.parallel_task_value == 2
-        assert obj.task_set.filter(node_name='join').count() == 1
+        assert obj.task_set.filter(name='join').count() == 1
 
 
 class TestLoopProcess:
@@ -81,7 +81,7 @@ class TestLoopProcess:
 
         obj = models.LoopProcess.objects.get()
         assert obj.counter == 10
-        assert obj.task_set.filter(node_name='increment_counter').count() == 10
+        assert obj.task_set.filter(name='increment_counter').count() == 10
 
 
 class TestTaskAdmin:

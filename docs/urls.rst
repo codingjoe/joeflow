@@ -9,7 +9,7 @@ pattern consisting of the process name (lowercase) and task name, e.g.:
 
 .. code-block:: python
 
-    >>> reverse(process_name:node_name, args=[task.pk])
+    >>> reverse(process_name:task_name, args=[task.pk])
     '/url/to/process/task/1'
 
 All task URLs need the `.Task` primary key as an argument. There are some

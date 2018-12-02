@@ -29,8 +29,8 @@ class TestJoin:
     def test_create_task(self, db):
         proc = models.SimpleProcess.start_method()
         node = tasks.Join()
-        node.node_name = 'test'
-        node.node_type = 'machine'
+        node.name = 'test'
+        node.type = 'machine'
         obj = node.create_task(proc)
         obj2 = node.create_task(proc)
         assert obj == obj2

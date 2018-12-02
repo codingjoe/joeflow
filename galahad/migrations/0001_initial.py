@@ -31,8 +31,8 @@ class Migration(migrations.Migration):
             name='Task',
             fields=[
                 ('id', models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ('node_name', models.TextField(db_index=True, editable=False)),
-                ('node_type', models.TextField(choices=[('human', 'human'), ('machine', 'machine')], db_index=True, editable=False)),
+                ('name', models.TextField(db_index=True, editable=False)),
+                ('type', models.TextField(choices=[('human', 'human'), ('machine', 'machine')], db_index=True, editable=False)),
                 ('status', models.TextField(choices=[('failed', 'failed'), ('succeeded', 'succeeded'), ('scheduled', 'scheduled'), ('canceled', 'canceled')], db_index=True, default='scheduled', editable=False)),
                 ('created', models.DateTimeField(auto_now_add=True, db_index=True)),
                 ('modified', models.DateTimeField(auto_now=True, db_index=True)),

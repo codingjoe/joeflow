@@ -20,9 +20,9 @@
       <td>{{ task.pk }}</td>
       <td>
         {% if task.get_absolute_url %}
-        <a href="{{ task.get_absolute_url }}">{{ task.node_name }}</a>
+        <a href="{{ task.get_absolute_url }}">{{ task.name }}</a>
         {% else %}
-        {{ task.node_name }}
+        {{ task.name }}
         {% endif %}
       </td>
       <td>{{ task.completed }}</td>

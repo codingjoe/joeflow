@@ -44,7 +44,7 @@ class Start:
 
     def __call__(self, **kwargs):
         obj = self.process_cls.objects.create(**kwargs)
-        task = obj.task_set.create(node_name=self.node_name)
+        task = obj.task_set.create(name=self.name)
         task.start_next_tasks()
         return obj
 
@@ -99,12 +99,12 @@ class Join:
         self.parents = set(parents)
 
     def __call__(self, process, task):
-        return set(task.parent_task_set.values_list('node_name', flat=True)) == self.parents
+        return set(task.parent_task_set.values_list('name', flat=True)) == self.parents
 
     def create_task(self, process):
         return process.task_set.get_or_create(
-            node_name=self.node_name,
-            node_type=self.node_type,
+            name=self.name,
+            type=self.type,
             completed=None,
         )[0]
 

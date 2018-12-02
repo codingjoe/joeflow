@@ -62,8 +62,8 @@ class BaseProcess(models.base.ModelBase):
             try:
                 if func in nodes:
                     node = getattr(klass, name)
-                    node.node_name = name
-                    node.node_type = tasks.HUMAN if isinstance(node, views.TaskViewMixin) else tasks.MACHINE
+                    node.name = name
+                    node.type = tasks.HUMAN if isinstance(node, views.TaskViewMixin) else tasks.MACHINE
                     node.process_cls = klass
             except TypeError:
                 pass
@@ -111,7 +111,7 @@ class Process(models.Model, metaclass=BaseProcess):
     @classmethod
     def _wrap_view_instance(cls, name, view_instance):
         return type(view_instance).as_view(
-            model=cls, node_name=name,
+            model=cls, name=name,
             **view_instance._instance_kwargs
         )
 
@@ -121,7 +121,7 @@ class Process(models.Model, metaclass=BaseProcess):
         for edge in cls.edges:
             nodes |= set(edge)
         for node in nodes:
-            yield node.node_name, node
+            yield node.name, node
 
     @classmethod
     def urls(cls):
@@ -166,7 +166,7 @@ class Process(models.Model, metaclass=BaseProcess):
     @classmethod
     def get_next_nodes(cls, prev_node):
         for start, end in cls.edges:
-            if start.node_name == prev_node.node_name:
+            if start.name == prev_node.name:
                 yield end
 
     @classmethod
@@ -195,12 +195,12 @@ class Process(models.Model, metaclass=BaseProcess):
         graph.attr('node', dict(fontname='sans-serif', shape='rect', style='filled', fillcolor='white'))
         for name, node in cls.get_nodes():
             node_style = 'filled'
-            if node.node_type == tasks.HUMAN:
+            if node.type == tasks.HUMAN:
                 node_style += ', rounded'
             graph.node(name, style=node_style, color=color, fontcolor=color)
 
         for start, end in cls.edges:
-            graph.edge(start.node_name, end.node_name)
+            graph.edge(start.name, end.name)
         return graph
 
     @classmethod
@@ -232,39 +232,39 @@ class Process(models.Model, metaclass=BaseProcess):
         """Return process instance graph."""
         graph = self.get_graph(color='#888888')
 
-        node_names = dict(self.get_nodes()).keys()
+        names = dict(self.get_nodes()).keys()
 
-        for task in self.task_set.filter(node_name__in=node_names):
+        for task in self.task_set.filter(name__in=names):
             href = task.get_absolute_url()
             style = 'filled'
 
-            if task.node_type == tasks.HUMAN:
+            if task.type == tasks.HUMAN:
                 style += ', rounded'
             if not task.completed:
                 style += ', bold'
-            graph.node(task.node_name, href=href, style=style, color='black', fontcolor='black')
+            graph.node(task.name, href=href, style=style, color='black', fontcolor='black')
 
-        for task in self.task_set.filter(node_name='manual_override').prefetch_related(
+        for task in self.task_set.filter(name='manual_override').prefetch_related(
             'parent_task_set', 'child_task_set'
         ):
             label = 'manual_override_%s' % task.pk
             graph.node(label, style='filled, rounded, dashed')
             for parent in task.parent_task_set.all():
-                graph.edge(parent.node_name, 'manual_override_%s' % task.pk, style='dashed')
+                graph.edge(parent.name, 'manual_override_%s' % task.pk, style='dashed')
             for child in task.child_task_set.all():
-                graph.edge('manual_override_%s' % task.pk, child.node_name, style='dashed')
+                graph.edge('manual_override_%s' % task.pk, child.name, style='dashed')
 
-        for task in self.task_set.exclude(node_name__in=node_names).exclude(node_name='manual_override'):
+        for task in self.task_set.exclude(name__in=names).exclude(name='manual_override'):
             style = 'filled, dashed'
-            if task.node_type == tasks.HUMAN:
+            if task.type == tasks.HUMAN:
                 style += ', rounded'
             if not task.completed:
                 style += ', bold'
-            graph.node(task.node_name, style=style, color='black', fontcolor='black')
+            graph.node(task.name, style=style, color='black', fontcolor='black')
             for parent in task.parent_task_set.all():
-                graph.edge(parent.node_name, task.node_name, style='dashed')
+                graph.edge(parent.name, task.name, style='dashed')
             for child in task.child_task_set.all():
-                graph.edge(task.node_name, child.node_name, style='dashed')
+                graph.edge(task.name, child.name, style='dashed')
 
         return graph
 
@@ -364,16 +364,16 @@ class Task(models.Model):
     )
     process = GenericForeignKey('content_type', '_process_id')
 
-    node_name = models.TextField(db_index=True, editable=False)
+    name = models.TextField(db_index=True, editable=False)
 
     HUMAN = 'human'
     MACHINE = 'machine'
-    _node_type_choices = (
+    _type_choices = (
         (HUMAN, t(HUMAN)),
         (MACHINE, t(MACHINE)),
     )
-    node_type = models.TextField(
-        choices=_node_type_choices,
+    type = models.TextField(
+        choices=_type_choices,
         editable=False,
         db_index=True,
     )
@@ -436,7 +436,7 @@ class Task(models.Model):
         default_manager_name = 'objects'
 
     def __str__(self):
-        return '%s (%s)' % (self.node_name, self.pk)
+        return '%s (%s)' % (self.name, self.pk)
 
     def save(self, **kwargs):
         if self.pk:
@@ -453,7 +453,7 @@ class Task(models.Model):
     def get_absolute_url(self):
         if self.completed:
             return
-        url_name = '{}:{}'.format(self.process.get_url_namespace(), self.node_name)
+        url_name = '{}:{}'.format(self.process.get_url_namespace(), self.name)
         try:
             return reverse(url_name, kwargs=dict(pk=self.pk))
         except NoReverseMatch:
@@ -461,7 +461,7 @@ class Task(models.Model):
 
     @property
     def node(self):
-        return getattr(self.process, self.node_name)
+        return getattr(self.process, self.name)
 
     def finish(self, user=None):
         self.completed = timezone.now()
@@ -552,8 +552,8 @@ class Task(models.Model):
                 task = node.create_task(self.process)
             except AttributeError:
                 task = self.process.task_set.create(
-                    node_name=node.node_name,
-                    node_type=node.node_type,
+                    name=node.name,
+                    type=node.type,
                 )
             task.parent_task_set.add(self)
             if callable(node):
