@@ -1,0 +1,16 @@
+digraph {
+	graph [rankdir=LR]
+	node [fillcolor=white fontname="sans-serif" shape=rect style=filled]
+	"start method" [color="#888888" fontcolor="#888888" style=filled]
+	end [color="#888888" fontcolor="#888888" style=filled]
+	"start view" [color="#888888" fontcolor="#888888" style="filled, rounded"]
+	"save the princess" [color="#888888" fontcolor="#888888" style="filled, rounded"]
+	"start view" -> "save the princess"
+	"start method" -> "save the princess"
+	"save the princess" -> end
+	end [color=black fontcolor=black style="filled, bold"]
+	"start method" [color=black fontcolor=black style="filled, bold"]
+	obsolete [color=black fontcolor=black style="filled, dashed, bold"]
+	"start method" -> obsolete [style=dashed]
+	obsolete -> end [style=dashed]
+}

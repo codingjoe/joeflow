@@ -66,9 +66,9 @@ class ProcessDetailView(ProcessTemplateNameViewMixin, generic.DetailView):
     pass
 
 
-class ManualOverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameViewMixin, generic.UpdateView):
+class OverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameViewMixin, generic.UpdateView):
     permission_required = 'override'
-    name = 'manual_override'
+    name = 'override'
     fields = '__all__'
 
     @staticmethod
@@ -100,7 +100,7 @@ class ManualOverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplate
         for task in active_tasks:
             task.finish()
         override_task = self.object.task_set.create(
-            name='manual_override',
+            name='override',
         )
         override_task.parent_task_set.set(active_tasks)
         override_task.finish()

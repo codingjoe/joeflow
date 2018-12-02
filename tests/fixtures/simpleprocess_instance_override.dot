@@ -11,8 +11,8 @@ digraph {
 	end [color=black fontcolor=black style=filled]
 	"start method" [color=black fontcolor=black style=filled]
 	"save the princess" [color=black fontcolor=black style="filled, rounded"]
-	"start method" -> "manual override 3" [style=dashed]
-	"manual override 3" [style="filled, rounded, dashed"]
-	"save the princess" -> "manual override 3" [style=dashed]
-	"manual override 3" -> end [style=dashed]
+	"start method" -> "override 3" [style=dashed]
+	"override 3" [style="filled, rounded, dashed"]
+	"save the princess" -> "override 3" [style=dashed]
+	"override 3" -> end [style=dashed]
 }

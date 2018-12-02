@@ -105,7 +105,7 @@ class Process(models.Model, metaclass=BaseProcess):
             including start end end not of an edge.
     """
 
-    override_view = views.ManualOverrideView
+    override_view = views.OverrideView
     detail_view = views.ProcessDetailView
 
     @classmethod
@@ -247,17 +247,17 @@ class Process(models.Model, metaclass=BaseProcess):
                 style += ', bold'
             graph.node(task.name, href=href, style=style, color='black', fontcolor='black')
 
-        for task in self.task_set.filter(name='manual_override').prefetch_related(
+        for task in self.task_set.filter(name='override').prefetch_related(
             'parent_task_set', 'child_task_set'
         ):
-            label = 'manual_override_%s' % task.pk
+            label = 'override_%s' % task.pk
             graph.node(label, style='filled, rounded, dashed')
             for parent in task.parent_task_set.all():
-                graph.edge(parent.name, 'manual_override_%s' % task.pk, style='dashed')
+                graph.edge(parent.name, 'override_%s' % task.pk, style='dashed')
             for child in task.child_task_set.all():
-                graph.edge('manual_override_%s' % task.pk, child.name, style='dashed')
+                graph.edge('override_%s' % task.pk, child.name, style='dashed')
 
-        for task in self.task_set.exclude(name__in=names).exclude(name='manual_override'):
+        for task in self.task_set.exclude(name__in=names).exclude(name='override'):
             style = 'filled, dashed'
             if task.type == tasks.HUMAN:
                 style += ', rounded'

@@ -166,14 +166,26 @@ class TestProcess:
             expected_graph = fp.read().splitlines()
         assert set(graph.body) == set(expected_graph[1:-1])
 
-    def test_get_instance_graph__manual_override(self, db, fixturedir, admin_client):
+    def test_get_instance_graph__override(self, db, fixturedir, admin_client):
         process = models.SimpleProcess.start_method()
         url = reverse('simpleprocess:override', args=[process.pk])
         response = admin_client.post(url, data={'next_tasks': ['end']})
         assert response.status_code == 302
-        assert process.task_set.get(name='manual_override')
+        assert process.task_set.get(name='override')
         graph = process.get_instance_graph()
-        with open(str(fixturedir / 'simpleprocess_instance_manual_override.dot')) as fp:
+        with open(str(fixturedir / 'simpleprocess_instance_override.dot')) as fp:
+            expected_graph = fp.read().splitlines()
+        assert set(graph.body) == set(expected_graph[1:-1])
+
+    def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
+        process = models.SimpleProcess.objects.create()
+        start = process.task_set.create(name='start_method', status=Task.SUCCEEDED)
+        obsolete = process.task_set.create(name='obsolete', status=Task.SUCCEEDED)
+        end = process.task_set.create(name='end', status=Task.SUCCEEDED)
+        obsolete.parent_task_set.add(start)
+        end.parent_task_set.add(obsolete)
+        graph = process.get_instance_graph()
+        with open(str(fixturedir / 'simpleprocess_instance_obsolete.dot')) as fp:
             expected_graph = fp.read().splitlines()
         assert set(graph.body) == set(expected_graph[1:-1])
 
