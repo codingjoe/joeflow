@@ -2,10 +2,4 @@
 from setuptools import setup
 
 
-setup(
-    pbr=True,
-    setup_requires=[
-        'pbr',
-        'sphinx',
-    ],
-)
+setup(name='joeflow', use_scm_version=True)

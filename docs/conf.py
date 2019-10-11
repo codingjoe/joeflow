@@ -27,7 +27,6 @@ else:
     extensions.append('sphinxcontrib.spelling')
 
 
-
 def linkcode_resolve(domain, info):
     """Link source code to GitHub."""
     project = 'joeflow'
