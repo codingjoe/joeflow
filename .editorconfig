@@ -3,26 +3,21 @@
 root = true
 
 [*]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
 charset = utf-8
 end_of_line = lf
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.py]
-indent_style = space
-indent_size = 4
 max_line_length = 88
 
-[*.{rst,ini,cfg}]
-indent_style = space
-indent_size = 4
+[*.py]
+max_line_length = 120
 
-[*.{yml,html,xml,xsl,json}]
-indent_style = space
+[*.{yml, html, xml, xsl, json}]
 indent_size = 2
 
-[*.{css,less}]
-indent_style = space
+[*.{css, less}]
 indent_size = 2
 
 [*.dot]

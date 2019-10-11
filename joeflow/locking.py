@@ -4,7 +4,6 @@ import redis
 
 from .conf import settings
 
-
 __all__ = (
     'lock',
 )

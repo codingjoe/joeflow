@@ -8,7 +8,8 @@ from django.utils.safestring import SafeString
 from graphviz import Digraph
 
 from joeflow.models import Process, Task
-from joeflow.tasks import StartView, HUMAN, MACHINE
+from joeflow.tasks import HUMAN, MACHINE, StartView
+
 from .testapp import models
 
 
@@ -58,7 +59,7 @@ class TestBaseProcess:
         with pytest.raises(AttributeError):
             TestProcess.c.type
 
-    def test_type(self):
+    def test_process_cls(self):
         class TestProcess(Process):
             a = StartView()
             b = lambda s, t: None
