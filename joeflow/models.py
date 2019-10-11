@@ -6,13 +6,14 @@ import graphviz as gv
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.db import models, transaction
 from django.db.models.functions import Now
-from django.urls import path, reverse, NoReverseMatch
+from django.urls import NoReverseMatch, path, reverse
 from django.utils import timezone
 from django.utils.safestring import SafeString
 from django.utils.translation import ugettext_lazy as t
 from django.views.generic.edit import BaseCreateView
 
-from joeflow import views, celery, tasks, utils
+from joeflow import celery, tasks, utils, views
+
 from .conf import settings
 
 logger = logging.getLogger(__name__)
@@ -95,10 +96,10 @@ class Process(models.Model, metaclass=BaseProcess):
     edges = None
     """
     Edges define the transitions between tasks.
-    
+
     They are the glue that binds tasks together. Edges have no
     behavior but define the structure of a workflow.
-    
+
     Returns:
         (list[tuple]):
             List of edges. An edge is represented by a tuple
@@ -315,8 +316,8 @@ def process_subclasses():
     apps.check_models_ready()
     query = models.Q()
     for model in utils.get_processes():
-            opts = model._meta
-            query |= models.Q(app_label=opts.app_label, model=opts.model_name)
+        opts = model._meta
+        query |= models.Q(app_label=opts.app_label, model=opts.model_name)
     return query
 
 
@@ -355,8 +356,8 @@ class Task(models.Model):
     _process = models.ForeignKey(
         'joeflow.Process',
         on_delete=models.CASCADE,
-        db_column='process_id'
-        , editable=False,
+        db_column='process_id',
+        editable=False,
     )
     content_type = models.ForeignKey(
         'contenttypes.ContentType',

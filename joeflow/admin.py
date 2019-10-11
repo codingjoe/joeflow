@@ -6,7 +6,6 @@ from django.utils.translation import ugettext_lazy as t
 from . import models
 from .contrib.reversion import VersionAdmin
 
-
 __all__ = (
     'ProcessAdmin',
 )

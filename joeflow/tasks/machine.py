@@ -1,7 +1,7 @@
 """Set of reusable machine tasks."""
 from typing import Iterable
-from django.utils import timezone
 
+from django.utils import timezone
 
 __all__ = (
     'Start',

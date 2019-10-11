@@ -21,7 +21,7 @@ class JoeflowAppConfig(AppConf):
     JOEFLOW_REDIS_LOCK_TIMEOUT = 60
     """
     Process lock timeout in seconds.
-    
+
     Processes are lock and only one machine task at a time can change the
     process state.
     """

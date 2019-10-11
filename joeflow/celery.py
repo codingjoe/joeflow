@@ -6,6 +6,7 @@ from django.apps import apps
 from django.db import transaction
 
 from joeflow.contrib.reversion import with_reversion
+
 from . import locking
 
 logger = logging.getLogger('joeflow')

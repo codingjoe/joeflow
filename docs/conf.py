@@ -5,7 +5,6 @@ import sys
 
 import django
 
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.testapp.settings")
 sys.path.insert(0, os.path.abspath('..'))
 django.setup()
@@ -20,7 +19,7 @@ extensions = [
 ]
 
 try:
-    import sphinxcontrib.spelling
+    import sphinxcontrib.spelling  # noqa
 except ImportError:
     pass
 else:

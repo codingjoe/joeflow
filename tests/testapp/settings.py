@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 ]
 
 try:
-    import reversion
+    import reversion  # noqa
 except ImportError:
     pass
 else:
@@ -134,3 +134,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+CELERY_BROKER_URL = 'redis://'
