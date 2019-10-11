@@ -428,4 +428,5 @@ class TestTask:
         task = process.task_set.create()
         with pytest.raises(ValueError) as e:
             task.save()
-        assert "You need to provide explicit 'update_fields' to avoid race conditions." in str(e)
+        assert ("You need to provide explicit 'update_fields'"
+                " to avoid race conditions.") in str(e.value)
