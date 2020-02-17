@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as t
+from django.utils.translation import gettext_lazy as t
 from django.views import generic
 
 from . import models

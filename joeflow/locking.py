@@ -23,7 +23,7 @@ def _lock(process_pk):
     The lock is not blocking to free CPU time for other tasks on celery
     workers.
     """
-    connection = redis.StrictRedis.from_url(settings.JOEFLOW_REDIS_LOCK_URL)
+    connection = redis.Redis.from_url(settings.JOEFLOW_REDIS_LOCK_URL)
     __lock = connection.lock('joeflow_process_{}'.format(process_pk), timeout=settings.JOEFLOW_REDIS_LOCK_TIMEOUT)
     successful = __lock.acquire(blocking=False)
     try:
@@ -33,6 +33,7 @@ def _lock(process_pk):
     finally:
         if successful:
             __lock.release()
+        connection.close()
 
 
 # little hack for testing purposes

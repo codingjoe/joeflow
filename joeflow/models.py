@@ -8,12 +8,12 @@ from django.db import models, transaction
 from django.db.models.functions import Now
 from django.urls import NoReverseMatch, path, reverse
 from django.utils import timezone
+from django.utils.module_loading import import_string
 from django.utils.safestring import SafeString
 from django.utils.translation import ugettext_lazy as t
 from django.views.generic.edit import BaseCreateView
 
-from joeflow import celery, tasks, utils, views
-
+from . import tasks, utils, views
 from .conf import settings
 
 logger = logging.getLogger(__name__)
@@ -527,11 +527,12 @@ class Task(models.Model):
             'exception',
             'stacktrace',
         ])
-        transaction.on_commit(lambda: celery.task_wrapper.apply_async(
-            args=(self.pk, self._process_id),
+        task_runner = import_string(settings.JOEFLOW_TASK_RUNNER)
+        transaction.on_commit(lambda: task_runner(
+            task_pk=self.pk,
+            process_pk=self._process_id,
             countdown=countdown,
             eta=eta,
-            queue=settings.JOEFLOW_CELERY_QUEUE_NAME,
         ))
 
     @transaction.atomic()

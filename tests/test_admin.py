@@ -25,7 +25,7 @@ class TestTaskAdmin:
         setattr(request, 'user', AnonymousUser())
         return request
 
-    def test_rerun(self, db, no_on_commit, post_request):
+    def test_rerun(self, db, post_request, stub_worker):
         process = models.SimpleProcess.objects.create()
         task = process.task_set.create(status=Task.FAILED, name='save_the_princess')
         admin.rerun(None, post_request, process.task_set.all())
@@ -33,7 +33,7 @@ class TestTaskAdmin:
         task.refresh_from_db()
         assert task.status == Task.SCHEDULED
 
-    def test_rerun__succeeded(self, db, no_on_commit, post_request):
+    def test_rerun__succeeded(self, db, post_request):
         process = models.SimpleProcess.objects.create()
         task = process.task_set.create(status=Task.SUCCEEDED, name='save_the_princess')
         admin.rerun(None, post_request, process.task_set.all())

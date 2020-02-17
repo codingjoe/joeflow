@@ -7,20 +7,31 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
+    - uses: actions/checkout@v2
     - name: Install binary dependencies
       run: sudo apt-get install -y python3-enchant graphviz
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools
         pip install sphinxcontrib-spelling
-        python setup.py develop
+        pip install -e '.[docs]'
     - name: Build documentation
       run: python setup.py build_sphinx -W -b spelling
 
-  tests:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+      - run: python -m pip install --upgrade pip setuptools wheel twine readme-renderer
+      - uses: actions/checkout@v2
+      - run: python setup.py sdist bdist_wheel
+      - run: python -m twine check dist/*
+
+  pytest:
+    needs:
+      - dist
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -31,15 +42,12 @@ jobs:
         django-version:
           - 2.2.*
           - 3.0.*
-        extras:
-          - test
-          - test,reversion
     steps:
-    - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - uses: actions/checkout@v2
     - name: Install binary dependencies
       run: |
         sudo apt-get update
@@ -47,10 +55,36 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel codecov
-        python -m pip install -e .[${{ matrix.extras }}]
+        python -m pip install -e .[dramatiq]
         python -m pip install django==${{ matrix.django-version }}
     - name: Run tests
-      run: PATH=$PATH:$(pwd)/bin py.test
+      run: python setup.py test
     - run: codecov
       env:
         CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+
+  extras:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extras:
+          - dramatiq
+          - celery
+          - dramatiq,reversion
+    steps:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+      - uses: actions/checkout@v2
+      - name: Install binary dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz redis-server
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel codecov
+          python -m pip install -e .[${{ matrix.extras }}]
+      - name: Run tests
+        run: python setup.py test
+      - run: codecov
+        env:
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}

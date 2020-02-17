@@ -1,6 +1,4 @@
 """High level integration tests."""
-from unittest.mock import patch
-
 from django.urls import reverse
 
 from joeflow.models import Task
@@ -25,7 +23,7 @@ class TestSimpleProcess:
         response = client.get(url)
         assert response.status_code == 404
 
-    def test_url__post(self, db, client):
+    def test_url__post(self, transactional_db, stub_worker, client):
         p = models.SimpleProcess.objects.create()
         t = p.task_set.create(name='save_the_princess')
         url = reverse('simpleprocess:save_the_princess', args=[t.pk])
@@ -35,6 +33,7 @@ class TestSimpleProcess:
 
         response = client.post(url)
         assert response.status_code == 302
+        stub_worker.wait()
         t.refresh_from_db()
         assert t.completed
         obj = p.task_set.get(name='end')
@@ -60,23 +59,25 @@ class TestSimpleProcess:
 
 class TestSplitJoinProcess:
 
-    @patch('joeflow.celery.task_wrapper.retry')
-    def test_join(self, retry, db, client):
+    def test_join(self, transactional_db, stub_worker, client):
         url = reverse('splitjoinprocess:start')
         response = client.post(url)
         assert response.status_code == 302
+        stub_worker.wait()
         obj = models.SplitJoinProcess.objects.get()
+        assert obj.task_set.filter(name='join').latest().status == 'succeeded'
+        obj.refresh_from_db()
         assert obj.parallel_task_value == 2
         assert obj.task_set.filter(name='join').count() == 1
 
 
 class TestLoopProcess:
 
-    def test_loop(self, db, client):
+    def test_loop(self, transactional_db, stub_worker, client):
         url = reverse('loopprocess:start')
         response = client.post(url)
         assert response.status_code == 302
-
+        stub_worker.wait()
         obj = models.LoopProcess.objects.get()
         assert obj.counter == 10
         assert obj.task_set.filter(name='increment_counter').count() == 10
@@ -98,8 +99,9 @@ class TestTaskAdmin:
 
 
 class TestFailingProcess:
-    def test_fail(self, db):
+    def test_fail(self, transactional_db, stub_worker):
         process = models.FailingProcess.start()
+        stub_worker.wait()
         failed_task = process.task_set.latest()
         assert failed_task.status == Task.FAILED
         assert failed_task.exception == 'ValueError: Boom!'
