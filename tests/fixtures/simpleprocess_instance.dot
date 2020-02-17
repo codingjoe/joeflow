@@ -8,6 +8,6 @@ digraph {
 	"start view" -> "save the princess"
 	"start method" -> "save the princess"
 	"save the princess" -> end
-	"save the princess" [color=black fontcolor=black href="/simple/save_the_princess/2/" style="filled, rounded, bold"]
+	"save the princess" [color=black fontcolor=black href="{url}" style="filled, rounded, bold"]
 	"start method" [color=black fontcolor=black style="filled, bold"]
 }

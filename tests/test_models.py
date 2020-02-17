@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -143,11 +141,11 @@ class TestProcess:
 
     def test_get_absolute_url(self, db):
         process = models.SimpleProcess.start_method()
-        assert process.get_absolute_url() == '/simple/1/'
+        assert process.get_absolute_url() == f'/simple/{process.pk}/'
 
     def test_get_override_url(self, db):
         process = models.SimpleProcess.start_method()
-        assert process.get_override_url() == '/simple/1/override'
+        assert process.get_override_url() == f'/simple/{process.pk}/override'
 
     def test_get_graph(self, fixturedir):
         graph = models.SimpleProcess.get_graph()
@@ -162,21 +160,23 @@ class TestProcess:
 
     def test_get_instance_graph(self, db, fixturedir):
         process = models.SimpleProcess.start_method()
+        task_url = process.task_set.get(name='save_the_princess').get_absolute_url()
         graph = process.get_instance_graph()
         with open(str(fixturedir / 'simpleprocess_instance.dot')) as fp:
-            expected_graph = fp.read().splitlines()
-        assert set(graph.body) == set(expected_graph[1:-1])
+            assert set(graph.body) == set(fp.read().replace("{url}", task_url).splitlines()[1:-1])
 
-    def test_get_instance_graph__override(self, db, fixturedir, admin_client):
+    def test_get_instance_graph__override(self, db, stub_worker, fixturedir, admin_client):
         process = models.SimpleProcess.start_method()
         url = reverse('simpleprocess:override', args=[process.pk])
         response = admin_client.post(url, data={'next_tasks': ['end']})
         assert response.status_code == 302
-        assert process.task_set.get(name='override')
+        stub_worker.wait()
+        task = process.task_set.get(name='override')
         graph = process.get_instance_graph()
-        with open(str(fixturedir / 'simpleprocess_instance_override.dot')) as fp:
-            expected_graph = fp.read().splitlines()
-        assert set(graph.body) == set(expected_graph[1:-1])
+
+        assert f'\t"{task.name} {task.pk}" [style="filled, rounded, dashed"]' in graph.body
+        assert f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]' in graph.body
+        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]' in graph.body
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
         process = models.SimpleProcess.objects.create()
@@ -186,9 +186,10 @@ class TestProcess:
         obsolete.parent_task_set.add(start)
         end.parent_task_set.add(obsolete)
         graph = process.get_instance_graph()
-        with open(str(fixturedir / 'simpleprocess_instance_obsolete.dot')) as fp:
-            expected_graph = fp.read().splitlines()
-        assert set(graph.body) == set(expected_graph[1:-1])
+
+        assert '\tobsolete [color=black fontcolor=black style="filled, dashed, bold"]' in graph.body
+        assert '\t"start method" -> obsolete [style=dashed]' in graph.body
+        assert '\tobsolete -> end [style=dashed]' in graph.body
 
     def test_get_instance_graph_svg(self, db, fixturedir):
         process = models.SimpleProcess.start_method()
@@ -351,8 +352,7 @@ class TestTask:
         assert tasks[0].name == 'end'
         assert process.task_set.latest() == tasks[0]
 
-    @patch('joeflow.celery.task_wrapper.retry')
-    def test_start_next_tasks__multiple_next_tasks(self, retry, db):
+    def test_start_next_tasks__multiple_next_tasks(self, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(name='split')
         tasks = task.start_next_tasks(next_nodes=[
@@ -360,8 +360,7 @@ class TestTask:
         ])
         assert len(tasks) == 2
 
-    @patch('joeflow.celery.task_wrapper.retry')
-    def test_start_next_tasks__custom_task_creation(self, retry, db):
+    def test_start_next_tasks__custom_task_creation(self, db):
         process = models.SplitJoinProcess.objects.create()
         task = process.task_set.create(name='batman')
         tasks = task.start_next_tasks(next_nodes=[

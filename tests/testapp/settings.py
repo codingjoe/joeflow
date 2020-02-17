@@ -27,9 +27,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-INSTALLED_APPS = [
+try:
+    import dramatiq  # NoQA
+except ImportError:
+    INSTALLED_APPS = []
+else:
+    INSTALLED_APPS = ['django_dramatiq']
+
+INSTALLED_APPS += [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -90,7 +96,7 @@ WSGI_APPLICATION = 'tests.testapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': ':memory:',
     }
 }
 
@@ -135,4 +141,30 @@ STATIC_URL = '/static/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
-CELERY_BROKER_URL = 'redis://'
+# Dramatiq
+
+DRAMATIQ_BROKER = {
+    "BROKER": os.getenv("DRAMATIQ_BROKER", "dramatiq.brokers.redis.RedisBroker"),
+    "OPTIONS": {
+        'url': "redis:///1",
+    },
+    "MIDDLEWARE": [
+        "dramatiq.middleware.Prometheus",
+        "dramatiq.middleware.AgeLimit",
+        "dramatiq.middleware.TimeLimit",
+        "dramatiq.middleware.Callbacks",
+        "dramatiq.middleware.Retries",
+    ]
+}
+
+# Celery
+
+CELERY_BROKER_URL = 'redis:///2'
+
+try:
+    import dramatiq  # NoQA
+    JOEFLOW_TASK_RUNNER = 'joeflow.runner.dramatiq.task_runner'
+except ImportError:
+    JOEFLOW_TASK_RUNNER = 'joeflow.runner.celery.task_runner'
+JOEFLOW_CELERY_QUEUE_NAME = 'yoloflow'
+JOEFLOW_REDIS_LOCK_URL = 'redis:///3'

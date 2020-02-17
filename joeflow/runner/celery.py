@@ -1,31 +1,24 @@
 import logging
-import random
 
 from celery import shared_task
 from django.apps import apps
 from django.db import transaction
 
+from joeflow.conf import settings
 from joeflow.contrib.reversion import with_reversion
 
-from . import locking
+from .. import locking, utils
 
-logger = logging.getLogger('joeflow')
-
-
-def jitter():
-    """Return a random number between 0 and 1."""
-    return random.randrange(2)  # nosec
+logger = logging.getLogger(__name__)
 
 
-def backoff(retries):
-    """Return an exponentially growing number limited to 600 plus a random jitter."""
-    return min(600, 2 ** retries) + jitter()
+__all__ = ['task_runner']
 
 
 @shared_task(bind=True, ignore_results=True, max_retries=None)
-def task_wrapper(self, task_pk, process_pk):
+def _celery_task_runner(self, task_pk, process_pk):
     with locking.lock(process_pk) as lock_result:
-        countdown = backoff(self.request.retries)
+        countdown = utils.backoff(self.request.retries)
         if not lock_result:
             logger.info("Process is locked, retrying in %s seconds", countdown)
             self.retry(countdown=countdown)
@@ -55,3 +48,13 @@ def task_wrapper(self, task_pk, process_pk):
             logger.info("Task completed successful, starting next tasks: %s", result)
             task.start_next_tasks(next_nodes=result)
             task.finish()
+
+
+def task_runner(*, task_pk, process_pk, countdown, eta):
+    """Schedule asynchronous machine task using celery."""
+    _celery_task_runner.apply_async(
+        args=(task_pk, process_pk),
+        countdown=countdown,
+        eta=eta,
+        queue=settings.JOEFLOW_CELERY_QUEUE_NAME,
+    )
