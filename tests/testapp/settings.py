@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'j66!llq)+*mnfztjfu0(j^x@cai5%(lf#ysxmq(*7@-2iqprp*'
+SECRET_KEY = "j66!llq)+*mnfztjfu0(j^x@cai5%(lf#ysxmq(*7@-2iqprp*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -33,19 +33,18 @@ try:
 except ImportError:
     INSTALLED_APPS = []
 else:
-    INSTALLED_APPS = ['django_dramatiq']
+    INSTALLED_APPS = ["django_dramatiq"]
 
 INSTALLED_APPS += [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
-    'joeflow',
-    'tests.testapp',
-    'django.forms',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "joeflow",
+    "tests.testapp",
+    "django.forms",
 ]
 
 try:
@@ -53,52 +52,47 @@ try:
 except ImportError:
     pass
 else:
-    INSTALLED_APPS.append('reversion')
+    INSTALLED_APPS.append("reversion")
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'tests.testapp.urls'
+ROOT_URLCONF = "tests.testapp.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
-            'debug': DEBUG,
+            "debug": DEBUG,
         },
     },
 ]
 
-FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
-WSGI_APPLICATION = 'tests.testapp.wsgi.application'
+WSGI_APPLICATION = "tests.testapp.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-}
+DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
 
 
 # Password validation
@@ -106,26 +100,20 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -137,34 +125,33 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 
 # Dramatiq
 
 DRAMATIQ_BROKER = {
     "BROKER": os.getenv("DRAMATIQ_BROKER", "dramatiq.brokers.redis.RedisBroker"),
-    "OPTIONS": {
-        'url': "redis:///1",
-    },
+    "OPTIONS": {"url": "redis:///1"},
     "MIDDLEWARE": [
         "dramatiq.middleware.Prometheus",
         "dramatiq.middleware.AgeLimit",
         "dramatiq.middleware.TimeLimit",
         "dramatiq.middleware.Callbacks",
         "dramatiq.middleware.Retries",
-    ]
+    ],
 }
 
 # Celery
 
-CELERY_BROKER_URL = 'redis:///2'
+CELERY_BROKER_URL = "redis:///2"
 
 try:
     import dramatiq  # NoQA
-    JOEFLOW_TASK_RUNNER = 'joeflow.runner.dramatiq.task_runner'
+
+    JOEFLOW_TASK_RUNNER = "joeflow.runner.dramatiq.task_runner"
 except ImportError:
-    JOEFLOW_TASK_RUNNER = 'joeflow.runner.celery.task_runner'
-JOEFLOW_CELERY_QUEUE_NAME = 'yoloflow'
-JOEFLOW_REDIS_LOCK_URL = 'redis:///3'
+    JOEFLOW_TASK_RUNNER = "joeflow.runner.celery.task_runner"
+JOEFLOW_CELERY_QUEUE_NAME = "yoloflow"
+JOEFLOW_REDIS_LOCK_URL = "redis:///3"

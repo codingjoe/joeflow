@@ -12,7 +12,7 @@ from .. import locking, utils
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['task_runner']
+__all__ = ["task_runner"]
 
 
 @shared_task(bind=True, ignore_results=True, max_retries=None)
@@ -22,17 +22,17 @@ def _celery_task_runner(self, task_pk, process_pk):
         if not lock_result:
             logger.info("Process is locked, retrying in %s seconds", countdown)
             self.retry(countdown=countdown)
-        Task = apps.get_model('joeflow', 'Task')
+        Task = apps.get_model("joeflow", "Task")
         task = Task.objects.get(pk=task_pk, completed=None)
         process = task.process
 
         try:
             logger.info("Executing %r", task)
             node = getattr(type(process), task.name)
-            with_task = getattr(node, 'with_task', False)
+            with_task = getattr(node, "with_task", False)
             kwargs = {}
             if with_task:
-                kwargs['task'] = task
+                kwargs["task"] = task
             with with_reversion(task):
                 result = node(process, **kwargs)
         except:  # NoQA

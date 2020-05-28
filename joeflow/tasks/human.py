@@ -4,8 +4,8 @@ from django.views import generic
 from joeflow.views import TaskViewMixin
 
 __all__ = (
-    'StartView',
-    'UpdateView',
+    "StartView",
+    "UpdateView",
 )
 
 

@@ -4,9 +4,7 @@ import redis
 
 from .conf import settings
 
-__all__ = (
-    'lock',
-)
+__all__ = ("lock",)
 
 
 @contextmanager
@@ -24,7 +22,10 @@ def _lock(process_pk):
     workers.
     """
     connection = redis.Redis.from_url(settings.JOEFLOW_REDIS_LOCK_URL)
-    __lock = connection.lock('joeflow_process_{}'.format(process_pk), timeout=settings.JOEFLOW_REDIS_LOCK_TIMEOUT)
+    __lock = connection.lock(
+        "joeflow_process_{}".format(process_pk),
+        timeout=settings.JOEFLOW_REDIS_LOCK_TIMEOUT,
+    )
     successful = __lock.acquire(blocking=False)
     try:
         yield successful

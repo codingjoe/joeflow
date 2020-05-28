@@ -6,7 +6,7 @@ from joeflow import locking
 def raise_inside_lock_context(process_pk):
     with locking._lock(process_pk) as lock:
         yield lock
-        raise Exception('some unexpected error')
+        raise Exception("some unexpected error")
 
 
 def test_lock__blocking():

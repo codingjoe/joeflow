@@ -14,17 +14,14 @@ class ProcessTemplateNameViewMixin:
 
     def get_template_names(self):
         names = [
-            "%s/%s_%s.html" % (
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-                self.name,
-            )
+            "%s/%s_%s.html"
+            % (self.model._meta.app_label, self.model._meta.model_name, self.name,)
         ]
         names.extend(super().get_template_names())
-        names.append("%s/process%s.html" % (
-            self.model._meta.app_label,
-            self.template_name_suffix
-        ))
+        names.append(
+            "%s/process%s.html"
+            % (self.model._meta.app_label, self.template_name_suffix)
+        )
         return names
 
 
@@ -38,15 +35,10 @@ class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
     def get_task(self):
         try:
             return get_object_or_404(
-                models.Task,
-                pk=self.kwargs['pk'],
-                name=self.name,
-                completed=None,
+                models.Task, pk=self.kwargs["pk"], name=self.name, completed=None,
             )
         except KeyError:
-            return models.Task(
-                name=self.name,
-            )
+            return models.Task(name=self.name,)
 
     def get_object(self, queryset=None):
         task = self.get_task()
@@ -66,10 +58,15 @@ class ProcessDetailView(ProcessTemplateNameViewMixin, generic.DetailView):
     pass
 
 
-class OverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameViewMixin, generic.UpdateView):
-    permission_required = 'override'
-    name = 'override'
-    fields = '__all__'
+class OverrideView(
+    PermissionRequiredMixin,
+    RevisionMixin,
+    ProcessTemplateNameViewMixin,
+    generic.UpdateView,
+):
+    permission_required = "override"
+    name = "override"
+    fields = "__all__"
 
     @staticmethod
     def get_task_choices(process):
@@ -81,14 +78,13 @@ class OverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameVi
 
         class OverrideForm(form_class):
             next_tasks = forms.MultipleChoiceField(
-                label=t('Next tasks'),
-                choices=self.get_task_choices(self.object),
+                label=t("Next tasks"), choices=self.get_task_choices(self.object),
             )
 
         return OverrideForm
 
     def get_next_task_nodes(self, form):
-        names = form.cleaned_data['next_tasks']
+        names = form.cleaned_data["next_tasks"]
         for name in names:
             yield self.object.get_node(name)
 
@@ -99,9 +95,7 @@ class OverrideView(PermissionRequiredMixin, RevisionMixin, ProcessTemplateNameVi
         active_tasks = list(self.object.task_set.filter(completed=None))
         for task in active_tasks:
             task.finish()
-        override_task = self.object.task_set.create(
-            name='override',
-        )
+        override_task = self.object.task_set.create(name="override",)
         override_task.parent_task_set.set(active_tasks)
         override_task.finish()
         override_task.start_next_tasks(next_nodes=next_nodes)

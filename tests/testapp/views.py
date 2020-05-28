@@ -9,4 +9,5 @@ class StartView(TaskViewMixin, generic.CreateView):
 
 class TaskView(TaskViewMixin, generic.UpdateView):
     """Update view."""
+
     pass
