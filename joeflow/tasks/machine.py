@@ -4,9 +4,9 @@ from typing import Iterable
 from django.utils import timezone
 
 __all__ = (
-    'Start',
-    'Join',
-    'Wait',
+    "Start",
+    "Join",
+    "Wait",
 )
 
 try:
@@ -106,13 +106,11 @@ class Join:
         self.parents = set(parents)
 
     def __call__(self, process, task):
-        return set(task.parent_task_set.values_list('name', flat=True)) == self.parents
+        return set(task.parent_task_set.values_list("name", flat=True)) == self.parents
 
     def create_task(self, process):
         return process.task_set.get_or_create(
-            name=self.name,
-            type=self.type,
-            completed=None,
+            name=self.name, type=self.type, completed=None,
         )[0]
 
 

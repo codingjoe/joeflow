@@ -7,5 +7,5 @@ There are two types of tasks, human and machine tasks.
 from .human import *  # NoQA
 from .machine import *  # NoQA
 
-HUMAN = 'human'
-MACHINE = 'machine'
+HUMAN = "human"
+MACHINE = "machine"

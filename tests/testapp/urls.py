@@ -19,10 +19,10 @@ from django.urls import include, path
 import tests.testapp.models
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('simple/', include(tests.testapp.models.SimpleProcess.urls())),
-    path('gateway/', include(tests.testapp.models.GatewayProcess.urls())),
-    path('splitjoin/', include(tests.testapp.models.SplitJoinProcess.urls())),
-    path('loop/', include(tests.testapp.models.LoopProcess.urls())),
-    path('welcome/', include(tests.testapp.models.WelcomeProcess.urls()))
+    path("admin/", admin.site.urls),
+    path("simple/", include(tests.testapp.models.SimpleProcess.urls())),
+    path("gateway/", include(tests.testapp.models.GatewayProcess.urls())),
+    path("splitjoin/", include(tests.testapp.models.SplitJoinProcess.urls())),
+    path("loop/", include(tests.testapp.models.LoopProcess.urls())),
+    path("welcome/", include(tests.testapp.models.WelcomeProcess.urls())),
 ]

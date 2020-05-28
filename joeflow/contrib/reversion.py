@@ -3,10 +3,10 @@ from contextlib import contextmanager
 from joeflow import utils
 
 __all__ = (
-    'register_processes',
-    'RevisionMixin',
-    'with_reversion',
-    'VersionAdmin',
+    "register_processes",
+    "RevisionMixin",
+    "with_reversion",
+    "VersionAdmin",
 )
 
 
@@ -43,9 +43,12 @@ try:
                 reversion.set_comment(self.name)
             return super().dispatch(request, *args, **kwargs)
 
+
 except ImportError:
+
     class RevisionMixin:
         pass
+
 
 try:
     from reversion.admin import VersionAdmin

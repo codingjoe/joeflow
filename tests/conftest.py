@@ -14,10 +14,12 @@ def testdir():
 
 @pytest.fixture()
 def fixturedir(testdir):
-    return testdir / 'fixtures'
+    return testdir / "fixtures"
 
 
-@pytest.fixture(params=["joeflow.runner.dramatiq.task_runner", "joeflow.runner.celery.task_runner"])
+@pytest.fixture(
+    params=["joeflow.runner.dramatiq.task_runner", "joeflow.runner.celery.task_runner"]
+)
 def _runner(request, monkeypatch, settings):
     settings.JOEFLOW_TASK_RUNNER = request.param
     if request.param == "joeflow.runner.dramatiq.task_runner":
@@ -41,7 +43,8 @@ def stub_worker(monkeypatch, settings, _runner):
         @contextmanager
         def _fake_lock(key):
             yield True
-        monkeypatch.setattr('joeflow.locking.lock', _fake_lock)
+
+        monkeypatch.setattr("joeflow.locking.lock", _fake_lock)
         yield mock.Mock()
     else:
         with redis.Redis.from_url(settings.JOEFLOW_REDIS_LOCK_URL) as connection:

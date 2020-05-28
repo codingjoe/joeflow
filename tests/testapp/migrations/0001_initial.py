@@ -11,66 +11,140 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('joeflow', '0001_initial'),
+        ("joeflow", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GatewayProcess',
+            name="GatewayProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
         migrations.CreateModel(
-            name='LoopProcess',
+            name="LoopProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
-                ('counter', models.PositiveIntegerField(default=0)),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
+                ("counter", models.PositiveIntegerField(default=0)),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
         migrations.CreateModel(
-            name='SimpleProcess',
+            name="SimpleProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
         migrations.CreateModel(
-            name='SplitJoinProcess',
+            name="SplitJoinProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
-                ('parallel_task_value', models.PositiveIntegerField(default=0)),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
+                ("parallel_task_value", models.PositiveIntegerField(default=0)),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
         migrations.CreateModel(
-            name='WaitProcess',
+            name="WaitProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
-                ('parallel_task_value', models.PositiveIntegerField(default=0)),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
+                ("parallel_task_value", models.PositiveIntegerField(default=0)),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
         migrations.CreateModel(
-            name='WelcomeProcess',
+            name="WelcomeProcess",
             fields=[
-                ('process_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='joeflow.Process')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('joeflow.process', models.Model),
+            options={"abstract": False},
+            bases=("joeflow.process", models.Model),
         ),
         migrations.CreateModel(
-            name='FailingProcess',
+            name="FailingProcess",
             fields=[
-                ('process_ptr',
-                 models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True,
-                                      primary_key=True, serialize=False, to='joeflow.Process')),
+                (
+                    "process_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="joeflow.Process",
+                    ),
+                ),
             ],
-            bases=('joeflow.process',),
+            bases=("joeflow.process",),
         ),
     ]

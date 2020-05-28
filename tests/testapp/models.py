@@ -10,9 +10,7 @@ from tests.testapp import views
 
 class WelcomeProcessState(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        blank=True, null=True,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
     )
 
     class Meta:
@@ -20,7 +18,7 @@ class WelcomeProcessState(models.Model):
 
 
 class WelcomeProcess(WelcomeProcessState, Process):
-    start = tasks.StartView(fields=['user'])
+    start = tasks.StartView(fields=["user"])
 
     def has_user(self):
         if self.user:
@@ -30,8 +28,7 @@ class WelcomeProcess(WelcomeProcessState, Process):
 
     def send_welcome_email(self):
         self.user.email_user(
-            subject='Welcome',
-            message='Hello %s!' % self.user.get_short_name(),
+            subject="Welcome", message="Hello %s!" % self.user.get_short_name(),
         )
 
     def end(self):
@@ -46,9 +43,9 @@ class WelcomeProcess(WelcomeProcessState, Process):
 
 
 class SimpleProcess(Process):
-    start_view = views.StartView(fields='__all__')
+    start_view = views.StartView(fields="__all__")
     start_method = tasks.Start()
-    save_the_princess = views.TaskView(fields='__all__')
+    save_the_princess = views.TaskView(fields="__all__")
 
     def end(self):
         pass
@@ -61,7 +58,7 @@ class SimpleProcess(Process):
 
 
 class GatewayProcess(Process):
-    start = views.StartView(fields='__all__')
+    start = views.StartView(fields="__all__")
 
     save_the_princess = views.TaskView()
 
@@ -88,13 +85,13 @@ class SplitJoinProcess(Process):
 
     def batman(self):
         self.parallel_task_value += 1
-        self.save(update_fields=['parallel_task_value'])
+        self.save(update_fields=["parallel_task_value"])
 
     def robin(self):
         self.parallel_task_value += 1
-        self.save(update_fields=['parallel_task_value'])
+        self.save(update_fields=["parallel_task_value"])
 
-    join = tasks.Join('batman', 'robin')
+    join = tasks.Join("batman", "robin")
 
     edges = (
         (start, split),
@@ -112,7 +109,7 @@ class LoopProcess(Process):
 
     def increment_counter(self):
         self.counter += 1
-        self.save(update_fields=['counter'])
+        self.save(update_fields=["counter"])
 
     def is_counter_10(self):
         if self.counter == 10:
@@ -152,6 +149,4 @@ class FailingProcess(Process):
     def fail(self):
         raise ValueError("Boom!")
 
-    edges = (
-        (start, fail),
-    )
+    edges = ((start, fail),)

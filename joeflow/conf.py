@@ -1,9 +1,7 @@
 from appconf import AppConf
 from django.conf import settings
 
-__all__ = (
-    'settings',
-)
+__all__ = ("settings",)
 
 
 class JoeflowAppConfig(AppConf):
@@ -13,7 +11,7 @@ class JoeflowAppConfig(AppConf):
     To change the default values just set the setting in your settings file.
     """
 
-    JOEFLOW_REDIS_LOCK_URL = 'redis://'
+    JOEFLOW_REDIS_LOCK_URL = "redis://"
     """
     Redis database your for Redis database that is used for process locking.
     """
@@ -26,7 +24,7 @@ class JoeflowAppConfig(AppConf):
     process state.
     """
 
-    JOEFLOW_TASK_RUNNER = 'joeflow.runner.dramatiq.task_runner'
+    JOEFLOW_TASK_RUNNER = "joeflow.runner.dramatiq.task_runner"
     """
     Task runner is used to execute machine tasks.
 
@@ -41,7 +39,7 @@ class JoeflowAppConfig(AppConf):
     .. _Celery: http://www.celeryproject.org/
     """
 
-    JOEFLOW_CELERY_QUEUE_NAME = 'joeflow'
+    JOEFLOW_CELERY_QUEUE_NAME = "joeflow"
     """
     Queue name in which all machine tasks will be queued.
     """
