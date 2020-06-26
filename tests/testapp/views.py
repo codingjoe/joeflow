@@ -4,10 +4,8 @@ from joeflow.views import TaskViewMixin
 
 
 class StartView(TaskViewMixin, generic.CreateView):
-    pass
+    """Generic view to start/create a new process."""
 
 
 class TaskView(TaskViewMixin, generic.UpdateView):
-    """Update view."""
-
-    pass
+    """Generic human task to update a process' state."""
