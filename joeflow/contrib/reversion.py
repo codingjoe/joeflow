@@ -3,22 +3,22 @@ from contextlib import contextmanager
 from joeflow import utils
 
 __all__ = (
-    "register_processes",
+    "register_workflows",
     "RevisionMixin",
     "with_reversion",
     "VersionAdmin",
 )
 
 
-def register_processes():
+def register_workflows():
     try:
         from reversion import revisions
     except ImportError:
         pass
     else:
-        for model in utils.get_processes():
-            if not revisions.is_registered(model):
-                revisions.register(model)
+        for workflow in utils.get_workflows():
+            if not revisions.is_registered(workflow):
+                revisions.register(workflow)
 
 
 @contextmanager

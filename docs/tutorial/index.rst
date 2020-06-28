@@ -4,7 +4,7 @@ Tutorial
 ========
 
 The following tutorial should give you a quick overview on how to write a
-process, integrate it into your Django application and write robust and
+workflow, integrate it into your Django application and write robust and
 automated tests.
 
 Before we get started make you you have the package installed. Simply install
@@ -23,12 +23,12 @@ celery setup.
 
     https://celery.readthedocs.io/en/latest/django/first-steps-with-django.html
 
-Once the setup is completed you can get started writing your first process!
+Once the setup is completed you can get started writing your first workflow!
 
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
 
-   process
+   workflow
    templates
    testing

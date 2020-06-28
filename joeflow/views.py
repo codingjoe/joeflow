@@ -8,7 +8,7 @@ from . import forms, models
 from .contrib.reversion import RevisionMixin
 
 
-class ProcessTemplateNameViewMixin:
+class WorkflowTemplateNameViewMixin:
     name = None
 
     def get_template_names(self):
@@ -18,13 +18,13 @@ class ProcessTemplateNameViewMixin:
         ]
         names.extend(super().get_template_names())
         names.append(
-            "%s/process%s.html"
+            "%s/workflow%s.html"
             % (self.model._meta.app_label, self.template_name_suffix)
         )
         return names
 
 
-class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
+class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
     name = None
     path = ""
     """
@@ -51,7 +51,7 @@ class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
 
     def get_object(self, queryset=None):
         task = self.get_task()
-        return task.process
+        return task.workflow
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -61,20 +61,22 @@ class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
 
     def create_task(self, request):
         task = self.get_task()
-        task.process = self.model._base_manager.get(pk=self.object.pk)
+        task.workflow = self.model._base_manager.get(
+            pk=self.model._base_manager.get(pk=self.object.pk)
+        )
         task.finish(request.user)
         task.start_next_tasks()
         return task
 
 
-class ProcessDetailView(ProcessTemplateNameViewMixin, generic.DetailView):
+class WorkflowDetailView(WorkflowTemplateNameViewMixin, generic.DetailView):
     pass
 
 
 class OverrideView(
     PermissionRequiredMixin,
     RevisionMixin,
-    ProcessTemplateNameViewMixin,
+    WorkflowTemplateNameViewMixin,
     generic.UpdateView,
 ):
     permission_required = "override"

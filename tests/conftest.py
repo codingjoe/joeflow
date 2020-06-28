@@ -29,7 +29,6 @@ def _runner(request, monkeypatch, settings):
             pytest.skip("Dramatiq is not installed")
     if request.param == "joeflow.runner.celery.task_runner":
         try:
-
             from celery import shared_task  # NoQA
         except ImportError:
             pytest.skip("Celery is not installed")
@@ -38,7 +37,6 @@ def _runner(request, monkeypatch, settings):
 @pytest.fixture()
 def stub_worker(monkeypatch, settings, _runner):
     if settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.celery.task_runner":
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
         @contextmanager
         def _fake_lock(key):

@@ -3,10 +3,10 @@ from django.core import mail
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from .testapp import models
+from .testapp import workflows
 
 
-class WelcomeProcessMachineTest(SimpleTestCase):
+class WelcomeWorkflowMachineTest(SimpleTestCase):
     def test_has_user__with_user(self):
         user = get_user_model()(
             email="spiderman@avengers.com",
@@ -14,12 +14,12 @@ class WelcomeProcessMachineTest(SimpleTestCase):
             last_name="Parker",
             username="spidy",
         )
-        process = models.WelcomeProcess(user=user)
-        self.assertEqual(process.has_user(), [process.send_welcome_email])
+        workflow = workflows.WelcomeWorkflow(user=user)
+        self.assertEqual(workflow.has_user(), [workflow.send_welcome_email])
 
     def test_has_user__without_user(self):
-        process = models.WelcomeProcess()
-        self.assertEqual(process.has_user(), [process.end])
+        workflow = workflows.WelcomeWorkflow()
+        self.assertEqual(workflow.has_user(), [workflow.end])
 
     def test_send_welcome_email(self):
         user = get_user_model()(
@@ -28,9 +28,9 @@ class WelcomeProcessMachineTest(SimpleTestCase):
             last_name="Parker",
             username="spidy",
         )
-        process = models.WelcomeProcess(user=user)
+        workflow = workflows.WelcomeWorkflow(user=user)
 
-        process.send_welcome_email()
+        workflow.send_welcome_email()
 
         email = mail.outbox[-1]
         self.assertEqual(email.subject, "Welcome")
@@ -38,8 +38,8 @@ class WelcomeProcessMachineTest(SimpleTestCase):
         self.assertIn("spiderman@avengers.com", email.to)
 
 
-class WelcomeProcessHumanTest(TestCase):
-    start_url = reverse("welcomeprocess:start")
+class WelcomeWorkflowHumanTest(TestCase):
+    start_url = reverse("welcomeworkflow:start")
 
     def test_start__get(self):
         response = self.client.get(self.start_url)
@@ -55,13 +55,13 @@ class WelcomeProcessHumanTest(TestCase):
 
         response = self.client.post(self.start_url, data=dict(user=user.pk))
         self.assertEqual(response.status_code, 302)
-        process = models.WelcomeProcess.objects.get()
-        self.assertTrue(process.user)
-        self.assertTrue(process.task_set.succeeded().filter(name="start").exists())
+        workflow = workflows.WelcomeWorkflow.objects.get()
+        self.assertTrue(workflow.user)
+        self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())
 
     def test_start__post_without_user(self):
         response = self.client.post(self.start_url)
         self.assertEqual(response.status_code, 302)
-        process = models.WelcomeProcess.objects.get()
-        self.assertFalse(process.user)
-        self.assertTrue(process.task_set.succeeded().filter(name="start").exists())
+        workflow = workflows.WelcomeWorkflow.objects.get()
+        self.assertFalse(workflow.user)
+        self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())

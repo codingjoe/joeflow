@@ -4,19 +4,19 @@ Management Commands
 
 .. automodule:: joeflow.management.commands
 
-render_process_graph
---------------------
+render_workflow_graph
+---------------------
 
-Render process graph to file::
+Render workflow graph to file::
 
-    usage: manage.py render_process_graph [-h] [-f {svg,pdf,png}] [-d DIRECTORY]
+    usage: manage.py render_workflow_graph [-h] [-f {svg,pdf,png}] [-d DIRECTORY]
                                           [-c] [model [model ...]]
 
-    Render process graph to file.
+    Render workflow graph to file.
 
     positional arguments:
-      model                 List of models to render in the form
-                            app_label.model_name
+      workflow              List of workflow to render in the form
+                            app_label.workflow_name
 
     optional arguments:
       -h, --help            show this help message and exit

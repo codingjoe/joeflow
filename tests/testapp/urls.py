@@ -16,13 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-import tests.testapp.models
+from . import workflows
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("simple/", include(tests.testapp.models.SimpleProcess.urls())),
-    path("gateway/", include(tests.testapp.models.GatewayProcess.urls())),
-    path("splitjoin/", include(tests.testapp.models.SplitJoinProcess.urls())),
-    path("loop/", include(tests.testapp.models.LoopProcess.urls())),
-    path("welcome/", include(tests.testapp.models.WelcomeProcess.urls())),
+    path("shipment/", include(workflows.ShippingWorkflow.urls())),
+    path("simple/", include(workflows.SimpleWorkflow.urls())),
+    path("gateway/", include(workflows.GatewayWorkflow.urls())),
+    path("splitjoin/", include(workflows.SplitJoinWorkflow.urls())),
+    path("loop/", include(workflows.LoopWorkflow.urls())),
+    path("welcome/", include(workflows.WelcomeWorkflow.urls())),
 ]

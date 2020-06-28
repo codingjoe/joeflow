@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as t
 from . import forms, models
 from .contrib.reversion import VersionAdmin
 
-__all__ = ("ProcessAdmin",)
+__all__ = ("WorkflowAdmin",)
 
 
 def rerun(modeladmin, request, queryset):
@@ -79,7 +79,7 @@ class TaskAdmin(VersionAdmin):
     )
 
     readonly_fields = (
-        "process",
+        "workflow",
         "name",
         "type",
         "parent_task_set",
@@ -104,7 +104,7 @@ class TaskAdmin(VersionAdmin):
             None,
             {
                 "fields": (
-                    "process",
+                    "workflow",
                     "name",
                     "parent_task_set",
                     "child_tasks",
@@ -137,7 +137,7 @@ class TaskInlineAdmin(admin.TabularInline):
     classes = ["collapse"]
 
 
-class ProcessAdmin(VersionAdmin):
+class WorkflowAdmin(VersionAdmin):
     list_filter = (
         "modified",
         "created",

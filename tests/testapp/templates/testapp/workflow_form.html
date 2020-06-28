@@ -3,7 +3,7 @@
 {% block body %}
 <div class="w3-card w3-content w3-card-4 w3-white">
   <div class="w3-center">
-    {{ object.get_process_graph }}
+    {{ object.get_workflow_graph }}
   </div>
   <form method="POST" class="w3-container">
     {% csrf_token %}

@@ -146,6 +146,7 @@ DRAMATIQ_BROKER = {
 # Celery
 
 CELERY_BROKER_URL = "redis:///2"
+CELERY_TASK_ALWAYS_EAGER = True
 
 try:
     import dramatiq  # NoQA
