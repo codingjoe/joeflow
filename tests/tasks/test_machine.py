@@ -4,13 +4,13 @@ from django.utils import timezone
 
 from joeflow import tasks
 from joeflow.models import Task
-from tests.testapp import models
+from tests.testapp import workflows
 
 
 class TestStart:
     def test_call(self, db):
-        proc = models.SimpleProcess.start_method(pk=3)
-        assert proc.pk == 3
+        wf = workflows.SimpleWorkflow.start_method(pk=3)
+        assert wf.pk == 3
 
 
 class TestJoin:
@@ -19,21 +19,22 @@ class TestJoin:
         assert node.parents == {"1", "2", "3"}
 
     def test_call(self, db):
-        proc = models.SimpleProcess.start_method()
-        task = proc.task_set.latest()
+        wf = workflows.SimpleWorkflow.start_method()
+        assert isinstance(wf, workflows.SimpleWorkflow)
+        task = wf.task_set.latest()
         assert not tasks.Join("does_not_have_the_parent")(None, task)
         assert tasks.Join("start_method")(None, task)
 
     def test_create_task(self, db):
-        proc = models.SimpleProcess.start_method()
+        wf = workflows.SimpleWorkflow.start_method()
         node = tasks.Join()
         node.name = "test"
         node.type = "machine"
-        obj = node.create_task(proc)
-        obj2 = node.create_task(proc)
+        obj = node.create_task(wf)
+        obj2 = node.create_task(wf)
         assert obj == obj2
         obj.finish()
-        obj3 = node.create_task(proc)
+        obj3 = node.create_task(wf)
         assert obj != obj3
 
 

@@ -7,6 +7,6 @@ class JoeflowConfig(AppConfig):
     verbose_name = t("Joeflow")
 
     def ready(self):
-        from .contrib.reversion import register_processes
+        from .contrib.reversion import register_workflows
 
-        register_processes()
+        register_workflows()

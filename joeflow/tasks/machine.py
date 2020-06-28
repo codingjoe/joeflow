@@ -21,19 +21,19 @@ class Start:
     """
     Start a new function via a callable.
 
-    Creates a new process instance and executes a start task.
-    The start task does not do anything beyond creating the process.
+    Creates a new workflow instance and executes a start task.
+    The start task does not do anything beyond creating the workflow.
 
     Sample:
 
     .. code-block:: python
 
         from django.db import models
-        from joeflow.models import Process
+        from joeflow.models import Workflow
         from joeflow import tasks
 
 
-        class StartProcess(Process):
+        class StartWorkflow(Workflow):
             a_text_field = models.TextField()
 
             start = tasks.Start()
@@ -45,20 +45,20 @@ class Start:
                 (start, end),
             )
 
-        process = StartProcess.start(a_text_field="initial data")
+        workflow = StartWorkflow.start(a_text_field="initial data")
 
     """
 
     def __call__(self, **kwargs):
-        obj = self.process_cls.objects.create(**kwargs)
-        task = obj.task_set.create(name=self.name)
+        workflow = self.workflow_cls.objects.create(**kwargs)
+        task = workflow.task_set.create(name=self.name, workflow=workflow)
         task.start_next_tasks()
-        return obj
+        return workflow
 
 
 class Join:
     """
-    Wait for all parent tasks to complete before continuing the process.
+    Wait for all parent tasks to complete before continuing the workflow.
 
     Args:
         *parents (str): List of parent task names to wait for.
@@ -68,11 +68,11 @@ class Join:
     .. code-block:: python
 
         from django.db import models
-        from joeflow.models import Process
+        from joeflow.models import Workflow
         from joeflow import tasks
 
 
-        class SplitJoinProcess(Process):
+        class SplitJoinWorkflow(Workflow):
             parallel_task_value = models.PositiveIntegerField(default=0)
 
             start = tasks.Start()
@@ -105,11 +105,11 @@ class Join:
     def __init__(self, *parents: Iterable[str]):
         self.parents = set(parents)
 
-    def __call__(self, process, task):
+    def __call__(self, workflow, task):
         return set(task.parent_task_set.values_list("name", flat=True)) == self.parents
 
-    def create_task(self, process):
-        return process.task_set.get_or_create(
+    def create_task(self, workflow):
+        return workflow.task_set.get_or_create(
             name=self.name, type=self.type, completed=None,
         )[0]
 
@@ -128,11 +128,11 @@ class Wait:
         import datetime
 
         from django.db import models
-        from joeflow.models import Process
+        from joeflow.models import Workflow
         from joeflow import tasks
 
 
-        class WaitProcess(Process):
+        class WaitWorkflow(Workflow):
             parallel_task_value = models.PositiveIntegerField(default=0)
 
             start = tasks.Start()
@@ -154,5 +154,5 @@ class Wait:
     def __init__(self, duration: timezone.timedelta):
         self.duration = duration
 
-    def __call__(self, process, task):
+    def __call__(self, workflow, task):
         return timezone.now() - task.created >= self.duration

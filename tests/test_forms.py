@@ -1,63 +1,63 @@
 from joeflow import forms
-from tests.testapp.models import SimpleProcess
+from tests.testapp.workflows import SimpleWorkflow
 
 
 class TestOverrideForm:
     def test_get_next_task_nodes(self):
-        class SimpleProcessForm(forms.OverrideForm):
+        class SimpleWorkflowForm(forms.OverrideForm):
             class Meta:
-                model = SimpleProcess
+                model = SimpleWorkflow
                 fields = "__all__"
 
-        form = SimpleProcessForm({"next_tasks": ["end"]})
+        form = SimpleWorkflowForm({"next_tasks": ["end"]})
         assert form.is_valid()
-        assert list(form.get_next_task_nodes()) == [SimpleProcess.end]
+        assert list(form.get_next_task_nodes()) == [SimpleWorkflow.end]
 
     def test_start_next_tasks(self, db, admin_user):
-        process = SimpleProcess.start_method()
-        assert process.task_set.scheduled().exists()
+        workflow = SimpleWorkflow.start_method()
+        assert workflow.task_set.scheduled().exists()
 
-        class SimpleProcessForm(forms.OverrideForm):
+        class SimpleWorkflowForm(forms.OverrideForm):
             class Meta:
-                model = SimpleProcess
+                model = SimpleWorkflow
                 fields = "__all__"
 
-        form = SimpleProcessForm({"next_tasks": ["end"]}, instance=process)
+        form = SimpleWorkflowForm({"next_tasks": ["end"]}, instance=workflow)
         assert form.is_valid()
         form.start_next_tasks()
 
-        assert process.task_set.scheduled()[0].name == "end"
+        assert workflow.task_set.scheduled()[0].name == "end"
 
     def test_start_next_tasks__user(self, db, admin_user):
-        process = SimpleProcess.start_method()
-        assert process.task_set.scheduled().exists()
+        workflow = SimpleWorkflow.start_method()
+        assert workflow.task_set.scheduled().exists()
 
-        class SimpleProcessForm(forms.OverrideForm):
+        class SimpleWorkflowForm(forms.OverrideForm):
             class Meta:
-                model = SimpleProcess
+                model = SimpleWorkflow
                 fields = "__all__"
 
-        form = SimpleProcessForm({"next_tasks": ["end"]}, instance=process)
+        form = SimpleWorkflowForm({"next_tasks": ["end"]}, instance=workflow)
         assert form.is_valid()
         form.start_next_tasks(admin_user)
 
-        assert process.task_set.canceled()[0].completed_by_user == admin_user
+        assert workflow.task_set.canceled()[0].completed_by_user == admin_user
         assert (
-            process.task_set.filter(name="override")[0].completed_by_user == admin_user
+            workflow.task_set.filter(name="override")[0].completed_by_user == admin_user
         )
-        assert process.task_set.filter(name="override")[0].status == "succeeded"
+        assert workflow.task_set.filter(name="override")[0].status == "succeeded"
 
     def test_start_next_tasks__no_next_task(self, db, admin_user):
-        process = SimpleProcess.start_method()
-        assert process.task_set.scheduled().exists()
+        workflow = SimpleWorkflow.start_method()
+        assert workflow.task_set.scheduled().exists()
 
-        class SimpleProcessForm(forms.OverrideForm):
+        class SimpleWorkflowForm(forms.OverrideForm):
             class Meta:
-                model = SimpleProcess
+                model = SimpleWorkflow
                 fields = "__all__"
 
-        form = SimpleProcessForm({"next_tasks": []}, instance=process)
+        form = SimpleWorkflowForm({"next_tasks": []}, instance=workflow)
         assert form.is_valid()
         form.start_next_tasks()
 
-        assert not process.task_set.scheduled().exists()
+        assert not workflow.task_set.scheduled().exists()

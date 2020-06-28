@@ -14,33 +14,68 @@ Django_ web framework.
 .. _Python: https://python.org
 .. _Django: https://www.djangoproject.com/
 
-Here is a little sample of what a process written with joeflow may look like::
+Here is a little sample of what a workflow or process written with joeflow
+may look like:
 
-    class WelcomeProcess(Process):
-        user = models.ForeignKey(
-            settings.AUTH_USER_MODEL,
-            on_delete=models.CASCADE,
-            blank=True, null=True,
-        )
+.. graphviz::
 
-        start = tasks.StartView(fields=['user'])
+    digraph {
+        graph [rankdir=LR]
+        node [fillcolor=white fontname="sans-serif" shape=rect style=filled]
+        checkout [color=black fontcolor=black style="filled, rounded"]
+        "has email" [color=black fontcolor=black style=filled]
+        ship [color=black fontcolor=black style="filled, rounded"]
+        end [color=black fontcolor=black style=filled]
+        "send tracking code" [color=black fontcolor=black style=filled]
+        checkout -> ship
+        ship -> "has email"
+        "has email" -> "send tracking code"
+        "has email" -> end
+        "send tracking code" -> end
+    }
 
-        def has_user(self, task):
-            if self.user_id is None:
-                return []
-            else:
-                return [self.send_welcome_email]
+.. code-block:: python
 
-        def send_welcome_email(self, task):
-            self.user.email_user(
-                subject='Welcome',
-                message='Hello %s!' % self.user.get_short_name(),
+    from django.core.mail import send_mail
+    from jowflow.models import Workflow
+    from joeflow import tasks
+
+
+    class Shipment(Workflow):
+        email = models.EmailField(blank=True)
+        shipping_address = models.TextField()
+        tracking_code = models.TextField()
+
+    class ShippingWorkflow(Shipment):
+        checkout = tasks.StartView(fields=["shipping_address", "email"])
+
+        ship = tasks.UpdateView(fields=["tracking_code"])
+
+        def has_email(self, task):
+            if self.email:
+                return [self.send_tracking_code]
+
+        def send_tracking_code(self, task):
+            send_mail(
+                subject="Your tracking code",
+                message=self.tracking_code,
+                from_email=None,
+                recipient_list=[self.email],
             )
 
-        edges = (
-            (start, has_user),
-            (has_user, send_welcome_email),
-        )
+        def end(self, task):
+            pass
+
+        edges = [
+            (checkout, ship),
+            (ship, has_email),
+            (has_email, send_tracking_code),
+            (has_email, end),
+            (send_tracking_code, end),
+        ]
+
+        class Meta:
+            proxy = True
 
 Design Principles
 =================
@@ -59,7 +94,7 @@ Lean Automation (breaking the rules)
 
 Things don't always go according to plan especially when humans are involved.
 Even the best workflow can't cover all possible edge cases. Joeflow
-embraces that fact. It allows uses to interrupt a process at any given point
+embraces that fact. It allows uses to interrupt a workflow at any given point
 and modify it's current state. All while tracking all changes. This allows
 developers to automate the main cases and users handle manually exceptions.
 This allows you businesses to ship prototypes and MVPs of workflows.
@@ -70,7 +105,7 @@ People
 ------
 
 Joeflow is build with all users in mind. Managers should be able to develop
-better processes. Users should able to interact with the tasks every single
+better workflows. Users should able to interact with the tasks every single
 day. And developers should be able to rapidly develop and test new features.
 
 Free

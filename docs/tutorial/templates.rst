@@ -8,18 +8,18 @@ name is similar as it is for a
 :class:`CreateView<django.views.generic.edit.CreateView>` but with more
 options. Default template names are::
 
-    app_name/welcomeprocess_start.html
-    app_name/welcomeprocess_form.html
-    app_name/process_form.html
+    app_name/welcomeworkflow_start.html
+    app_name/welcomeworkflow_form.html
+    app_name/workflow_form.html
 
 Django will search for a template precisely that order. This allows you to
 create a base template for all human tasks but also override override them
 individually should that be needed.
 
 Following the example please
-create a file named ``app_name/process_form.html`` in your template folder.
+create a file named ``app_name/workflow_form.html`` in your template folder.
 The ``app_nam`` should be replaced by the application name in which you crated
-your Welcome process. Now fill the file with a simple form template:
+your Welcome workflow. Now fill the file with a simple form template:
 
 .. code-block:: html
 
@@ -27,7 +27,7 @@ your Welcome process. Now fill the file with a simple form template:
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>Welcome Process</title>
+      <title>Welcome Workflow</title>
     </head>
     <body>
       <form method="POST">
@@ -40,21 +40,21 @@ your Welcome process. Now fill the file with a simple form template:
 
 Of course you can make it prettier, but this will work.
 
-Besides the tasks a process comes with two more views by default. A process
-detail view and a view to manually override the current process state.
+Besides the tasks a workflow comes with two more views by default. A workflow
+detail view and a view to manually override the current workflow state.
 
-The manual override view will also use the ``process_form.html`` template
+The manual override view will also use the ``workflow_form.html`` template
 that you have already created. You can of course create a more specific
 template. Django will search for templates in the following order::
 
-    app_name/welcomeprocess_override.html
-    app_name/process_override.html
-    app_name/welcomeprocess_form.html
-    app_name/process_form.html
+    app_name/welcomeworkflow_override.html
+    app_name/workflow_override.html
+    app_name/welcomeworkflow_form.html
+    app_name/workflow_form.html
 
-Last but not least you will need a template for the process detail view.
+Last but not least you will need a template for the workflow detail view.
 You don't really need to add anything here, but lets add a little information
-to make your process feel more alive.
+to make your workflow feel more alive.
 
 .. code-block:: html
 
@@ -62,7 +62,7 @@ to make your process feel more alive.
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Welcome Process</title>
+        <title>Welcome Workflow</title>
     </head>
     <body>
       {{ object.get_instance_graph_svg }}

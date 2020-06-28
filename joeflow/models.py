@@ -1,10 +1,11 @@
 import logging
 import sys
 import traceback
+from typing import Any, List, Tuple
 
-import graphviz as gv
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.db import models, transaction
+from django.db.models.base import ModelBase
 from django.db.models.functions import Now
 from django.urls import NoReverseMatch, path, reverse
 from django.utils import timezone
@@ -15,48 +16,22 @@ from django.views.generic.edit import BaseCreateView
 
 from . import tasks, utils, views
 from .conf import settings
+from .utils import NoDashDiGraph
 
 logger = logging.getLogger(__name__)
 
 __all__ = (
-    "Process",
+    "Workflow",
     "Task",
 )
 
 
-class NoDashDiGraph(gv.Digraph):
-    """Like `.graphviz.Digraph` but removes underscores from labels."""
-
-    def __init__(self, *args, **kwargs):
-        self._edges = []
-        super().__init__(*args, **kwargs)
-
-    def edge(self, tail_name, head_name, label=None, _attributes=None, **attrs):
-        if not (tail_name, head_name) in self._edges:
-            self._edges.append((tail_name, head_name))
-            super().edge(
-                tail_name, head_name, label=label, _attributes=_attributes, **attrs
-            )
-
-    @staticmethod
-    def _quote(identifier, *args, **kwargs):
-        """Remove underscores from labels."""
-        identifier = identifier.replace("_", " ")
-        return gv.lang.quote(identifier, *args, **kwargs)
-
-    @staticmethod
-    def _quote_edge(identifier):
-        """Remove underscores from labels."""
-        identifier = identifier.replace("_", " ")
-        return gv.lang.quote_edge(identifier)
-
-
-class BaseProcess(models.base.ModelBase):
+class WorkflowBase(ModelBase):
     """Set node names on the nodes."""
 
-    def __new__(cls, name, bases, attrs, **kwargs):
-        edges = attrs.get("edges") or tuple()
-        klass = super().__new__(cls, name, bases, attrs, **kwargs)
+    def __new__(mcs, name, bases, attrs):
+        edges = attrs.get("edges") or []
+        klass = super().__new__(mcs, name, bases, attrs)
         nodes = set()
         for edge in edges:
             nodes |= set(edge)
@@ -71,33 +46,42 @@ class BaseProcess(models.base.ModelBase):
                         if isinstance(node, views.TaskViewMixin)
                         else tasks.MACHINE
                     )
-                    node.process_cls = klass
+                    node.workflow_cls = klass
             except TypeError:
                 pass
         return klass
 
 
-class Process(models.Model, metaclass=BaseProcess):
+class Workflow(models.Model, metaclass=WorkflowBase):
     """
-    The `Process` object holds the state of a workflow instances.
+    The `WorkflowState` object holds the state of a workflow instances.
 
-    It is represented by a Django Model. This way all process states
+    It is represented by a Django Model. This way all workflow states
     are persisted in your database.
-
-    Processes are also the vehicle for the other two components tasks and
-    :attr:`.edges`.
     """
 
     id = models.BigAutoField(primary_key=True, editable=False)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
 
-    task_set = GenericRelation("joeflow.Task", object_id_field="_process_id")
+    task_set = GenericRelation(
+        "joeflow.Task", object_id_field="_workflow_id", for_concrete_model=False
+    )
 
     class Meta:
-        permissions = (("override", t("Can override a process.")),)
+        permissions = [("override", t("Can override a workflow."))]
 
-    edges = None
+    def save(self, **kwargs):
+        if self.pk:
+            try:
+                update_fields = kwargs["update_fields"]
+            except KeyError:
+                pass
+            else:
+                update_fields.append("modified")
+        super().save(**kwargs)
+
+    edges: List[Tuple[Any, Any]] = None
     """
     Edges define the transitions between tasks.
 
@@ -111,7 +95,7 @@ class Process(models.Model, metaclass=BaseProcess):
     """
 
     override_view = views.OverrideView
-    detail_view = views.ProcessDetailView
+    detail_view = views.WorkflowDetailView
 
     @classmethod
     def _wrap_view_instance(cls, name, view_instance):
@@ -130,7 +114,7 @@ class Process(models.Model, metaclass=BaseProcess):
     @classmethod
     def urls(cls):
         """
-        Return all URLs to process related task and other special views.
+        Return all URLs to workflow related task and other special views.
 
         Example::
 
@@ -140,11 +124,11 @@ class Process(models.Model, metaclass=BaseProcess):
 
             urlpatterns = [
                 # …
-                path('myprocess/', include(models.MyProcess.urls())),
+                path('myworkflow/', include(models.MyWorkflow.urls())),
             ]
 
         Returns:
-            tuple(list, str): Tuple containing aw list of URLs and the process namespace.
+            tuple(list, str): Tuple containing aw list of URLs and the workflow namespace.
 
         """
         urls = []
@@ -191,13 +175,13 @@ class Process(models.Model, metaclass=BaseProcess):
         return cls.__name__.lower()
 
     def get_absolute_url(self):
-        """Return URL to process detail view."""
+        """Return URL to workflow detail view."""
         return reverse(
             "{}:detail".format(self.get_url_namespace()), kwargs=dict(pk=self.pk)
         )
 
     def get_override_url(self):
-        """Return URL to process override view."""
+        """Return URL to workflow override view."""
         return reverse(
             "{}:override".format(self.get_url_namespace()), kwargs=dict(pk=self.pk)
         )
@@ -205,10 +189,10 @@ class Process(models.Model, metaclass=BaseProcess):
     @classmethod
     def get_graph(cls, color="black"):
         """
-        Return process graph.
+        Return workflow graph.
 
         Returns:
-            (graphviz.Digraph): Directed graph of the process.
+            (graphviz.Digraph): Directed graph of the workflow.
 
         """
         graph = NoDashDiGraph()
@@ -232,7 +216,7 @@ class Process(models.Model, metaclass=BaseProcess):
     @classmethod
     def get_graph_svg(cls):
         """
-        Return graph representation of a model process as SVG.
+        Return graph representation of a model workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -241,21 +225,23 @@ class Process(models.Model, metaclass=BaseProcess):
             <html>
             <body>
             <!--// other content //-->
-            {{ process_class.get_graph_svg }}
+            {{ workflow_class.get_graph_svg }}
             <!--// other content //-->
             </body>
             </html>
 
         Returns:
-            (django.utils.safestring.SafeString): SVG representation of a running process.
+            (django.utils.safestring.SafeString): SVG representation of a running workflow.
 
         """
         graph = cls.get_graph()
         graph.format = "svg"
         return SafeString(graph.pipe().decode("utf-8"))  # nosec
 
+    get_graph_svg.short_description = t("graph")
+
     def get_instance_graph(self):
-        """Return process instance graph."""
+        """Return workflow instance graph."""
         graph = self.get_graph(color="#888888")
 
         names = dict(self.get_nodes()).keys()
@@ -263,42 +249,62 @@ class Process(models.Model, metaclass=BaseProcess):
         for task in self.task_set.filter(name__in=names):
             href = task.get_absolute_url()
             style = "filled"
+            peripheries = "1"
 
             if task.type == tasks.HUMAN:
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
+            if not task.child_task_set.all() and task.completed:
+                peripheries = "2"
             graph.node(
-                task.name, href=href, style=style, color="black", fontcolor="black"
+                task.name,
+                href=href,
+                style=style,
+                color="black",
+                fontcolor="black",
+                peripheries=peripheries,
             )
 
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
             label = "override_%s" % task.pk
-            graph.node(label, style="filled, rounded, dashed")
+            peripheries = "1"
             for parent in task.parent_task_set.all():
                 graph.edge(parent.name, "override_%s" % task.pk, style="dashed")
             for child in task.child_task_set.all():
                 graph.edge("override_%s" % task.pk, child.name, style="dashed")
+            if not task.child_task_set.all() and task.completed:
+                peripheries = "2"
+            graph.node(label, style="filled, rounded, dashed", peripheries=peripheries)
 
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             style = "filled, dashed"
+            peripheries = "1"
             if task.type == tasks.HUMAN:
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
-            graph.node(task.name, style=style, color="black", fontcolor="black")
             for parent in task.parent_task_set.all():
                 graph.edge(parent.name, task.name, style="dashed")
             for child in task.child_task_set.all():
                 graph.edge(task.name, child.name, style="dashed")
+            if not task.child_task_set.all() and task.completed:
+                peripheries = "2"
+            graph.node(
+                task.name,
+                style=style,
+                color="black",
+                fontcolor="black",
+                peripheries=peripheries,
+            )
 
         return graph
 
     def get_instance_graph_svg(self, output_format="svg"):
         """
-        Return graph representation of a running process as SVG.
+        Return graph representation of a running workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -313,34 +319,26 @@ class Process(models.Model, metaclass=BaseProcess):
             </html>
 
         Returns:
-            (django.utils.safestring.SafeString): SVG representation of a running process.
+            (django.utils.safestring.SafeString): SVG representation of a running workflow.
 
         """
         graph = self.get_instance_graph()
         graph.format = output_format
         return SafeString(graph.pipe().decode("utf-8"))  # nosec
 
-    def save(self, **kwargs):
-        if self.pk:
-            try:
-                update_fields = kwargs["update_fields"]
-            except KeyError:
-                pass
-            else:
-                update_fields.append("modified")
-        super().save(**kwargs)
+    get_instance_graph_svg.short_description = t("instance graph")
 
     def cancel(self, user=None):
         self.task_set.cancel(user)
 
 
-def process_subclasses():
+def workflow_state_subclasses():
     from django.apps import apps
 
     apps.check_models_ready()
     query = models.Q()
-    for model in utils.get_processes():
-        opts = model._meta
+    for workflow in utils.get_workflows():
+        opts = workflow._meta
         query |= models.Q(app_label=opts.app_label, model=opts.model_name)
     return query
 
@@ -374,20 +372,19 @@ class TasksQuerySet(models.query.QuerySet):
 
 class Task(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
-    _process = models.ForeignKey(
-        "joeflow.Process",
-        on_delete=models.CASCADE,
-        db_column="process_id",
-        editable=False,
+    _workflow = models.ForeignKey(
+        Workflow, on_delete=models.CASCADE, db_column="workflow_id", editable=False,
     )
     content_type = models.ForeignKey(
         "contenttypes.ContentType",
         on_delete=models.CASCADE,
         editable=False,
-        limit_choices_to=process_subclasses,
+        limit_choices_to=workflow_state_subclasses,
         related_name="joeflow_task_set",
     )
-    process = GenericForeignKey("content_type", "_process_id")
+    workflow = GenericForeignKey(
+        "content_type", "_workflow_id", for_concrete_model=False
+    )
 
     name = models.TextField(db_index=True, editable=False)
 
@@ -470,7 +467,7 @@ class Task(models.Model):
     def get_absolute_url(self):
         if self.completed:
             return
-        url_name = "{}:{}".format(self.process.get_url_namespace(), self.name)
+        url_name = "{}:{}".format(self.workflow.get_url_namespace(), self.name)
         try:
             return reverse(url_name, kwargs=dict(pk=self.pk))
         except NoReverseMatch:
@@ -478,7 +475,7 @@ class Task(models.Model):
 
     @property
     def node(self):
-        return getattr(self.process, self.name)
+        return getattr(type(self.workflow), self.name)
 
     def finish(self, user=None):
         self.completed = timezone.now()
@@ -531,7 +528,7 @@ class Task(models.Model):
         transaction.on_commit(
             lambda: task_runner(
                 task_pk=self.pk,
-                process_pk=self._process_id,
+                workflow_pk=self._workflow_id,
                 countdown=countdown,
                 eta=eta,
             )
@@ -551,14 +548,16 @@ class Task(models.Model):
 
         """
         if next_nodes is None:
-            next_nodes = self.process.get_next_nodes(self.node)
+            next_nodes = self.workflow.get_next_nodes(self.node)
         tasks = []
         for node in next_nodes:
             try:
                 # Some nodes – like Join – implement their own method to create new tasks.
-                task = node.create_task(self.process)
+                task = node.create_task(self.workflow)
             except AttributeError:
-                task = self.process.task_set.create(name=node.name, type=node.type,)
+                task = self.workflow.task_set.create(
+                    name=node.name, type=node.type, workflow=self.workflow
+                )
             task.parent_task_set.add(self)
             if callable(node):
                 transaction.on_commit(task.enqueue)

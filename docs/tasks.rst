@@ -10,7 +10,7 @@ Human
 
 Human tasks are represented by a Django :class:`View<django.views.generic.base.View>`.
 
-A user can change the processes state via a Django form or a JSON API.
+A user can change the workflows state via a Django form or a JSON API.
 Anything you can do in a view you can do in a human task. They only
 difference to machine tasks is that they require some kind of interaction.
 
@@ -29,7 +29,7 @@ Generic human tasks
 Machine
 -------
 
-Machine tasks are represented by simple methods on the `Process` class.
+Machine tasks are represented by simple methods on the :class:`.Workflow` class.
 
 They can change the state and perform any action you can think of. They can
 decide which task to execute next (exclusive gateway) but also start or wait
@@ -43,10 +43,10 @@ Return values
 ~~~~~~~~~~~~~
 
 Machine tasks have three different allowed return values all of which will
-cause the process to behave differently:
+cause the workflow to behave differently:
 
 :class:`None`:
-    If a task returns ``None`` or anything at all the process will just
+    If a task returns ``None`` or anything at all the workflow will just
     proceed as planed and follow all outgoing edges and execute the next
     tasks.
 
@@ -55,11 +55,11 @@ cause the process to behave differently:
     next. This can be used to create exclusive gateways::
 
         from django.utils import timezone
-        from joeflow.models import Process
+        from joeflow.workflows import Workflow
         from joeflow import tasks
 
 
-        class ExclusiveProcess(Process):
+        class ExclusiveWorkflow(Workflow):
             start = tasks.Start()
 
             def is_workday(self):
@@ -82,7 +82,7 @@ cause the process to behave differently:
                 (is_workday, chill),
             )
 
-    A task can also return am empty list. This will cause the process branch
+    A task can also return am empty list. This will cause the workflow branch
     to come to a halt and no further stats will be started.
 
     .. warning::
@@ -90,15 +90,15 @@ cause the process to behave differently:
 
 :class:`False`:
     A task can also return a boolean. Should a task return ``False`` the
-    process will wait until the condition changes to ``True`` (or anything but
+    workflow will wait until the condition changes to ``True`` (or anything but
     ``False``)::
 
-        from joeflow.models import Process
         from joeflow import tasks
+        form joeflow.workflows import Workflow
         from django.utils import timezone
 
 
-        class WaitingProcess(Process):
+        class WaitingWorkflow(Workflow):
             start = tasks.Start()
 
             def wait_for_weekend(self):

@@ -10,36 +10,49 @@ Joeflow is a free workflow automation framework designed to bring
 simplicity to complex workflows. Joeflow written in `Python`_ based on
 the world famous `Django`_ web framework.
 
-Here is a little sample of what a process written in joeflow may look
+Here is a little sample of what a workflow written in joeflow may look
 like:
 
 .. code-block:: python
 
-   class WelcomeProcess(Process):
-       user = models.ForeignKey(
-           settings.AUTH_USER_MODEL,
-           on_delete=models.CASCADE,
-           blank=True, null=True,
-       )
+    from django.core.mail import send_mail
+    from jowflow.models import WorkflowState
+    from joeflow import tasks
+    from joeflow.workflows import Workflow
 
-       start = tasks.StartView(fields=['user'])
 
-       def has_user(self, task):
-           if self.user_id is None:
-               return []
-           else:
-               return [self.send_welcome_email]
+    class Shipment(WorkflowState):
+        email = models.EmailField(blank=True)
+        shipping_address = models.TextField()
+        tracking_code = models.TextField()
 
-       def send_welcome_email(self, task):
-           self.user.email_user(
-               subject='Welcome',
-               message='Hello %s!' % self.user.get_short_name(),
-           )
+    class ShippingWorkflow(Shipment, Workflow):
+        checkout = tasks.StartView(fields=["shipping_address", "email"])
 
-       edges = (
-           (start, has_user),
-           (has_user, send_welcome_email),
-       )
+        ship = tasks.UpdateView(fields=["tracking_code"])
+
+        def has_email(self, task):
+            if self.email:
+                return [self.send_tracking_code]
+
+        def send_tracking_code(self, task):
+            send_mail(
+                subject="Your tracking code",
+                message=self.tracking_code,
+                from_email=None,
+                recipient_list=[self.email],
+            )
+
+        def end(self, task):
+            pass
+
+        edges = [
+            (checkout, ship),
+            (ship, has_email),
+            (has_email, send_tracking_code),
+            (has_email, end),
+            (send_tracking_code, end),
+        ]
 
 Design Principles
 =================
@@ -59,7 +72,7 @@ Lean Automation (breaking the rules)
 
 Things don’t always go according to plan especially when humans are
 involved. Even the best workflow can’t cover all possible edge cases.
-Joeflow embraces that fact. It allows uses to interrupt a process at any
+Joeflow embraces that fact. It allows uses to interrupt a workflow at any
 given point and modify it’s current state. All while tracking all
 changes. This allows developers to automate the main cases and users
 handle manually exceptions. This allows you businesses to ship
@@ -70,7 +83,7 @@ People
 ------
 
 Joeflow is build with all users in mind. Managers should be able to
-develop better processes. Users should able to interact with the tasks
+develop better workflows. Users should able to interact with the tasks
 every single day. And developers should be able to rapidly develop and
 test new features.
 

@@ -13,15 +13,15 @@ class JoeflowAppConfig(AppConf):
 
     JOEFLOW_REDIS_LOCK_URL = "redis://"
     """
-    Redis database your for Redis database that is used for process locking.
+    Redis database your for Redis database that is used for workflow locking.
     """
 
     JOEFLOW_REDIS_LOCK_TIMEOUT = 60
     """
-    Process lock timeout in seconds.
+    Workflow lock timeout in seconds.
 
-    Processes are lock and only one machine task at a time can change the
-    process state.
+    Workflows are lock and only one machine task at a time can change the
+    workflow state.
     """
 
     JOEFLOW_TASK_RUNNER = "joeflow.runner.dramatiq.task_runner"

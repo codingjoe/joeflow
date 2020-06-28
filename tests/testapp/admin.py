@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from joeflow.admin import ProcessAdmin
+from joeflow.admin import WorkflowAdmin
 
-from . import models
+from . import workflows
 
-admin.site.register(models.SimpleProcess, ProcessAdmin)
-admin.site.register(models.SplitJoinProcess, ProcessAdmin)
-admin.site.register(models.LoopProcess, ProcessAdmin)
+admin.site.register(workflows.SimpleWorkflow, WorkflowAdmin)
+admin.site.register(workflows.SplitJoinWorkflow, WorkflowAdmin)
+admin.site.register(workflows.LoopWorkflow, WorkflowAdmin)

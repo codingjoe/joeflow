@@ -1,19 +1,18 @@
-from django.apps import apps
 from django.core.management import BaseCommand
 
 from joeflow import utils
-from joeflow.models import Process
+from joeflow.models import Workflow
 
 
 class Command(BaseCommand):
-    help = "Render process graph to file."
+    help = "Render workflow graph to file."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "model",
+            "workflow",
             nargs="*",
             type=str,
-            help="List of models to render in the form app_label.model_name",
+            help="List of workflows to render in the form app_label.workflow_name",
         )
         parser.add_argument(
             "-f",
@@ -40,32 +39,30 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        models = options["model"]
+        workflows = options["workflow"]
         verbosity = options["verbosity"]
         file_format = options["format"]
         cleanup = options["cleanup"]
         directory = options.get("directory", None)
 
-        models = [apps.get_model(s) for s in models] or utils.get_processes()
+        workflows = [utils.get_workflow(s) for s in workflows] or utils.get_workflows()
 
-        for model in models:
-            if issubclass(model, Process) and model != Process:
-                opt = model._meta
+        for workflow in filter(None, workflows):
+            if workflow != Workflow:
+                opt = workflow._meta
                 if verbosity > 0:
                     self.stdout.write(
                         "Rendering graph for '%s.%s'… "
                         % (opt.app_label, opt.model_name),
                         ending="",
                     )
-                filename = "{app_label}_{model_name}".format(
-                    app_label=opt.app_label, model_name=opt.model_name,
-                )
-                graph = model.get_graph()
+                filename = f"{opt.app_label}_{workflow.__name__}".lower()
+                graph = workflow.get_graph()
                 graph.format = file_format
                 graph.render(filename=filename, directory=directory, cleanup=cleanup)
                 if verbosity > 0:
                     self.stdout.write("Done!", self.style.SUCCESS)
             else:
                 self.stderr.write(
-                    "%r is not a Process subclass" % model, self.style.WARNING
+                    "%r is not a Workflow subclass" % workflow, self.style.WARNING
                 )
