@@ -238,6 +238,11 @@ class TestProcess:
             "detail",
         }
 
+    def test_urls__custom_path(self):
+        patterns, namespace = models.SimpleProcess.urls()
+        patterns = {pattern.pattern.describe() for pattern in patterns}
+        assert "'start_view/custom/postfix/' [name='start_view']" in patterns
+
     def test_urls__no_override(self):
         class TestProcess(Process):
             override_view = None

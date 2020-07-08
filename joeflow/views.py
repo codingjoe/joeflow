@@ -26,6 +26,16 @@ class ProcessTemplateNameViewMixin:
 
 class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
     name = None
+    path = ""
+    """
+    URL pattern postfix for task view.
+
+    Should a task require custom arguments via URL, path
+    can be set to provide a pattern postfix. e.G.::
+
+        start = tasks.StartView(path="path/to/<other_pk>")
+
+    """
 
     def __init__(self, **kwargs):
         self._instance_kwargs = kwargs

@@ -154,7 +154,13 @@ class Process(models.Model, metaclass=BaseProcess):
                     route = "{name}/".format(name=name)
                 else:
                     route = "{name}/<pk>/".format(name=name)
-                urls.append(path(route, cls._wrap_view_instance(name, node), name=name))
+                urls.append(
+                    path(
+                        route + node.path,
+                        cls._wrap_view_instance(name, node),
+                        name=name,
+                    )
+                )
         if cls.detail_view:
             urls.append(
                 path("<pk>/", cls.detail_view.as_view(model=cls), name="detail")

@@ -43,7 +43,7 @@ class WelcomeProcess(WelcomeProcessState, Process):
 
 
 class SimpleProcess(Process):
-    start_view = views.StartView(fields="__all__")
+    start_view = views.StartView(fields="__all__", path="custom/postfix/")
     start_method = tasks.Start()
     save_the_princess = views.TaskView(fields="__all__")
 
