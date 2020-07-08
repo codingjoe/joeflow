@@ -1,9 +1,10 @@
 from django.contrib import admin, messages
 from django.contrib.auth import get_permission_codename
+from django.db import transaction
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as t
 
-from . import models
+from . import forms, models
 from .contrib.reversion import VersionAdmin
 
 __all__ = ("ProcessAdmin",)
@@ -118,13 +119,43 @@ class TaskAdmin(VersionAdmin):
     )
 
 
-class ProcessAdmin(VersionAdmin):
-    readonly_fields = (
-        "modified",
+class TaskInlineAdmin(admin.TabularInline):
+    model = models.Task
+    readonly_fields = [
+        "name",
+        "type",
+        "assignees",
         "created",
-    )
+        "completed",
+        "completed_by_user",
+        "status",
+    ]
+    fields = readonly_fields
+    extra = 0
+    can_delete = False
+    show_change_link = True
+    classes = ["collapse"]
 
+
+class ProcessAdmin(VersionAdmin):
     list_filter = (
         "modified",
         "created",
     )
+    form = forms.OverrideForm
+
+    def get_inlines(self, *args, **kwargs):
+        return [*super().get_inlines(*args, **kwargs), TaskInlineAdmin]
+
+    def get_readonly_fields(self, *args, **kwargs):
+        return [
+            "get_instance_graph_svg",
+            *super().get_readonly_fields(*args, **kwargs),
+            "modified",
+            "created",
+        ]
+
+    @transaction.atomic()
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        form.start_next_tasks(request.user)

@@ -5,6 +5,7 @@ import types
 def get_processes() -> types.GeneratorType:
     """Return all registered processes."""
     from django.apps import apps
+
     from .models import Process
 
     apps.check_models_ready()
