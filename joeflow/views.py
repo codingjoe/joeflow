@@ -1,11 +1,10 @@
-from django import forms
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
+from django.forms import modelform_factory
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as t
 from django.views import generic
 
-from . import models
+from . import forms, models
 from .contrib.reversion import RevisionMixin
 
 
@@ -38,7 +37,7 @@ class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
                 models.Task, pk=self.kwargs["pk"], name=self.name, completed=None,
             )
         except KeyError:
-            return models.Task(name=self.name,)
+            return models.Task(name=self.name, type=models.Task.HUMAN)
 
     def get_object(self, queryset=None):
         task = self.get_task()
@@ -47,11 +46,15 @@ class TaskViewMixin(ProcessTemplateNameViewMixin, RevisionMixin):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        self.create_task(request)
+        return response
+
+    def create_task(self, request):
         task = self.get_task()
-        task.process = self.object
+        task.process = self.model._base_manager.get(pk=self.object.pk)
         task.finish(request.user)
         task.start_next_tasks()
-        return response
+        return task
 
 
 class ProcessDetailView(ProcessTemplateNameViewMixin, generic.DetailView):
@@ -66,37 +69,14 @@ class OverrideView(
 ):
     permission_required = "override"
     name = "override"
+    form_class = forms.OverrideForm
     fields = "__all__"
 
-    @staticmethod
-    def get_task_choices(process):
-        for name in dict(process.get_nodes()).keys():
-            yield name, name
-
     def get_form_class(self):
-        form_class = super().get_form_class()
-
-        class OverrideForm(form_class):
-            next_tasks = forms.MultipleChoiceField(
-                label=t("Next tasks"), choices=self.get_task_choices(self.object),
-            )
-
-        return OverrideForm
-
-    def get_next_task_nodes(self, form):
-        names = form.cleaned_data["next_tasks"]
-        for name in names:
-            yield self.object.get_node(name)
+        return modelform_factory(self.model, form=self.form_class, fields=self.fields)
 
     @transaction.atomic()
     def form_valid(self, form):
-        next_nodes = self.get_next_task_nodes(form)
         response = super().form_valid(form)
-        active_tasks = list(self.object.task_set.filter(completed=None))
-        for task in active_tasks:
-            task.finish()
-        override_task = self.object.task_set.create(name="override",)
-        override_task.parent_task_set.set(active_tasks)
-        override_task.finish()
-        override_task.start_next_tasks(next_nodes=next_nodes)
+        form.start_next_tasks(self.request.user)
         return response
