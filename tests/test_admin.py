@@ -1,11 +1,11 @@
 from unittest.mock import Mock
 
 import pytest
+from django.contrib.admin import site
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.urls import reverse
-from django.contrib.admin import site
 
 from joeflow import admin
 from joeflow.admin import WorkflowAdmin
