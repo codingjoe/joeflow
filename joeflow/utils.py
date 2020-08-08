@@ -1,4 +1,3 @@
-import secrets
 import types
 
 import graphviz as gv
@@ -23,16 +22,6 @@ def get_workflow(name):
             == f"{workflow_cls._meta.app_label}.{workflow_cls.__name__}".lower()
         ):
             return workflow_cls
-
-
-def jitter():
-    """Return a random number between 0 and 1."""
-    return secrets.randbelow(5)
-
-
-def backoff(retries):
-    """Return an exponentially growing number limited to 600 plus a random jitter."""
-    return min(600, 2 ** retries) + jitter()
 
 
 class NoDashDiGraph(gv.Digraph):

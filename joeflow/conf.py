@@ -11,19 +11,6 @@ class JoeflowAppConfig(AppConf):
     To change the default values just set the setting in your settings file.
     """
 
-    JOEFLOW_REDIS_LOCK_URL = "redis://"
-    """
-    Redis database your for Redis database that is used for workflow locking.
-    """
-
-    JOEFLOW_REDIS_LOCK_TIMEOUT = 60
-    """
-    Workflow lock timeout in seconds.
-
-    Workflows are lock and only one machine task at a time can change the
-    workflow state.
-    """
-
     JOEFLOW_TASK_RUNNER = "joeflow.runner.dramatiq.task_runner"
     """
     Task runner is used to execute machine tasks.
