@@ -540,7 +540,6 @@ class Task(models.Model):
             )
         )
 
-    @transaction.atomic()
     def start_next_tasks(self, next_nodes: list = None):
         """
         Start new tasks following another tasks.

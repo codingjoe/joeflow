@@ -1,10 +1,8 @@
 import os
 import pathlib
-from contextlib import contextmanager
 from unittest import mock
 
 import pytest
-import redis
 
 
 @pytest.fixture()
@@ -37,16 +35,8 @@ def _runner(request, monkeypatch, settings):
 @pytest.fixture()
 def stub_worker(monkeypatch, settings, _runner):
     if settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.celery.task_runner":
-
-        @contextmanager
-        def _fake_lock(key):
-            yield True
-
-        monkeypatch.setattr("joeflow.locking.lock", _fake_lock)
         yield mock.Mock()
     else:
-        with redis.Redis.from_url(settings.JOEFLOW_REDIS_LOCK_URL) as connection:
-            connection.flushdb()
         import dramatiq
 
         broker = dramatiq.get_broker()
@@ -58,7 +48,7 @@ def stub_worker(monkeypatch, settings, _runner):
         class Meta:
             @staticmethod
             def wait():
-                broker.join(settings.JOEFLOW_CELERY_QUEUE_NAME, timeout=10000)
+                broker.join(settings.JOEFLOW_CELERY_QUEUE_NAME, timeout=60000)
                 worker.join()
 
         yield Meta
