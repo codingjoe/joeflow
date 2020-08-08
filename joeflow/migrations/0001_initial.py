@@ -40,10 +40,14 @@ class Migration(migrations.Migration):
                         editable=False, primary_key=True, serialize=False
                     ),
                 ),
-                ("name", models.TextField(db_index=True, editable=False)),
+                (
+                    "name",
+                    models.CharField(max_length=255, db_index=True, editable=False),
+                ),
                 (
                     "type",
-                    models.TextField(
+                    models.CharField(
+                        max_length=50,
                         choices=[("human", "human"), ("machine", "machine")],
                         db_index=True,
                         editable=False,
@@ -51,7 +55,8 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "status",
-                    models.TextField(
+                    models.CharField(
+                        max_length=50,
                         choices=[
                             ("failed", "failed"),
                             ("succeeded", "succeeded"),

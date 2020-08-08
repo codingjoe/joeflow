@@ -386,7 +386,7 @@ class Task(models.Model):
         "content_type", "_workflow_id", for_concrete_model=False
     )
 
-    name = models.TextField(db_index=True, editable=False)
+    name = models.CharField(max_length=255, db_index=True, editable=False)
 
     HUMAN = "human"
     MACHINE = "machine"
@@ -394,7 +394,9 @@ class Task(models.Model):
         (HUMAN, t(HUMAN)),
         (MACHINE, t(MACHINE)),
     )
-    type = models.TextField(choices=_type_choices, editable=False, db_index=True,)
+    type = models.CharField(
+        max_length=50, choices=_type_choices, editable=False, db_index=True,
+    )
 
     parent_task_set = models.ManyToManyField(
         "self", related_name="child_task_set", editable=False, symmetrical=False,
@@ -410,8 +412,12 @@ class Task(models.Model):
         (SCHEDULED, t(SCHEDULED)),
         (CANCELED, t(CANCELED)),
     )
-    status = models.TextField(
-        choices=_status_choices, default=SCHEDULED, editable=False, db_index=True,
+    status = models.CharField(
+        max_length=50,
+        choices=_status_choices,
+        default=SCHEDULED,
+        editable=False,
+        db_index=True,
     )
 
     assignees = models.ManyToManyField(
