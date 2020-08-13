@@ -108,7 +108,8 @@ class TestWorkflow:
         assert isinstance(graph, Digraph)
         with open(str(fixturedir / "simpleworkflow.dot")) as fp:
             expected_graph = fp.read().splitlines()
-        assert set(graph.body) == set(expected_graph[1:-1])
+        print(str(graph))
+        assert set(graph) == set(expected_graph)
 
     def test_get_graph_svg(self, fixturedir):
         svg = workflows.SimpleWorkflow.get_graph_svg()
@@ -118,10 +119,9 @@ class TestWorkflow:
         wf = workflows.SimpleWorkflow.start_method()
         task_url = wf.task_set.get(name="save_the_princess").get_absolute_url()
         graph = wf.get_instance_graph()
+        print(str(graph))
         with open(str(fixturedir / "simpleworkflow_instance.dot")) as fp:
-            assert set(graph.body) == set(
-                fp.read().replace("{url}", task_url).splitlines()[1:-1]
-            )
+            assert set(graph) == set(fp.read().replace("{url}", task_url).splitlines())
 
     def test_get_instance_graph__override(
         self, db, stub_worker, fixturedir, admin_client
@@ -133,16 +133,17 @@ class TestWorkflow:
         stub_worker.wait()
         task = wf.task_set.get(name="override")
         graph = wf.get_instance_graph()
+        print(str(graph))
 
         assert (
             f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]'
-            in graph.body
+            in list(graph)
         )
         assert (
             f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]'
-            in graph.body
+            in list(graph)
         )
-        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]' in graph.body
+        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]' in list(graph)
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
         workflow = workflows.SimpleWorkflow.objects.create()
@@ -152,13 +153,14 @@ class TestWorkflow:
         obsolete.parent_task_set.add(start)
         end.parent_task_set.add(obsolete)
         graph = workflow.get_instance_graph()
+        print(str(graph))
 
         assert (
             '\tobsolete [color=black fontcolor=black peripheries=1 style="filled, dashed, bold"]'
-            in graph.body
+            in str(graph)
         )
-        assert '\t"start method" -> obsolete [style=dashed]' in graph.body
-        assert "\tobsolete -> end [style=dashed]" in graph.body
+        assert '\t"start method" -> obsolete [style=dashed]' in list(graph)
+        assert "\tobsolete -> end [style=dashed]" in list(graph)
 
     def test_get_instance_graph_svg(self, db, fixturedir):
         wf = workflows.SimpleWorkflow.start_method()

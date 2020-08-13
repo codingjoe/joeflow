@@ -210,7 +210,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             graph.node(name, style=node_style, color=color, fontcolor=color)
 
         for start, end in cls.edges:
-            graph.edge(start.name, end.name)
+            graph.edge(start.name, end.name, color=color)
         return graph
 
     @classmethod
@@ -265,6 +265,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 fontcolor="black",
                 peripheries=peripheries,
             )
+            for child in task.child_task_set.exclude(name="override"):
+                graph.edge(task.name, child.name, color="black")
 
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
