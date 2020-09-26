@@ -56,15 +56,15 @@ Next we add the behavior:
         start = tasks.StartView(fields=['user'])
 
         def has_user(self, task):
-            if self.object.user_id is None:
+            if self.user_id is None:
                 return [self.end]
             else:
                 return [self.send_welcome_email]
 
         def send_welcome_email(self, task):
-            self.object.user.email_user(
+            self.user.email_user(
                 subject='Welcome',
-                message='Hello %s!' % self.object.user.get_short_name(),
+                message='Hello %s!' % self.user.get_short_name(),
             )
 
         def end(self, task):
