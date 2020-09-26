@@ -32,7 +32,7 @@ def _celery_task_runner(self, task_pk, workflow_pk):
         try:
             logger.info("Executing %r", task)
             node = task.node
-            with_task = getattr(node, "with_task", False)
+            with_task = getattr(node, "with_task", True)
             kwargs = {}
             if with_task:
                 kwargs["task"] = task
