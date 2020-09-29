@@ -53,29 +53,28 @@ Next we add the behavior:
 
 
     class WelcomeWorkflow(models.WelcomeWorkflowState):
-        start = tasks.StartView(fields=['user'])
+        start = tasks.StartView(fields=["user"])
 
-        def has_user(self, task):
-            if self.object.user_id is None:
-                return [self.end]
-            else:
+        def has_user(self):
+            if self.user:
                 return [self.send_welcome_email]
+            else:
+                return [self.end]
 
-        def send_welcome_email(self, task):
-            self.object.user.email_user(
-                subject='Welcome',
-                message='Hello %s!' % self.object.user.get_short_name(),
+        def send_welcome_email(self):
+            self.user.email_user(
+                subject="Welcome", message="Hello %s!" % self.user.get_short_name(),
             )
 
-        def end(self, task):
+        def end(self):
             pass
 
-        edges = (
+        edges = [
             (start, has_user),
             (has_user, end),
             (has_user, send_welcome_email),
             (send_welcome_email, end),
-        )
+        ]
 
         class Meta:
             proxy = True
