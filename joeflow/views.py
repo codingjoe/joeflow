@@ -14,7 +14,11 @@ class WorkflowTemplateNameViewMixin:
     def get_template_names(self):
         names = [
             "%s/%s_%s.html"
-            % (self.model._meta.app_label, self.model._meta.model_name, self.name,)
+            % (
+                self.model._meta.app_label,
+                self.model._meta.model_name,
+                self.name,
+            )
         ]
         names.extend(super().get_template_names())
         names.append(
@@ -44,7 +48,10 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
     def get_task(self):
         try:
             return get_object_or_404(
-                models.Task, pk=self.kwargs["pk"], name=self.name, completed=None,
+                models.Task,
+                pk=self.kwargs["pk"],
+                name=self.name,
+                completed=None,
             )
         except KeyError:
             return models.Task(name=self.name, type=models.Task.HUMAN)

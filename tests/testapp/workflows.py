@@ -50,7 +50,8 @@ class WelcomeWorkflow(models.WelcomeWorkflowState):
 
     def send_welcome_email(self):
         self.user.email_user(
-            subject="Welcome", message="Hello %s!" % self.user.get_short_name(),
+            subject="Welcome",
+            message="Hello %s!" % self.user.get_short_name(),
         )
 
     def end(self):

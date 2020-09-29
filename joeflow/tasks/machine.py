@@ -110,7 +110,9 @@ class Join:
 
     def create_task(self, workflow):
         return workflow.task_set.get_or_create(
-            name=self.name, type=self.type, completed=None,
+            name=self.name,
+            type=self.type,
+            completed=None,
         )[0]
 
 

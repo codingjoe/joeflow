@@ -6,7 +6,9 @@ from . import models
 
 class OverrideForm(forms.ModelForm):
     next_tasks = forms.MultipleChoiceField(
-        label=t("Next tasks"), choices=[], required=False,
+        label=t("Next tasks"),
+        choices=[],
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -32,7 +34,8 @@ class OverrideForm(forms.ModelForm):
             except models.Task.DoesNotExist:
                 parent_tasks = []
         override_task = self.instance.task_set.create(
-            name="override", type=models.Task.HUMAN,
+            name="override",
+            type=models.Task.HUMAN,
         )
         override_task.parent_task_set.set(parent_tasks)
         override_task.finish(user=user)
