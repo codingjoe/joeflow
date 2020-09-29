@@ -12,7 +12,10 @@ class Shipment(Workflow):
 
 class WelcomeWorkflowState(Workflow):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
     )
 
 

@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
     """Schedule asynchronous machine task using celery."""
     _dramatiq_task_runner.send_with_options(
-        args=(task_pk, workflow_pk), delay=countdown, retries=retries,
+        args=(task_pk, workflow_pk),
+        delay=countdown,
+        retries=retries,
     )
 
 

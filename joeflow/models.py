@@ -368,14 +368,19 @@ class TasksQuerySet(models.query.QuerySet):
         if user and not user.is_authenticated:
             user = None
         return self.update(
-            status=self.model.CANCELED, completed_by_user=user, completed=Now(),
+            status=self.model.CANCELED,
+            completed_by_user=user,
+            completed=Now(),
         )
 
 
 class Task(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
     _workflow = models.ForeignKey(
-        Workflow, on_delete=models.CASCADE, db_column="workflow_id", editable=False,
+        Workflow,
+        on_delete=models.CASCADE,
+        db_column="workflow_id",
+        editable=False,
     )
     content_type = models.ForeignKey(
         "contenttypes.ContentType",
@@ -397,11 +402,17 @@ class Task(models.Model):
         (MACHINE, t(MACHINE)),
     )
     type = models.CharField(
-        max_length=50, choices=_type_choices, editable=False, db_index=True,
+        max_length=50,
+        choices=_type_choices,
+        editable=False,
+        db_index=True,
     )
 
     parent_task_set = models.ManyToManyField(
-        "self", related_name="child_task_set", editable=False, symmetrical=False,
+        "self",
+        related_name="child_task_set",
+        editable=False,
+        symmetrical=False,
     )
 
     FAILED = "failed"
