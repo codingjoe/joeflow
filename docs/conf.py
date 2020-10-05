@@ -73,7 +73,8 @@ intersphinx_mapping = {
         "https://docs.djangoproject.com/en/stable/",
         "https://docs.djangoproject.com/en/stable/_objects/",
     ),
-    "celery": ("https://celery.readthedocs.io/en/stable/", None),
+    "dramatiq": ("https://dramatiq.io/", None),
+    "celery": ("https://docs.celeryproject.org/en/stable/", None),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable/", None),
 }
 

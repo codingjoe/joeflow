@@ -31,11 +31,11 @@ like:
 
         ship = tasks.UpdateView(fields=["tracking_code"])
 
-        def has_email(self, task):
+        def has_email(self):
             if self.email:
                 return [self.send_tracking_code]
 
-        def send_tracking_code(self, task):
+        def send_tracking_code(self):
             send_mail(
                 subject="Your tracking code",
                 message=self.tracking_code,

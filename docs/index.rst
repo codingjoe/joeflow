@@ -25,12 +25,12 @@ may look like:
         checkout [color=black fontcolor=black style="filled, rounded"]
         "has email" [color=black fontcolor=black style=filled]
         ship [color=black fontcolor=black style="filled, rounded"]
-        end [color=black fontcolor=black style=filled]
+        end [color=black fontcolor=black style=filled peripheries=2]
         "send tracking code" [color=black fontcolor=black style=filled]
         checkout -> ship
         ship -> "has email"
         "has email" -> "send tracking code"
-        "has email" -> end
+        "has email" -> end [color="#888888"]
         "send tracking code" -> end
     }
 
@@ -55,7 +55,7 @@ may look like:
             if self.email:
                 return [self.send_tracking_code]
 
-        def send_tracking_code(self, task):
+        def send_tracking_code(self):
             send_mail(
                 subject="Your tracking code",
                 message=self.tracking_code,
@@ -63,7 +63,7 @@ may look like:
                 recipient_list=[self.email],
             )
 
-        def end(self, task):
+        def end(self):
             pass
 
         edges = [
