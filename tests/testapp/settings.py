@@ -133,7 +133,6 @@ EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 
 DRAMATIQ_BROKER = {
     "BROKER": os.getenv("DRAMATIQ_BROKER", "dramatiq.brokers.redis.RedisBroker"),
-    "OPTIONS": {"url": "redis:///1"},
     "MIDDLEWARE": [
         "dramatiq.middleware.Prometheus",
         "dramatiq.middleware.AgeLimit",
