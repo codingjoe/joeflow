@@ -11,7 +11,7 @@ from django.urls import NoReverseMatch, path, reverse
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.safestring import SafeString
-from django.utils.translation import ugettext_lazy as t
+from django.utils.translation import gettext_lazy as t
 from django.views.generic.edit import BaseCreateView
 
 from . import tasks, utils, views

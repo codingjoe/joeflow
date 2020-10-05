@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.auth import get_permission_codename
 from django.db import transaction
 from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as t
+from django.utils.translation import gettext_lazy as t
 
 from . import forms, models
 from .contrib.reversion import VersionAdmin
