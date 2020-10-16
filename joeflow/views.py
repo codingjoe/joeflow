@@ -63,17 +63,13 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        self.create_task(request)
-        return response
-
-    def create_task(self, request):
         task = self.get_task()
         task.workflow = self.model._base_manager.get(
             pk=self.model._base_manager.get(pk=self.object.pk)
         )
         task.finish(request.user)
         task.start_next_tasks()
-        return task
+        return response
 
 
 class WorkflowDetailView(WorkflowTemplateNameViewMixin, generic.DetailView):
