@@ -571,7 +571,7 @@ class Task(models.Model):
         for node in next_nodes:
             try:
                 # Some nodes – like Join – implement their own method to create new tasks.
-                task = node.create_task(self.workflow)
+                task = node.create_task(self.workflow, self)
             except AttributeError:
                 task = self.workflow.task_set.create(
                     name=node.name, type=node.type, workflow=self.workflow

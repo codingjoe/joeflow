@@ -108,7 +108,7 @@ class Join:
     def __call__(self, workflow, task):
         return set(task.parent_task_set.values_list("name", flat=True)) == self.parents
 
-    def create_task(self, workflow):
+    def create_task(self, workflow, prev_task):
         return workflow.task_set.get_or_create(
             name=self.name,
             type=self.type,

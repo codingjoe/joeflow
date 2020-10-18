@@ -30,11 +30,11 @@ class TestJoin:
         node = tasks.Join()
         node.name = "test"
         node.type = "machine"
-        obj = node.create_task(wf)
-        obj2 = node.create_task(wf)
+        obj = node.create_task(wf, None)
+        obj2 = node.create_task(wf, None)
         assert obj == obj2
         obj.finish()
-        obj3 = node.create_task(wf)
+        obj3 = node.create_task(wf, None)
         assert obj != obj3
 
 

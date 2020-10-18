@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from joeflow import tasks
 
 from . import models
+from .views import UpdateWithPrevUserView
 
 
 class ShippingWorkflow(models.Shipment):
@@ -72,6 +73,24 @@ class SimpleWorkflow(models.SimpleWorkflowState):
     start_view = tasks.StartView(fields="__all__", path="custom/postfix/")
     start_method = tasks.Start()
     save_the_princess = tasks.UpdateView(fields="__all__")
+
+    def end(self):
+        pass
+
+    edges = (
+        (start_view, save_the_princess),
+        (start_method, save_the_princess),
+        (save_the_princess, end),
+    )
+
+    class Meta:
+        proxy = True
+
+
+class AssigneeWorkflow(models.SimpleWorkflowState):
+    start_view = tasks.StartView(fields="__all__", path="custom/postfix/")
+    start_method = tasks.Start()
+    save_the_princess = UpdateWithPrevUserView(fields="__all__")
 
     def end(self):
         pass
