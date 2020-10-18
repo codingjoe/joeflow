@@ -74,6 +74,28 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         self.next_task()
         return response
 
+    def create_task(self, workflow, prev_task):
+        """
+        Return a new database instance of this task.
+
+        The factory method should be overridden, to create custom database instances
+        based on the task node's class, the workflow or the previous task.
+
+        Note:
+            This is not a view method, a request via ``self.request`` is not available.
+
+        Args:
+            workflow (joeflow.models.Workflow): Current workflow instance.
+            prev_task (joeflow.models.Task): Instance of the previous Task.
+
+        Returns:
+            joeflow.models.Task: New task instance.
+
+        """
+        return workflow.task_set.create(
+            name=self.name, type=self.type, workflow=workflow
+        )
+
 
 class WorkflowDetailView(WorkflowTemplateNameViewMixin, generic.DetailView):
     pass
