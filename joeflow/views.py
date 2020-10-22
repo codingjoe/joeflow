@@ -56,19 +56,22 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         except KeyError:
             return models.Task(name=self.name, type=models.Task.HUMAN)
 
+    def next_task(self):
+        task = self.get_task()
+        task.workflow = self.model._base_manager.get(
+            pk=self.model._base_manager.get(pk=self.object.pk)
+        )
+        task.finish(self.request.user)
+        task.start_next_tasks()
+
     def get_object(self, queryset=None):
         task = self.get_task()
         return task.workflow
 
     @transaction.atomic
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        task = self.get_task()
-        task.workflow = self.model._base_manager.get(
-            pk=self.model._base_manager.get(pk=self.object.pk)
-        )
-        task.finish(request.user)
-        task.start_next_tasks()
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.next_task()
         return response
 
 
