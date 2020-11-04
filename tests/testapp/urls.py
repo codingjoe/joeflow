@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from . import workflows
+from . import models, workflows
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,5 +26,5 @@ urlpatterns = [
     path("gateway/", include(workflows.GatewayWorkflow.urls())),
     path("splitjoin/", include(workflows.SplitJoinWorkflow.urls())),
     path("loop/", include(workflows.LoopWorkflow.urls())),
-    path("welcome/", include(workflows.WelcomeWorkflow.urls())),
+    path("welcome/", include(models.WelcomeWorkflow.urls())),
 ]

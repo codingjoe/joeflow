@@ -3,7 +3,7 @@ from django.core import mail
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from .testapp import workflows
+from .testapp import models
 
 
 class WelcomeWorkflowMachineTest(SimpleTestCase):
@@ -14,11 +14,11 @@ class WelcomeWorkflowMachineTest(SimpleTestCase):
             last_name="Parker",
             username="spidy",
         )
-        workflow = workflows.WelcomeWorkflow(user=user)
+        workflow = models.WelcomeWorkflow(user=user)
         self.assertEqual(workflow.has_user(), [workflow.send_welcome_email])
 
     def test_has_user__without_user(self):
-        workflow = workflows.WelcomeWorkflow()
+        workflow = models.WelcomeWorkflow()
         self.assertEqual(workflow.has_user(), [workflow.end])
 
     def test_send_welcome_email(self):
@@ -28,7 +28,7 @@ class WelcomeWorkflowMachineTest(SimpleTestCase):
             last_name="Parker",
             username="spidy",
         )
-        workflow = workflows.WelcomeWorkflow(user=user)
+        workflow = models.WelcomeWorkflow(user=user)
 
         workflow.send_welcome_email()
 
@@ -55,13 +55,13 @@ class WelcomeWorkflowHumanTest(TestCase):
 
         response = self.client.post(self.start_url, data=dict(user=user.pk))
         self.assertEqual(response.status_code, 302)
-        workflow = workflows.WelcomeWorkflow.objects.get()
+        workflow = models.WelcomeWorkflow.objects.get()
         self.assertTrue(workflow.user)
         self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())
 
     def test_start__post_without_user(self):
         response = self.client.post(self.start_url)
         self.assertEqual(response.status_code, 302)
-        workflow = workflows.WelcomeWorkflow.objects.get()
+        workflow = models.WelcomeWorkflow.objects.get()
         self.assertFalse(workflow.user)
         self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())

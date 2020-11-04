@@ -32,27 +32,32 @@ store a user. Like so:
     from joeflow.models import Workflow
 
 
-    class WelcomeWorkflowState(Workflow):
+    class WelcomeWorkflow(Workflow):
+        # state
         user = models.ForeignKey(
             settings.AUTH_USER_MODEL,
             on_delete=models.CASCADE,
             blank=True, null=True,
         )
 
-
-We keep the model abstract. The abstract model will make it easier to separate
-state from behavior and therefore easier to read for your fellow developers.
-
 Next we add the behavior:
 
 .. code-block:: python
 
+    from django.conf import settings
     from joeflow import tasks
+    from joeflow.models import Workflow
 
-    from . import models
 
+    class WelcomeWorkflow(Workflow):
+        # state
+        user = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            blank=True, null=True,
+        )
 
-    class WelcomeWorkflow(models.WelcomeWorkflowState):
+        # behavior
         start = tasks.StartView(fields=["user"])
 
         def has_user(self):
@@ -76,8 +81,6 @@ Next we add the behavior:
             (send_welcome_email, end),
         ]
 
-        class Meta:
-            proxy = True
 
 We have the tasks ``start``, ``has_user`` ``send_welcome_email`` and ``end``
 on the top and define all the edges on the bottom. Edges are defined by a
@@ -101,11 +104,11 @@ to your ``urls.py``:
 
     from django.urls import path, include
 
-    from . import workflows
+    from . import models
 
     urlpatterns = [
         # …
-        path('welcome/', include(workflows.WelcomeWorkflow.urls())),
+        path('welcome/', include(models.WelcomeWorkflow.urls())),
     ]
 
 This will add URLs for all human tasks as well as a detail view and manual

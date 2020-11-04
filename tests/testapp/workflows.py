@@ -40,35 +40,6 @@ class ShippingWorkflow(models.Shipment):
         proxy = True
 
 
-class WelcomeWorkflow(models.WelcomeWorkflowState):
-    start = tasks.StartView(fields=["user"])
-
-    def has_user(self):
-        if self.user:
-            return [self.send_welcome_email]
-        else:
-            return [self.end]
-
-    def send_welcome_email(self):
-        self.user.email_user(
-            subject="Welcome",
-            message="Hello %s!" % self.user.get_short_name(),
-        )
-
-    def end(self):
-        pass
-
-    edges = [
-        (start, has_user),
-        (has_user, end),
-        (has_user, send_welcome_email),
-        (send_welcome_email, end),
-    ]
-
-    class Meta:
-        proxy = True
-
-
 class SimpleWorkflow(models.SimpleWorkflowState):
     start_view = tasks.StartView(fields="__all__", path="custom/postfix/")
     start_method = tasks.Start()

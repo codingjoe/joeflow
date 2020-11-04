@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
             bases=("joeflow.workflow",),
         ),
         migrations.CreateModel(
-            name="WelcomeWorkflowState",
+            name="WelcomeWorkflow",
             fields=[
                 (
                     "workflow_ptr",
@@ -230,11 +230,5 @@ class Migration(migrations.Migration):
             fields=[],
             options={"proxy": True, "indexes": [], "constraints": []},
             bases=("testapp.waitworkflowstate",),
-        ),
-        migrations.CreateModel(
-            name="WelcomeWorkflow",
-            fields=[],
-            options={"proxy": True, "indexes": [], "constraints": []},
-            bases=("testapp.welcomeworkflowstate",),
         ),
     ]
