@@ -41,12 +41,14 @@ may look like:
     from joeflow import tasks
 
 
-    class Shipment(Workflow):
+    class ShippingWorkflow(Workflow):
+
+        # model fields to store the state
         email = models.EmailField(blank=True)
         shipping_address = models.TextField()
         tracking_code = models.TextField()
 
-    class ShippingWorkflow(Shipment):
+        # tasks (nodes)
         checkout = tasks.StartView(fields=["shipping_address", "email"])
 
         ship = tasks.UpdateView(fields=["tracking_code"])
@@ -66,6 +68,7 @@ may look like:
         def end(self):
             pass
 
+        # edges
         edges = [
             (checkout, ship),
             (ship, has_email),
@@ -73,9 +76,6 @@ may look like:
             (has_email, end),
             (send_tracking_code, end),
         ]
-
-        class Meta:
-            proxy = True
 
 Design Principles
 =================
