@@ -249,6 +249,10 @@ class TestWorkflow:
             "override",
         }
 
+    def test_urls__none_int_pk_mismatch(self, client):
+        response = client.get("/shipment/test/")
+        assert response.status_code == 404
+
 
 class TestTaskQuerySet:
     def test_scheduled(self, db):
