@@ -137,7 +137,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 if isinstance(node, BaseCreateView):
                     route = "{name}/".format(name=name)
                 else:
-                    route = "{name}/<pk>/".format(name=name)
+                    route = "{name}/<int:pk>/".format(name=name)
                 urls.append(
                     path(
                         route + node.path,
@@ -147,12 +147,12 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 )
         if cls.detail_view:
             urls.append(
-                path("<pk>/", cls.detail_view.as_view(model=cls), name="detail")
+                path("<int:pk>/", cls.detail_view.as_view(model=cls), name="detail")
             )
         if cls.override_view:
             urls.append(
                 path(
-                    "<pk>/override",
+                    "<int:pk>/override",
                     cls.override_view.as_view(model=cls),
                     name="override",
                 )
