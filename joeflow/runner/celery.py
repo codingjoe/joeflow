@@ -16,6 +16,7 @@ __all__ = ["task_runner"]
 @shared_task(
     bind=True,
     ignore_results=True,
+    max_retries=None,
     autoretry_for=(OperationalError,),
     retry_backoff=True,
 )
