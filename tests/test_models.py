@@ -138,14 +138,14 @@ class TestWorkflow:
         print(str(graph))
 
         assert (
-            f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]'
+            f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]\n'
             in list(graph)
         )
         assert (
-            f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]'
+            f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]\n'
             in list(graph)
         )
-        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]' in list(graph)
+        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]\n' in list(graph)
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
         workflow = workflows.SimpleWorkflow.objects.create()
