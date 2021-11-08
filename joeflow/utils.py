@@ -89,10 +89,10 @@ class NoDashDiGraph(gv.Digraph):
     def _quote(identifier, *args, **kwargs):
         """Remove underscores from labels."""
         identifier = identifier.replace("_", " ")
-        return gv.lang.quote(identifier, *args, **kwargs)
+        return gv.quoting.quote(identifier, *args, **kwargs)
 
     @staticmethod
     def _quote_edge(identifier):
         """Remove underscores from labels."""
         identifier = identifier.replace("_", " ")
-        return gv.lang.quote_edge(identifier)
+        return gv.quoting.quote_edge(identifier)
