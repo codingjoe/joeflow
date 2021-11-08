@@ -121,7 +121,9 @@ class TestWorkflow:
         graph = wf.get_instance_graph()
         print(str(graph))
         with open(str(fixturedir / "simpleworkflow_instance.dot")) as fp:
-            assert set(str(graph).splitlines()) == set(fp.read().replace("{url}", task_url).splitlines())
+            assert set(str(graph).splitlines()) == set(
+                fp.read().replace("{url}", task_url).splitlines()
+            )
 
     def test_get_instance_graph__override(
         self, db, stub_worker, fixturedir, admin_client
