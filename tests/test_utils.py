@@ -6,30 +6,30 @@ class TestNoDashDiGraph:
         graph = NoDashDiGraph()
         graph.node("foo", color="blue")
         assert list(graph) == [
-            "digraph {",
-            "\tfoo [color=blue]",
-            "}",
+            "digraph {\n",
+            "\tfoo [color=blue]\n",
+            "}\n",
         ]
         graph.node("foo", color="red")
         assert list(graph) == [
-            "digraph {",
-            "\tfoo [color=red]",
-            "}",
+            "digraph {\n",
+            "\tfoo [color=red]\n",
+            "}\n",
         ]
 
     def test_edge(self):
         graph = NoDashDiGraph()
         graph.edge("foo", "bar", color="blue")
         assert list(graph) == [
-            "digraph {",
-            "\tfoo -> bar [color=blue]",
-            "}",
+            "digraph {\n",
+            "\tfoo -> bar [color=blue]\n",
+            "}\n",
         ]
         graph.edge("foo", "bar", color="red")
         assert list(graph) == [
-            "digraph {",
-            "\tfoo -> bar [color=red]",
-            "}",
+            "digraph {\n",
+            "\tfoo -> bar [color=red]\n",
+            "}\n",
         ]
 
     def test_iter(self):
@@ -40,13 +40,13 @@ class TestNoDashDiGraph:
         graph.comment = "This is a comment."
         print(str(graph))
         assert list(graph.__iter__()) == [
-            "// This is a comment.",
-            "digraph {",
-            "\tnode [style=filled]",
-            "\tbar [color=green]",
-            "\tfoo [color=red]",
-            "\tfoo -> bar [color=blue]",
-            "}",
+            "// This is a comment.\n",
+            "digraph {\n",
+            "\tnode [style=filled]\n",
+            "\tbar [color=green]\n",
+            "\tfoo [color=red]\n",
+            "\tfoo -> bar [color=blue]\n",
+            "}\n",
         ]
 
     def test_iter__subgraph(self):
@@ -57,13 +57,13 @@ class TestNoDashDiGraph:
         graph.comment = "This is a comment."
         print(str(graph))
         assert list(graph.__iter__(subgraph=True)) == [
-            "// This is a comment.",
-            "{",
-            "\tnode [style=filled]",
-            "\tbar [color=green]",
-            "\tfoo [color=red]",
-            "\tfoo -> bar [color=blue]",
-            "}",
+            "// This is a comment.\n",
+            "{\n",
+            "\tnode [style=filled]\n",
+            "\tbar [color=green]\n",
+            "\tfoo [color=red]\n",
+            "\tfoo -> bar [color=blue]\n",
+            "}\n",
         ]
 
     def test_quote(self):

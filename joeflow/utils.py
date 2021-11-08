@@ -44,7 +44,7 @@ class NoDashDiGraph(gv.Digraph):
     def __iter__(self, subgraph=False):
         """Yield the DOT source code line by line (as graph or subgraph)."""
         if self.comment:
-            yield self._comment % self.comment
+            yield self._comment(self.comment)
 
         if subgraph:
             if self.strict:
@@ -52,12 +52,12 @@ class NoDashDiGraph(gv.Digraph):
             head = self._subgraph if self.name else self._subgraph_plain
         else:
             head = self._head_strict if self.strict else self._head
-        yield head % (self._quote(self.name) + " " if self.name else "")
+        yield head(self._quote(self.name) + " " if self.name else "")
 
         for kw in ("graph", "node", "edge"):
             attrs = getattr(self, "%s_attr" % kw)
             if attrs:
-                yield self._attr % (kw, self._attr_list(None, attrs))
+                yield self._attr(kw, self._attr_list(None, attrs))
 
         yield from self.body
 
@@ -66,16 +66,16 @@ class NoDashDiGraph(gv.Digraph):
             label = attrs.pop("label", None)
             _attributes = attrs.pop("_attributes", None)
             attr_list = self._attr_list(label, attrs, _attributes)
-            yield self._node % (name, attr_list)
+            yield self._node(name, attr_list)
 
         for edge, attrs in sorted(self._edges.items()):
-            head_name, tail_name = edge
+            tail_name, head_name = edge
             tail_name = self._quote_edge(tail_name)
             head_name = self._quote_edge(head_name)
             label = attrs.pop("label", None)
             _attributes = attrs.pop("_attributes", None)
             attr_list = self._attr_list(label, attrs, _attributes)
-            yield self._edge % (head_name, tail_name, attr_list)
+            yield self._edge(tail=tail_name, head=head_name, attr=attr_list)
 
         yield self._tail
 
@@ -89,10 +89,10 @@ class NoDashDiGraph(gv.Digraph):
     def _quote(identifier, *args, **kwargs):
         """Remove underscores from labels."""
         identifier = identifier.replace("_", " ")
-        return gv.lang.quote(identifier, *args, **kwargs)
+        return gv.quoting.quote(identifier, *args, **kwargs)
 
     @staticmethod
     def _quote_edge(identifier):
         """Remove underscores from labels."""
         identifier = identifier.replace("_", " ")
-        return gv.lang.quote_edge(identifier)
+        return gv.quoting.quote_edge(identifier)

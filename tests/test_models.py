@@ -109,7 +109,7 @@ class TestWorkflow:
         with open(str(fixturedir / "simpleworkflow.dot")) as fp:
             expected_graph = fp.read().splitlines()
         print(str(graph))
-        assert set(graph) == set(expected_graph)
+        assert set(str(graph).splitlines()) == set(expected_graph)
 
     def test_get_graph_svg(self, fixturedir):
         svg = workflows.SimpleWorkflow.get_graph_svg()
@@ -121,7 +121,9 @@ class TestWorkflow:
         graph = wf.get_instance_graph()
         print(str(graph))
         with open(str(fixturedir / "simpleworkflow_instance.dot")) as fp:
-            assert set(graph) == set(fp.read().replace("{url}", task_url).splitlines())
+            assert set(str(graph).splitlines()) == set(
+                fp.read().replace("{url}", task_url).splitlines()
+            )
 
     def test_get_instance_graph__override(
         self, db, stub_worker, fixturedir, admin_client
@@ -136,14 +138,14 @@ class TestWorkflow:
         print(str(graph))
 
         assert (
-            f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]'
+            f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]\n'
             in list(graph)
         )
         assert (
-            f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]'
+            f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]\n'
             in list(graph)
         )
-        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]' in list(graph)
+        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]\n' in list(graph)
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
         workflow = workflows.SimpleWorkflow.objects.create()
@@ -159,8 +161,8 @@ class TestWorkflow:
             '\tobsolete [color=black fontcolor=black peripheries=1 style="filled, dashed, bold"]'
             in str(graph)
         )
-        assert '\t"start method" -> obsolete [style=dashed]' in list(graph)
-        assert "\tobsolete -> end [style=dashed]" in list(graph)
+        assert '\t"start method" -> obsolete [style=dashed]\n' in list(graph)
+        assert "\tobsolete -> end [style=dashed]\n" in list(graph)
 
     def test_get_instance_graph_svg(self, db, fixturedir):
         wf = workflows.SimpleWorkflow.start_method()

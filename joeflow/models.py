@@ -236,7 +236,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         """
         graph = cls.get_graph()
         graph.format = "svg"
-        return SafeString(graph.pipe().decode("utf-8"))  # nosec
+        return SafeString(graph.pipe(encoding="utf-8"))  # nosec
 
     get_graph_svg.short_description = t("graph")
 
@@ -326,7 +326,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         """
         graph = self.get_instance_graph()
         graph.format = output_format
-        return SafeString(graph.pipe().decode("utf-8"))  # nosec
+        return SafeString(graph.pipe(encoding="utf-8"))  # nosec
 
     get_instance_graph_svg.short_description = t("instance graph")
 
