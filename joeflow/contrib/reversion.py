@@ -43,7 +43,6 @@ try:
                 reversion.set_comment(self.name)
             return super().dispatch(request, *args, **kwargs)
 
-
 except ImportError:
 
     class RevisionMixin:
