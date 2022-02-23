@@ -11,26 +11,21 @@ jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v2
-      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2.3.2
+      - uses: actions/checkout@v2.4.0
       - run: python -m pip install black
       - run: black --check --diff .
 
   docs:
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v2
-    - uses: actions/checkout@v2
-    - name: Install binary dependencies
-      run: sudo apt-get install -y python3-enchant graphviz
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools
-        pip install sphinxcontrib-spelling
-        pip install -e '.[docs]'
-    - name: Build documentation
-      run: python setup.py build_sphinx -W -b spelling
+    - uses: actions/setup-python@v2.3.2
+    - uses: actions/checkout@v2.4.0
+    - run: sudo apt install -y python3-enchant graphviz
+    - run: python -m pip install --upgrade pip setuptools
+    - run: pip install sphinxcontrib-spelling
+    - run: pip install -e '.[docs]'
+    - run: python setup.py build_sphinx -W -b spelling
 
   dist:
     runs-on: ubuntu-latest
@@ -57,25 +52,16 @@ jobs:
           - "3.2a"
           - "4.0a"
     steps:
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+    - uses: actions/setup-python@v2.3.2
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/checkout@v2
-    - name: Install binary dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y graphviz redis-server
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel codecov
-        python -m pip install -e .[dramatiq]
-        python -m pip install django~=${{ matrix.django-version }}
-    - name: Run tests
-      run: python setup.py test
+    - uses: actions/checkout@v2.4.0
+    - run: sudo apt install -y graphviz redis-server
+    - run: python -m pip install --upgrade pip setuptools wheel codecov
+    - run: python -m pip install -e .[dramatiq]
+    - run: python -m pip install "django~=${{ matrix.django-version }}"
+    - run: python setup.py test
     - run: codecov
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   extras:
     needs:
@@ -88,19 +74,10 @@ jobs:
           - celery
           - dramatiq,reversion
     steps:
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-      - uses: actions/checkout@v2
-      - name: Install binary dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y graphviz redis-server
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel codecov
-          python -m pip install -e .[${{ matrix.extras }}]
-      - name: Run tests
-        run: python setup.py test
+      - uses: actions/setup-python@v2.3.2
+      - uses: actions/checkout@v2.4.0
+      - run: sudo apt-get install -y graphviz redis-server
+      - run: python -m pip install --upgrade pip setuptools wheel codecov
+      - run: python -m pip install -e .[${{ matrix.extras }}]
+      - run: python setup.py test
       - run: codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
