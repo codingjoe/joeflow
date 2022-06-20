@@ -30,7 +30,7 @@ def linkcode_resolve(domain, info):
     """Link source code to GitHub."""
     project = "joeflow"
     github_user = "codingjoe"
-    head = "master"
+    head = "main"
 
     if domain != "py" or not info["module"]:
         return None
