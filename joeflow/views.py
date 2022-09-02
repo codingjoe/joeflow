@@ -58,9 +58,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
 
     def next_task(self):
         task = self.get_task()
-        task.workflow = self.model._base_manager.get(
-            pk=self.model._base_manager.get(pk=self.object.pk)
-        )
+        task.workflow = self.model._base_manager.get(pk=self.object.pk)
         task.finish(self.request.user)
         task.start_next_tasks()
 
