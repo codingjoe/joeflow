@@ -63,20 +63,20 @@ jobs:
           - "3.9"
           - "3.10"
         django-version:
-          - "2.2"
           - "3.2"
           - "4.0"
+          - "4.1"
         extras:
           - "test"
         include:
           - python-version: "3.x"
-            django-version: "4.0"
+            django-version: "4.1"
             extras: "test,dramatiq"
           - python-version: "3.x"
-            django-version: "4.0"
+            django-version: "4.1"
             extras: "test,celery"
           - python-version: "3.x"
-            django-version: "4.0"
+            django-version: "4.1"
             extras: "test,reversion"
     steps:
       - uses: actions/checkout@v3
