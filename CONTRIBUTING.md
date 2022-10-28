@@ -4,7 +4,7 @@
 
 ### M.U.S.T
 
-This package follows a couple of MUST have design principles.
+This package follows a couple of MUST-have design principles.
 
 ##### Maintainable
 
