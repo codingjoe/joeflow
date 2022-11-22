@@ -35,7 +35,7 @@ class NoDashDiGraph(gv.Digraph):
         for kw in ("graph", "node", "edge"):
             attrs = getattr(self, "%s_attr" % kw)
             if attrs:
-                yield self._attr(kw, self._attr_list(None, attrs))
+                yield self._attr(kw, self._attr_list(None, kwargs=attrs))
 
         yield from self.body
 
@@ -43,7 +43,7 @@ class NoDashDiGraph(gv.Digraph):
             name = self._quote(name)
             label = attrs.pop("label", None)
             _attributes = attrs.pop("_attributes", None)
-            attr_list = self._attr_list(label, attrs, _attributes)
+            attr_list = self._attr_list(label, kwargs=attrs, attributes=_attributes)
             yield self._node(name, attr_list)
 
         for edge, attrs in sorted(self._edges.items()):
@@ -52,7 +52,7 @@ class NoDashDiGraph(gv.Digraph):
             head_name = self._quote_edge(head_name)
             label = attrs.pop("label", None)
             _attributes = attrs.pop("_attributes", None)
-            attr_list = self._attr_list(label, attrs, _attributes)
+            attr_list = self._attr_list(label, kwargs=attrs, attributes=_attributes)
             yield self._edge(tail=tail_name, head=head_name, attr=attr_list)
 
         yield self._tail

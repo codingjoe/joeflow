@@ -197,7 +197,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         graph.attr("graph", rankdir="LR")
         graph.attr(
             "node",
-            dict(
+            _attributes=dict(
                 fontname="sans-serif", shape="rect", style="filled", fillcolor="white"
             ),
         )
