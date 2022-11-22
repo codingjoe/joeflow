@@ -40,6 +40,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         start = tasks.StartView(path="path/to/<other_pk>")
 
     """
+    type = "human"
 
     def __init__(self, **kwargs):
         self._instance_kwargs = kwargs

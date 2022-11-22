@@ -12,9 +12,10 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as t
+from django.views import View
 from django.views.generic.edit import BaseCreateView
 
-from . import tasks, utils, views
+from . import utils
 from .conf import settings
 from .utils import NoDashDiGraph
 
@@ -41,14 +42,14 @@ class WorkflowBase(ModelBase):
                 if func in nodes:
                     node = getattr(klass, name)
                     node.name = name
-                    node.type = (
-                        tasks.HUMAN
-                        if isinstance(node, views.TaskViewMixin)
-                        else tasks.MACHINE
-                    )
+                    node.type = getattr(node, "type", "machine")
                     node.workflow_cls = klass
             except TypeError:
                 pass
+        if "override_view" in attrs and isinstance(klass.override_view, str):
+            klass.override_view = import_string(klass.override_view)
+        if "detail_view" in attrs and isinstance(klass.detail_view, str):
+            klass.detail_view = import_string(klass.detail_view)
         return klass
 
 
@@ -94,8 +95,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             including start end end not of an edge.
     """
 
-    override_view = views.OverrideView
-    detail_view = views.WorkflowDetailView
+    override_view = "joeflow.views.OverrideView"
+    detail_view = "joeflow.views.WorkflowDetailView"
 
     @classmethod
     def _wrap_view_instance(cls, name, view_instance):
@@ -133,7 +134,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         """
         urls = []
         for name, node in cls.get_nodes():
-            if isinstance(node, views.TaskViewMixin):
+            if isinstance(node, View):
                 if isinstance(node, BaseCreateView):
                     route = "{name}/".format(name=name)
                 else:
@@ -205,7 +206,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         )
         for name, node in cls.get_nodes():
             node_style = "filled"
-            if node.type == tasks.HUMAN:
+            if node.type == "human":
                 node_style += ", rounded"
             graph.node(name, style=node_style, color=color, fontcolor=color)
 
@@ -251,7 +252,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             style = "filled"
             peripheries = "1"
 
-            if task.type == tasks.HUMAN:
+            if task.type == "human":
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
@@ -284,7 +285,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             style = "filled, dashed"
             peripheries = "1"
-            if task.type == tasks.HUMAN:
+            if task.type == "human":
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
