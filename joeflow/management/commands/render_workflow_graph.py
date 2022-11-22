@@ -1,7 +1,6 @@
 from django.core.management import BaseCommand
 
-from joeflow import utils
-from joeflow.models import Workflow
+import joeflow.models
 
 
 class Command(BaseCommand):
@@ -45,10 +44,12 @@ class Command(BaseCommand):
         cleanup = options["cleanup"]
         directory = options.get("directory", None)
 
-        workflows = [utils.get_workflow(s) for s in workflows] or utils.get_workflows()
+        workflows = [
+            joeflow.models.get_workflow(s) for s in workflows
+        ] or joeflow.models.get_workflows()
 
         for workflow in filter(None, workflows):
-            if workflow != Workflow:
+            if workflow != joeflow.models.Workflow:
                 opt = workflow._meta
                 if verbosity > 0:
                     self.stdout.write(

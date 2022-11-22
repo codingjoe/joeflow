@@ -1,5 +1,5 @@
 """Set of reusable machine tasks."""
-from typing import Iterable
+from collections.abc import Iterable
 
 from django.utils import timezone
 

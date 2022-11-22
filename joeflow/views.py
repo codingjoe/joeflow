@@ -6,6 +6,7 @@ from django.views import generic
 
 from . import forms, models
 from .contrib.reversion import RevisionMixin
+from .typing import HUMAN
 
 
 class WorkflowTemplateNameViewMixin:
@@ -40,7 +41,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         start = tasks.StartView(path="path/to/<other_pk>")
 
     """
-    type = "human"
+    type = HUMAN
 
     def __init__(self, **kwargs):
         self._instance_kwargs = kwargs
@@ -55,7 +56,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
                 completed=None,
             )
         except KeyError:
-            return models.Task(name=self.name, type=models.Task.HUMAN)
+            return models.Task(name=self.name, type=HUMAN)
 
     def next_task(self):
         task = self.get_task()

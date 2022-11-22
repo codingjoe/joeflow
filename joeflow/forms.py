@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as t
 
 from . import models
+from .typing import HUMAN
 
 
 class OverrideForm(forms.ModelForm):
@@ -35,7 +36,7 @@ class OverrideForm(forms.ModelForm):
                 parent_tasks = []
         override_task = self.instance.task_set.create(
             name="override",
-            type=models.Task.HUMAN,
+            type=HUMAN,
         )
         override_task.parent_task_set.set(parent_tasks)
         override_task.finish(user=user)
