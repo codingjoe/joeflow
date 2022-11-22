@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from joeflow import utils
+import joeflow.models
 
 __all__ = (
     "register_workflows",
@@ -16,7 +16,7 @@ def register_workflows():
     except ImportError:
         pass
     else:
-        for workflow in utils.get_workflows():
+        for workflow in joeflow.models.get_workflows():
             if not revisions.is_registered(workflow):
                 revisions.register(workflow)
 

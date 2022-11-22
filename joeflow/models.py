@@ -1,7 +1,8 @@
 import logging
 import sys
 import traceback
-from typing import Any, List, Tuple
+import types
+import typing
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.db import models, transaction
@@ -15,8 +16,8 @@ from django.utils.translation import gettext_lazy as t
 from django.views import View
 from django.views.generic.edit import BaseCreateView
 
-from . import utils
 from .conf import settings
+from .typing import HUMAN, MACHINE
 from .utils import NoDashDiGraph
 
 logger = logging.getLogger(__name__)
@@ -42,10 +43,10 @@ class WorkflowBase(ModelBase):
                 if func in nodes:
                     node = getattr(klass, name)
                     node.name = name
-                    node.type = getattr(node, "type", "machine")
+                    node.type = getattr(node, "type", MACHINE)
                     node.workflow_cls = klass
             except TypeError:
-                pass
+                pass  # not a function
         if "override_view" in attrs and isinstance(klass.override_view, str):
             klass.override_view = import_string(klass.override_view)
         if "detail_view" in attrs and isinstance(klass.detail_view, str):
@@ -82,7 +83,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 update_fields.append("modified")
         super().save(**kwargs)
 
-    edges: List[Tuple[Any, Any]] = None
+    edges: list[tuple[typing.Any, typing.Any]] = None
     """
     Edges define the transitions between tasks.
 
@@ -136,9 +137,9 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         for name, node in cls.get_nodes():
             if isinstance(node, View):
                 if isinstance(node, BaseCreateView):
-                    route = "{name}/".format(name=name)
+                    route = f"{name}/"
                 else:
-                    route = "{name}/<int:pk>/".format(name=name)
+                    route = f"{name}/<int:pk>/"
                 urls.append(
                     path(
                         route + node.path,
@@ -177,15 +178,11 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     def get_absolute_url(self):
         """Return URL to workflow detail view."""
-        return reverse(
-            "{}:detail".format(self.get_url_namespace()), kwargs=dict(pk=self.pk)
-        )
+        return reverse(f"{self.get_url_namespace()}:detail", kwargs=dict(pk=self.pk))
 
     def get_override_url(self):
         """Return URL to workflow override view."""
-        return reverse(
-            "{}:override".format(self.get_url_namespace()), kwargs=dict(pk=self.pk)
-        )
+        return reverse(f"{self.get_url_namespace()}:override", kwargs=dict(pk=self.pk))
 
     @classmethod
     def get_graph(cls, color="black"):
@@ -206,7 +203,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         )
         for name, node in cls.get_nodes():
             node_style = "filled"
-            if node.type == "human":
+            if node.type == HUMAN:
                 node_style += ", rounded"
             graph.node(name, style=node_style, color=color, fontcolor=color)
 
@@ -252,7 +249,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             style = "filled"
             peripheries = "1"
 
-            if task.type == "human":
+            if task.type == HUMAN:
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
@@ -285,7 +282,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             style = "filled, dashed"
             peripheries = "1"
-            if task.type == "human":
+            if task.type == HUMAN:
                 style += ", rounded"
             if not task.completed:
                 style += ", bold"
@@ -340,7 +337,7 @@ def workflow_state_subclasses():
 
     apps.check_models_ready()
     query = models.Q()
-    for workflow in utils.get_workflows():
+    for workflow in get_workflows():
         opts = workflow._meta
         query |= models.Q(app_label=opts.app_label, model=opts.model_name)
     return query
@@ -396,8 +393,6 @@ class Task(models.Model):
 
     name = models.CharField(max_length=255, db_index=True, editable=False)
 
-    HUMAN = "human"
-    MACHINE = "machine"
     _type_choices = (
         (HUMAN, t(HUMAN)),
         (MACHINE, t(MACHINE)),
@@ -470,7 +465,7 @@ class Task(models.Model):
         default_manager_name = "objects"
 
     def __str__(self):
-        return "%s (%s)" % (self.name, self.pk)
+        return f"{self.name} ({self.pk})"
 
     def save(self, **kwargs):
         if self.pk:
@@ -486,12 +481,12 @@ class Task(models.Model):
 
     def get_absolute_url(self):
         if self.completed:
-            return
-        url_name = "{}:{}".format(self.workflow.get_url_namespace(), self.name)
+            return  # completed tasks have no detail view
+        url_name = f"{self.workflow.get_url_namespace()}:{self.name}"
         try:
             return reverse(url_name, kwargs=dict(pk=self.pk))
         except NoReverseMatch:
-            pass
+            return  # no URL was defined for this task
 
     @property
     def node(self):
@@ -582,3 +577,23 @@ class Task(models.Model):
                 transaction.on_commit(task.enqueue)
             tasks.append(task)
         return tasks
+
+
+def get_workflows() -> types.GeneratorType:
+    """Return all registered workflows."""
+    from django.apps import apps
+
+    apps.check_models_ready()
+    for model in apps.get_models():
+        if issubclass(model, Workflow) and model is not Workflow and model.edges:
+            yield model
+    return  # empty generator
+
+
+def get_workflow(name) -> typing.Optional[Workflow]:
+    for workflow_cls in get_workflows():
+        if (
+            name.lower()
+            == f"{workflow_cls._meta.app_label}.{workflow_cls.__name__}".lower()
+        ):
+            return workflow_cls

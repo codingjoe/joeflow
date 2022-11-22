@@ -1,28 +1,6 @@
-import types
 from collections import defaultdict
 
 import graphviz as gv
-
-
-def get_workflows() -> types.GeneratorType:
-    """Return all registered workflows."""
-    from django.apps import apps
-
-    from .models import Workflow
-
-    apps.check_models_ready()
-    for model in apps.get_models():
-        if issubclass(model, Workflow) and model is not Workflow and model.edges:
-            yield model
-
-
-def get_workflow(name):
-    for workflow_cls in get_workflows():
-        if (
-            name.lower()
-            == f"{workflow_cls._meta.app_label}.{workflow_cls.__name__}".lower()
-        ):
-            return workflow_cls
 
 
 class NoDashDiGraph(gv.Digraph):

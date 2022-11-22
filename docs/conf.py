@@ -50,14 +50,10 @@ def linkcode_resolve(domain, info):
         try:
             lines, first_line = inspect.getsourcelines(item)
             lineno = "#L%d-L%s" % (first_line, first_line + len(lines) - 1)
-        except (TypeError, IOError):
+        except (TypeError, OSError):
             pass
-    return "https://github.com/%s/%s/blob/%s/%s.py%s" % (
-        github_user,
-        project,
-        head,
-        filename,
-        lineno,
+    return (
+        f"https://github.com/{github_user}/{project}/blob/{head}/{filename}.py{lineno}"
     )
 
 

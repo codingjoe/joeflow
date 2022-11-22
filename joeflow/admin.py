@@ -10,6 +10,10 @@ from .contrib.reversion import VersionAdmin
 __all__ = ("WorkflowAdmin",)
 
 
+@admin.action(
+    description=t("Rerun selected tasks"),
+    permissions=("rerun",),
+)
 def rerun(modeladmin, request, queryset):
     succeeded = queryset.succeeded().count()
     if succeeded:
@@ -24,10 +28,10 @@ def rerun(modeladmin, request, queryset):
     messages.success(request, "%s tasks have been successfully queued" % counter)
 
 
-rerun.short_description = t("Rerun selected tasks")
-rerun.allowed_permissions = ("rerun",)
-
-
+@admin.action(
+    description=t("Cancel selected tasks"),
+    permissions=("cancel",),
+)
 def cancel(modeladmin, request, queryset):
     not_scheduled = queryset.not_scheduled().count()
     if not_scheduled:
@@ -40,31 +44,25 @@ def cancel(modeladmin, request, queryset):
     messages.success(request, "Tasks have been successfully canceled")
 
 
-cancel.short_description = t("Cancel selected tasks")
-cancel.allowed_permissions = ("cancel",)
-
-
 @admin.register(models.Task)
 class TaskAdmin(VersionAdmin):
     def has_rerun_permission(self, request):
         opts = self.opts
         codename = get_permission_codename("rerun", opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        return request.user.has_perm(f"{opts.app_label}.{codename}")
 
     def has_cancel_permission(self, request):
         opts = self.opts
         codename = get_permission_codename("cancel", opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        return request.user.has_perm(f"{opts.app_label}.{codename}")
 
+    @admin.display(description=t("Traceback"))
     def pretty_stacktrace(self, obj):
         return format_html('<pre class="readonly collapse">{}<pre>', obj.stacktrace)
 
-    pretty_stacktrace.short_description = t("Traceback")
-
+    @admin.display(description=t("Child tasks"))
     def child_tasks(self, obj):
         return ", ".join(str(task) for task in obj.child_task_set.all().iterator())
-
-    child_tasks.short_description = t("Child tasks")
 
     actions = (rerun, cancel)
 

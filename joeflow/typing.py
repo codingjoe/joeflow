@@ -1,0 +1,2 @@
+HUMAN = "human"
+MACHINE = "machine"

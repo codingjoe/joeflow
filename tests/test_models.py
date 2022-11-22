@@ -351,14 +351,14 @@ class TestTask:
         workflow = workflows.SimpleWorkflow.objects.create()
         task = workflow.task_set.create()
         try:
-            raise IOError("nope")
-        except IOError:
+            raise OSError("nope")
+        except OSError:
             task.fail()
 
         assert task.status == task.FAILED
         assert task.exception == "OSError: nope"
         assert "Traceback (most recent call last):\n" in task.stacktrace
-        assert '    raise IOError("nope")\n' in task.stacktrace
+        assert '    raise OSError("nope")\n' in task.stacktrace
         assert "OSError: nope\n" in task.stacktrace
 
     def test_cancel(self, db):
