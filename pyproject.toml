@@ -65,7 +65,7 @@ docs = [
   "celery>=4.2.0",
   "django-reversion",
   "dramatiq",
-  "django_dramatiq<=0.10.0",
+  "django_dramatiq",
   "redis",
 ]
 reversion = [
