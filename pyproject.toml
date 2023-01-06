@@ -76,7 +76,7 @@ celery = [
 ]
 dramatiq = [
   "dramatiq",
-  "django_dramatiq<=0.10.0",
+  "django_dramatiq",
 ]
 
 [project.urls]
