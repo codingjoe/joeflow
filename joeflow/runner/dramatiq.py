@@ -19,7 +19,7 @@ def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
     )
 
 
-class RetryError(Exception):
+class RetryError(dramatiq.errors.Retry):
     """Raised to retry a task if the task result is ``False``."""
 
     pass
