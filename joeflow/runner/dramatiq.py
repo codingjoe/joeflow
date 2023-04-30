@@ -56,7 +56,7 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
             logger.exception("Execution of %r failed", task)
         else:
             if result is False:
-                logger.info("%r returned False, retrying …", task)
+                _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
                 raise RetryError("%r returned False, retrying …" % task)
             elif result is True:
                 result = None
