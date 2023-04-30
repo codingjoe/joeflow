@@ -60,6 +60,6 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
                 raise RetryError("%r returned False, retrying …" % task)
             elif result is True:
                 result = None
-            logger.info("%r completed successfully, starting next tasks: %s", task, result)
+            _dramatiq_task_runner.logger.info("%r completed successfully, starting next tasks: %s", task, result)
             task.start_next_tasks(next_nodes=result)
             task.finish()
