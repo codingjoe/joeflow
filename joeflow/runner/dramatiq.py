@@ -19,7 +19,7 @@ def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
     )
 
 
-class RetryError(Exception):
+class RetryError(dramatiq.errors.Retry):
     """Raised to retry a task if the task result is ``False``."""
 
     pass
@@ -56,10 +56,14 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
             logger.exception("Execution of %r failed", task)
         else:
             if result is False:
-                logger.info("Task returned False, retrying …")
+                _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
                 raise RetryError("Task returned False, retrying …")
             elif result is True:
                 result = None
-            logger.info("Task completed successful, starting next tasks: %s", result)
+            _dramatiq_task_runner.logger.info(
+                "%r completed successfully, starting next tasks: %s",
+                task,
+                result,
+            )
             task.start_next_tasks(next_nodes=result)
             task.finish()
