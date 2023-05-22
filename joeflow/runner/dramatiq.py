@@ -10,9 +10,7 @@ from ..contrib.reversion import with_reversion
 logger = logging.getLogger(__name__)
 
 
-def task_runner(
-    *, task_pk, workflow_pk, countdown=None, eta=None, retries=0
-):
+def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
     """Schedule asynchronous machine task using celery."""
     _dramatiq_task_runner.send_with_options(
         args=(task_pk, workflow_pk),
@@ -34,9 +32,7 @@ class RetryError(dramatiq.errors.Retry):
 def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
     Task = apps.get_model("joeflow", "Task")
     with transaction.atomic():
-        task = Task.objects.select_for_update().get(
-            pk=task_pk, completed=None
-        )
+        task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
 
         workflow = (
             task.content_type.model_class()
@@ -60,9 +56,7 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
             logger.exception("Execution of %r failed", task)
         else:
             if result is False:
-                _dramatiq_task_runner.logger.info(
-                    "%r returned False, retrying …", task
-                )
+                _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
                 raise RetryError("Task returned False, retrying …")
             elif result is True:
                 result = None
