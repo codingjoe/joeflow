@@ -3,7 +3,7 @@ digraph {
 	node [fillcolor=white fontname="sans-serif" shape=rect style=filled]
 	end [color="#888888" fontcolor="#888888" style=filled]
 	"save the princess" [color=black fontcolor=black href="/simple/save_the_princess/2/" peripheries=1 style="filled, rounded, bold"]
-	"start method" [color=black fontcolor=black peripheries=1 style="filled, bold"]
+	"start method" [color=black fontcolor=black peripheries=1 style=filled]
 	"start view" [color="#888888" fontcolor="#888888" style="filled, rounded"]
 	"save the princess" -> end [color="#888888"]
 	"start method" -> "save the princess" [color=black]

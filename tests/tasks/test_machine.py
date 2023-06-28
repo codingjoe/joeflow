@@ -12,6 +12,10 @@ class TestStart:
         wf = workflows.SimpleWorkflow.start_method(pk=3)
         assert wf.pk == 3
 
+        start_task = wf.task_set.get(name="start_method")
+        assert start_task.type == "machine"
+        assert start_task.status == "succeeded"
+
 
 class TestJoin:
     def test_init(self):

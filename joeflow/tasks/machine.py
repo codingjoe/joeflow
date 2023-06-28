@@ -3,6 +3,8 @@ from collections.abc import Iterable
 
 from django.utils import timezone
 
+from ..typing import MACHINE
+
 __all__ = (
     "Start",
     "Join",
@@ -51,7 +53,8 @@ class Start:
 
     def __call__(self, **kwargs):
         workflow = self.workflow_cls.objects.create(**kwargs)
-        task = workflow.task_set.create(name=self.name, workflow=workflow)
+        task = workflow.task_set.create(name=self.name, type=MACHINE, workflow=workflow)
+        task.finish()
         task.start_next_tasks()
         return workflow
 
