@@ -194,7 +194,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
         """
         graph = NoDashDiGraph()
-        graph.attr("graph", rankdir="LR")
+        graph.attr("graph", rankdir=settings.JOEFLOW_GRAPH_DIRECTION)
         graph.attr(
             "node",
             _attributes=dict(

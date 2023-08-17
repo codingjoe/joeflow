@@ -30,3 +30,8 @@ class JoeflowAppConfig(AppConf):
     """
     Queue name in which all machine tasks will be queued.
     """
+
+    JOEFLOW_GRAPH_DIRECTION = "LR"
+    """
+    Direction in which to render graph. LR|TD|...
+    """
