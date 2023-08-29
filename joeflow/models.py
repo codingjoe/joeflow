@@ -67,6 +67,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     modified = models.DateTimeField(auto_now=True, db_index=True)
 
     rankdir = "LR"
+    """Direction of the workflow's graph visualization."""
 
     task_set = GenericRelation(
         "joeflow.Task", object_id_field="_workflow_id", for_concrete_model=False
