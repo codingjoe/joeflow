@@ -66,6 +66,9 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
 
+    rankdir = "LR"
+    """Direction of the workflow's graph visualization."""
+
     task_set = GenericRelation(
         "joeflow.Task", object_id_field="_workflow_id", for_concrete_model=False
     )
@@ -194,7 +197,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
         """
         graph = NoDashDiGraph()
-        graph.attr("graph", rankdir="LR")
+        graph.attr("graph", rankdir=cls.rankdir)
         graph.attr(
             "node",
             _attributes=dict(

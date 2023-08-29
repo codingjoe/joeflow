@@ -111,6 +111,11 @@ class TestWorkflow:
         print(str(graph))
         assert set(str(graph).splitlines()) == set(expected_graph)
 
+    def test_change_graph_direction(self, fixturedir):
+        workflows.SimpleWorkflow.rankdir = "TD"
+        graph = workflows.SimpleWorkflow.get_graph()
+        assert "rankdir=TD" in str(graph)
+
     def test_get_graph_svg(self, fixturedir):
         svg = workflows.SimpleWorkflow.get_graph_svg()
         assert isinstance(svg, SafeString)

@@ -46,6 +46,7 @@ Advanced Workflow API
     :show-inheritance:
     :members:
         urls,
+        rankdir,
         get_graph_svg,
         get_instance_graph_svg,
         get_absolute_url,
