@@ -14,10 +14,10 @@ max_line_length = 88
 [*.py]
 max_line_length = 120
 
-[*.{yml, html, xml, xsl, json, toml}]
+[*.{yml,html,xml,xsl,json,toml}]
 indent_size = 2
 
-[*.{css, less}]
+[*.{css,less}]
 indent_size = 2
 
 [*.dot]
