@@ -1,4 +1,5 @@
 """High level integration tests."""
+
 from django.urls import reverse
 
 from joeflow.models import Task
