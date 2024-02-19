@@ -1,4 +1,5 @@
 """Set of reusable human tasks."""
+
 from django.views import generic
 
 from joeflow.views import TaskViewMixin
