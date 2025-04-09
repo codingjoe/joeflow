@@ -29,6 +29,22 @@ class WorkflowTemplateNameViewMixin:
         return names
 
 
+class StartWorkflowMixin:
+    """
+    Use this mixin to create a start workflow with a view. Example:
+
+    class MyStartWorkflowView(StartWorkflowMixin, TaskViewMixin, View):
+        def post(self, request, *args, **kwargs):
+            try:
+                data = json.loads(request.body)
+                workflow_id = self.start_workflow(data)
+            except Exception as e:
+                return HttpResponseBadRequest("Failed to start workflow")
+
+            return JsonResponse({'message': 'Workflow started successfully.', 'id': workflow_id}, status=201)
+    """
+
+
 class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
     name = None
     path = ""
