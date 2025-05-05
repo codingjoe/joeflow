@@ -5,7 +5,9 @@ digraph {
 	"save the princess" [color=black fontcolor=black style="filled, rounded"]
 	"start method" [color=black fontcolor=black style=filled]
 	"start view" [color=black fontcolor=black style="filled, rounded"]
+	"custom start view" [color=black fontcolor=black style="filled, rounded"]
 	"save the princess" -> end [color=black]
 	"start method" -> "save the princess" [color=black]
 	"start view" -> "save the princess" [color=black]
+	"custom start view" -> "save the princess" [color=black]
 }

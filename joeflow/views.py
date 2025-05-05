@@ -29,23 +29,6 @@ class WorkflowTemplateNameViewMixin:
         return names
 
 
-class StartWorkflowMixin:
-    """
-    View-mixin to create a start workflow.
-
-    Example:
-        class MyStartWorkflowView(StartWorkflowMixin, TaskViewMixin, View):
-            def post(self, request, *args, **kwargs):
-                try:
-                    data = json.loads(request.body)
-                    workflow_id = self.start_workflow(data)
-                except Exception as e:
-                    return HttpResponseBadRequest("Failed to start workflow")
-
-                return JsonResponse({'message': 'Workflow started successfully.', 'id': workflow_id}, status=201)
-    """
-
-
 class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
     name = None
     path = ""
@@ -112,6 +95,25 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         return workflow.task_set.create(
             name=self.name, type=self.type, workflow=workflow
         )
+
+
+class StartViewMixin(TaskViewMixin):
+    """
+    View-mixin to create a start workflow.
+
+    Example:
+        class MyStartWorkflowView(StartViewMixin, View):
+            def post(self, request, *args, **kwargs):
+                try:
+                    data = json.loads(request.body)
+                    workflow_id = self.start_workflow(data)
+                except Exception as e:
+                    return HttpResponseBadRequest("Failed to start workflow")
+
+                return JsonResponse({'message': 'Workflow started successfully.', 'id': workflow_id}, status=201)
+    """
+
+    model = None
 
 
 class WorkflowDetailView(WorkflowTemplateNameViewMixin, generic.DetailView):

@@ -2,7 +2,7 @@
 
 from django.views import generic
 
-from joeflow.views import StartWorkflowMixin, TaskViewMixin
+from joeflow.views import StartViewMixin, TaskViewMixin
 
 __all__ = (
     "StartView",
@@ -10,7 +10,7 @@ __all__ = (
 )
 
 
-class StartView(TaskViewMixin, StartWorkflowMixin, generic.CreateView):
+class StartView(StartViewMixin, generic.CreateView):
     """
     Start a new workflow by a human with a view.
 
