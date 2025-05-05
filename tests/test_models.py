@@ -207,6 +207,7 @@ class TestWorkflow:
         assert namespace == "simpleworkflow"
         names = {pattern.name for pattern in patterns}
         assert names == {
+            "custom_start_view",
             "save_the_princess",
             "start_view",
             "override",

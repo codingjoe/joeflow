@@ -19,6 +19,7 @@ from django.views.generic.edit import BaseCreateView
 from .conf import settings
 from .typing import HUMAN, MACHINE
 from .utils import NoDashDiGraph
+from .views import StartViewMixin
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +140,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         urls = []
         for name, node in cls.get_nodes():
             if isinstance(node, View):
-                if isinstance(node, BaseCreateView):
+                if isinstance(node, (BaseCreateView, StartViewMixin)):
                     route = f"{name}/"
                 else:
                     route = f"{name}/<int:pk>/"

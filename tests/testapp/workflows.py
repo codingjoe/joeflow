@@ -1,8 +1,10 @@
 from datetime import timedelta
 
 from django.core.mail import send_mail
+from django.views import generic
 
 from joeflow import tasks
+from joeflow.views import StartViewMixin
 
 from . import models
 from .views import UpdateWithPrevUserView
@@ -40,8 +42,13 @@ class ShippingWorkflow(models.Shipment):
         proxy = True
 
 
+class CustomStartViewTaskView(StartViewMixin, generic.View):
+    pass
+
+
 class SimpleWorkflow(models.SimpleWorkflowState):
     start_view = tasks.StartView(fields="__all__", path="custom/postfix/")
+    custom_start_view = CustomStartViewTaskView()
     start_method = tasks.Start()
     save_the_princess = tasks.UpdateView(fields="__all__")
 
@@ -50,6 +57,7 @@ class SimpleWorkflow(models.SimpleWorkflowState):
 
     edges = (
         (start_view, save_the_princess),
+        (custom_start_view, save_the_princess),
         (start_method, save_the_princess),
         (save_the_princess, end),
     )
