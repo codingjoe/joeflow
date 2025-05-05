@@ -2,7 +2,7 @@
 
 from django.views import generic
 
-from joeflow.views import TaskViewMixin, StartWorkflowMixin
+from joeflow.views import StartWorkflowMixin, TaskViewMixin
 
 __all__ = (
     "StartView",
