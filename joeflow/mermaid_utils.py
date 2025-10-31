@@ -1,6 +1,14 @@
 """Utilities for generating Mermaid diagrams."""
 from collections import defaultdict
 
+# Color constants
+COLOR_BLACK = "#000"
+COLOR_GRAY = "#888888"
+COLOR_WHITE = "white"
+
+# Style constants
+STROKE_DASHARRAY = "5 5"
+
 
 class MermaidDiagram:
     """
@@ -79,15 +87,15 @@ class MermaidDiagram:
             style = attrs.get("style", "")
 
             # Map colors
-            if color == "#888888":
-                stroke_color = "#888888"
+            if color == COLOR_GRAY:
+                stroke_color = COLOR_GRAY
             else:
-                stroke_color = "#000"
+                stroke_color = COLOR_BLACK
 
-            if fontcolor == "#888888":
-                text_color = "#888888"
+            if fontcolor == COLOR_GRAY:
+                text_color = COLOR_GRAY
             else:
-                text_color = "#000"
+                text_color = COLOR_BLACK
 
             # Determine stroke width based on bold
             if "bold" in style:
@@ -97,7 +105,7 @@ class MermaidDiagram:
 
             # Determine stroke style based on dashed
             if "dashed" in style:
-                stroke_style = "stroke-dasharray: 5 5"
+                stroke_style = f"stroke-dasharray: {STROKE_DASHARRAY}"
             else:
                 stroke_style = ""
 
@@ -131,12 +139,12 @@ class MermaidDiagram:
             # Determine link style based on attributes
             if "dashed" in style:
                 # Mermaid uses linkStyle to style edges
-                if color == "#888888":
-                    edge_styles[idx] = "stroke:#888888,stroke-dasharray: 5 5"
+                if color == COLOR_GRAY:
+                    edge_styles[idx] = f"stroke:{COLOR_GRAY},stroke-dasharray: {STROKE_DASHARRAY}"
                 else:
-                    edge_styles[idx] = "stroke:#000,stroke-dasharray: 5 5"
-            elif color == "#888888":
-                edge_styles[idx] = "stroke:#888888"
+                    edge_styles[idx] = f"stroke:{COLOR_BLACK},stroke-dasharray: {STROKE_DASHARRAY}"
+            elif color == COLOR_GRAY:
+                edge_styles[idx] = f"stroke:{COLOR_GRAY}"
             # else: default black stroke
 
         # Generate linkStyle commands
