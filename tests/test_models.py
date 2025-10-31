@@ -3,9 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.safestring import SafeString
-from graphviz import Digraph
 
 from joeflow.models import Task, Workflow
+from joeflow.mermaid_utils import MermaidDiagram
 from joeflow.tasks import HUMAN, MACHINE, StartView
 from tests.testapp import models, workflows
 
@@ -105,8 +105,8 @@ class TestWorkflow:
 
     def test_get_graph(self, fixturedir):
         graph = workflows.SimpleWorkflow.get_graph()
-        assert isinstance(graph, Digraph)
-        with open(str(fixturedir / "simpleworkflow.dot")) as fp:
+        assert isinstance(graph, MermaidDiagram)
+        with open(str(fixturedir / "simpleworkflow.mmd")) as fp:
             expected_graph = fp.read().splitlines()
         print(str(graph))
         assert set(str(graph).splitlines()) == set(expected_graph)
@@ -114,7 +114,7 @@ class TestWorkflow:
     def test_change_graph_direction(self, fixturedir):
         workflows.SimpleWorkflow.rankdir = "TD"
         graph = workflows.SimpleWorkflow.get_graph()
-        assert "rankdir=TD" in str(graph)
+        assert "graph TD" in str(graph)
 
     def test_get_graph_svg(self, fixturedir):
         svg = workflows.SimpleWorkflow.get_graph_svg()
@@ -125,7 +125,7 @@ class TestWorkflow:
         task_url = wf.task_set.get(name="save_the_princess").get_absolute_url()
         graph = wf.get_instance_graph()
         print(str(graph))
-        with open(str(fixturedir / "simpleworkflow_instance.dot")) as fp:
+        with open(str(fixturedir / "simpleworkflow_instance.mmd")) as fp:
             assert set(str(graph).splitlines()) == set(
                 fp.read().replace("{url}", task_url).splitlines()
             )
@@ -141,16 +141,16 @@ class TestWorkflow:
         task = wf.task_set.get(name="override")
         graph = wf.get_instance_graph()
         print(str(graph))
+        graph_str = str(graph)
 
-        assert (
-            f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]\n'
-            in list(graph)
-        )
-        assert (
-            f'\t"save the princess" -> "{task.name} {task.pk}" [style=dashed]\n'
-            in list(graph)
-        )
-        assert f'\t"{task.name} {task.pk}" -> end [style=dashed]\n' in list(graph)
+        # Check for override node (rounded with dashed style)
+        override_node_id = f"override_{task.pk}"
+        assert f"{override_node_id}(override {task.pk})" in graph_str
+        # Check for dashed edges
+        assert f"save_the_princess --> {override_node_id}" in graph_str
+        assert f"{override_node_id} --> end" in graph_str
+        # Check for dashed edge styling
+        assert "stroke-dasharray" in graph_str
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
         workflow = workflows.SimpleWorkflow.objects.create()
@@ -161,13 +161,15 @@ class TestWorkflow:
         end.parent_task_set.add(obsolete)
         graph = workflow.get_instance_graph()
         print(str(graph))
+        graph_str = str(graph)
 
-        assert (
-            '\tobsolete [color=black fontcolor=black peripheries=1 style="filled, dashed, bold"]'
-            in str(graph)
-        )
-        assert '\t"start method" -> obsolete [style=dashed]\n' in list(graph)
-        assert "\tobsolete -> end [style=dashed]\n" in list(graph)
+        # Check for obsolete node (with dashed and bold styling)
+        assert "obsolete[obsolete]" in graph_str
+        # Check for dashed edges
+        assert "start_method --> obsolete" in graph_str
+        assert "obsolete --> end" in graph_str
+        # Check for dashed styling
+        assert "stroke-dasharray" in graph_str
 
     def test_get_instance_graph_svg(self, db, fixturedir):
         wf = workflows.SimpleWorkflow.start_method()

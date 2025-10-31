@@ -50,7 +50,6 @@ requires-python = ">=3.9"
 dependencies = [
   "django>=2.2",
   "django-appconf",
-  "graphviz>=0.18",
 ]
 
 [project.optional-dependencies]

@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<!-- Mermaid JS for rendering workflow diagrams -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>
+{% endblock %}

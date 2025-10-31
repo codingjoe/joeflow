@@ -194,7 +194,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         Return workflow graph.
 
         Returns:
-            (graphviz.Digraph): Directed graph of the workflow.
+            (MermaidDiagram): Directed graph of the workflow in Mermaid format.
 
         """
         graph = NoDashDiGraph()
@@ -218,9 +218,9 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     @classmethod
     def get_graph_svg(cls):
         """
-        Return graph representation of a model workflow as SVG.
+        Return graph representation of a model workflow as Mermaid diagram.
 
-        The SVG is HTML safe and can be included in a template, e.g.:
+        The diagram is HTML safe and can be included in a template, e.g.:
 
         .. code-block:: html
 
@@ -233,12 +233,14 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             </html>
 
         Returns:
-            (django.utils.safestring.SafeString): SVG representation of a running workflow.
+            (django.utils.safestring.SafeString): Mermaid diagram markup wrapped in HTML.
 
         """
         graph = cls.get_graph()
-        graph.format = "svg"
-        return SafeString(graph.pipe(encoding="utf-8"))  # nosec
+        mermaid_source = graph.pipe(encoding="utf-8")
+        # Wrap in HTML div with mermaid class for rendering
+        html = f'<div class="mermaid">\n{mermaid_source}\n</div>'
+        return SafeString(html)  # nosec
 
     get_graph_svg.short_description = t("graph")
 
@@ -308,9 +310,9 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     def get_instance_graph_svg(self, output_format="svg"):
         """
-        Return graph representation of a running workflow as SVG.
+        Return graph representation of a running workflow as Mermaid diagram.
 
-        The SVG is HTML safe and can be included in a template, e.g.:
+        The diagram is HTML safe and can be included in a template, e.g.:
 
         .. code-block:: html
 
@@ -323,12 +325,14 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             </html>
 
         Returns:
-            (django.utils.safestring.SafeString): SVG representation of a running workflow.
+            (django.utils.safestring.SafeString): Mermaid diagram markup wrapped in HTML.
 
         """
         graph = self.get_instance_graph()
-        graph.format = output_format
-        return SafeString(graph.pipe(encoding="utf-8"))  # nosec
+        mermaid_source = graph.pipe(encoding="utf-8")
+        # Wrap in HTML div with mermaid class for rendering
+        html = f'<div class="mermaid">\n{mermaid_source}\n</div>'
+        return SafeString(html)  # nosec
 
     get_instance_graph_svg.short_description = t("instance graph")
 
