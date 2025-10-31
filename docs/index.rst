@@ -17,22 +17,25 @@ Django_ web framework.
 Here is a little sample of what a workflow or process written with joeflow
 may look like:
 
-.. graphviz::
+.. code-block:: mermaid
 
-    digraph {
-        graph [rankdir=LR]
-        node [fillcolor=white fontname="sans-serif" shape=rect style=filled]
-        checkout [color=black fontcolor=black style="filled, rounded"]
-        "has email" [color=black fontcolor=black style=filled]
-        ship [color=black fontcolor=black style="filled, rounded"]
-        end [color=black fontcolor=black style=filled peripheries=2]
-        "send tracking code" [color=black fontcolor=black style=filled]
-        checkout -> ship
-        ship -> "has email"
-        "has email" -> "send tracking code"
-        "has email" -> end [color="#888888"]
-        "send tracking code" -> end
-    }
+    graph LR
+        checkout(checkout)
+        has_email[has email]
+        ship(ship)
+        end[end]
+        send_tracking_code[send tracking code]
+        checkout --> ship
+        ship --> has_email
+        has_email --> send_tracking_code
+        has_email --> end
+        send_tracking_code --> end
+        style checkout fill:white,stroke:#000,stroke-width:2px,color:#000
+        style has_email fill:white,stroke:#000,stroke-width:2px,color:#000
+        style ship fill:white,stroke:#000,stroke-width:2px,color:#000
+        style end fill:white,stroke:#000,stroke-width:4px,color:#000
+        style send_tracking_code fill:white,stroke:#000,stroke-width:2px,color:#000
+        linkStyle 3 stroke:#888888
 
 .. code-block:: python
 
