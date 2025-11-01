@@ -50,6 +50,7 @@ requires-python = ">=3.9"
 dependencies = [
   "django>=2.2",
   "django-appconf",
+  "mermaid>=0.3.2",
 ]
 
 [project.optional-dependencies]

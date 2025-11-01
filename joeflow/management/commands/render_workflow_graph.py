@@ -18,9 +18,9 @@ class Command(BaseCommand):
             "--format",
             dest="format",
             type=str,
-            choices=("mmd", "mermaid"),
-            default="mmd",
-            help="Output file format. Default: mmd (Mermaid markdown)",
+            choices=("svg", "mmd", "mermaid"),
+            default="svg",
+            help="Output file format. Default: svg",
         )
         parser.add_argument(
             "-d",

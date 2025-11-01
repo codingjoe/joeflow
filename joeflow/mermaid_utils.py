@@ -1,5 +1,15 @@
 """Utilities for generating Mermaid diagrams."""
 from collections import defaultdict
+import urllib.parse
+import urllib.request
+import base64
+
+try:
+    from mermaid import Mermaid
+    from mermaid.graph import Graph
+    MERMAID_PKG_AVAILABLE = True
+except ImportError:
+    MERMAID_PKG_AVAILABLE = False
 
 # Color constants
 COLOR_BLACK = "#000"
@@ -24,6 +34,7 @@ class MermaidDiagram:
     def __init__(self, name="", comment=None, **kwargs):
         self.name = name
         self.comment = comment
+        self.format = "svg"  # Default format for compatibility with graphviz
         self.graph_attr = {}
         self.node_attr = {}
         self.edge_attr = {}
@@ -209,18 +220,47 @@ class MermaidDiagram:
         """
         Return the diagram in the specified format.
 
-        For Mermaid, we return the source wrapped in appropriate HTML.
-        This is meant for compatibility with the graphviz API.
+        For SVG format, renders via mermaid.ink API.
+        For other formats, returns the Mermaid source.
+        
+        This maintains compatibility with the graphviz API.
         """
         source = self.source()
+        
         if format == "svg":
-            # Return raw mermaid source - rendering happens client-side
-            return source
-        elif format == "png" or format == "pdf":
-            # For file formats, return the source as-is
-            # The management command will handle file writing
-            return source
-        return source
+            # Render to SVG using mermaid.ink API
+            try:
+                svg_content = self._render_to_svg(source)
+                return svg_content if encoding else svg_content.encode('utf-8')
+            except Exception:
+                # Fallback to source if rendering fails
+                return source if encoding else source.encode('utf-8')
+        else:
+            # For other formats, return the Mermaid source
+            return source if encoding else source.encode('utf-8')
+    
+    def _render_to_svg(self, mermaid_source):
+        """
+        Render Mermaid source to SVG using mermaid.ink API.
+        
+        Args:
+            mermaid_source: Mermaid diagram source code
+            
+        Returns:
+            SVG content as string
+        """
+        # Use mermaid.ink API to render
+        # https://mermaid.ink/svg/<base64_encoded_source>
+        encoded = base64.b64encode(mermaid_source.encode('utf-8')).decode('ascii')
+        url = f"https://mermaid.ink/svg/{encoded}"
+        
+        try:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                svg_content = response.read().decode('utf-8')
+                return svg_content
+        except Exception as e:
+            # If API call fails, return a fallback SVG with error message
+            raise Exception(f"Failed to render via mermaid.ink: {e}")
 
     def render(self, filename, directory=None, format="svg", cleanup=False):
         """
@@ -229,17 +269,25 @@ class MermaidDiagram:
         Args:
             filename: Base filename (without extension)
             directory: Output directory
-            format: Output format (svg, png, pdf) - for compatibility
+            format: Output format (svg or mmd)
             cleanup: Cleanup intermediate files (not used for Mermaid)
         """
         import os
 
-        if directory:
-            filepath = os.path.join(directory, f"{filename}.mmd")
+        # Determine file extension and content based on format
+        if format == "svg":
+            ext = "svg"
+            content = self.pipe(format="svg", encoding="utf-8")
         else:
-            filepath = f"{filename}.mmd"
+            ext = "mmd"
+            content = self.source()
+
+        if directory:
+            filepath = os.path.join(directory, f"{filename}.{ext}")
+        else:
+            filepath = f"{filename}.{ext}"
 
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write(self.source())
+            f.write(content)
 
         return filepath
