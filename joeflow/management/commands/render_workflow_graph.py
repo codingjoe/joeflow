@@ -18,7 +18,7 @@ class Command(BaseCommand):
             "--format",
             dest="format",
             type=str,
-            choices=("svg", "mmd", "mermaid"),
+            choices=("svg", "pdf", "png"),
             default="svg",
             help="Output file format. Default: svg",
         )
@@ -29,12 +29,19 @@ class Command(BaseCommand):
             type=str,
             help="Output directory. Default is current working directory.",
         )
-
+        parser.add_argument(
+            "-c",
+            "--cleanup",
+            dest="cleanup",
+            action="store_true",
+            help="Remove dot-files after rendering.",
+        )
 
     def handle(self, *args, **options):
         workflows = options["workflow"]
         verbosity = options["verbosity"]
         file_format = options["format"]
+        cleanup = options["cleanup"]
         directory = options.get("directory", None)
 
         workflows = [
@@ -52,7 +59,8 @@ class Command(BaseCommand):
                     )
                 filename = f"{opt.app_label}_{workflow.__name__}".lower()
                 graph = workflow.get_graph()
-                graph.render(filename=filename, directory=directory, format=file_format)
+                graph.format = file_format
+                graph.render(filename=filename, directory=directory, cleanup=cleanup)
                 if verbosity > 0:
                     self.stdout.write("Done!", self.style.SUCCESS)
             else:

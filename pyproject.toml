@@ -50,7 +50,6 @@ requires-python = ">=3.9"
 dependencies = [
   "django>=2.2",
   "django-appconf",
-  "mermaid>=0.3.2",
 ]
 
 [project.optional-dependencies]
@@ -74,6 +73,10 @@ docs = [
   "dramatiq",
   "django_dramatiq",
   "redis",
+  "graphviz>=0.18",
+]
+graphviz = [
+  "graphviz>=0.18",
 ]
 reversion = [
   "django-reversion",

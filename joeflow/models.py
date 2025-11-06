@@ -194,7 +194,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         Return workflow graph.
 
         Returns:
-            (MermaidDiagram): Directed graph of the workflow in Mermaid format.
+            (graphviz.Digraph): Directed graph of the workflow.
 
         """
         graph = NoDashDiGraph()
@@ -233,7 +233,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             </html>
 
         Returns:
-            (django.utils.safestring.SafeString): SVG representation of the workflow.
+            (django.utils.safestring.SafeString): SVG representation of a running workflow.
 
         """
         graph = cls.get_graph()
@@ -241,6 +241,39 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return SafeString(graph.pipe(encoding="utf-8"))  # nosec
 
     get_graph_svg.short_description = t("graph")
+
+    @classmethod
+    def get_graph_mermaid(cls, color="black"):
+        """
+        Return workflow graph as Mermaid diagram syntax.
+
+        This can be used with MermaidJS for client-side rendering in browsers.
+
+        Returns:
+            (str): Mermaid diagram syntax.
+        """
+        lines = [f"graph {cls.rankdir}"]
+        
+        # Add nodes
+        for name, node in cls.get_nodes():
+            node_id = name.replace(" ", "_")
+            label = name
+            
+            # Determine shape based on node type
+            if node.type == HUMAN:
+                # Rounded rectangle for human tasks
+                lines.append(f"    {node_id}({label})")
+            else:
+                # Rectangle for machine tasks
+                lines.append(f"    {node_id}[{label}]")
+        
+        # Add edges
+        for start, end in cls.edges:
+            start_id = start.name.replace(" ", "_")
+            end_id = end.name.replace(" ", "_")
+            lines.append(f"    {start_id} --> {end_id}")
+        
+        return "\n".join(lines)
 
     def get_instance_graph(self):
         """Return workflow instance graph."""
@@ -331,6 +364,41 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return SafeString(graph.pipe(encoding="utf-8"))  # nosec
 
     get_instance_graph_svg.short_description = t("instance graph")
+
+    def get_instance_graph_mermaid(self):
+        """
+        Return instance graph as Mermaid diagram syntax.
+
+        This can be used with MermaidJS for client-side rendering in admin.
+
+        Returns:
+            (str): Mermaid diagram syntax for the instance graph.
+        """
+        lines = [f"graph {self.rankdir}"]
+        
+        names = dict(self.get_nodes()).keys()
+        
+        # Add all nodes from workflow definition
+        for name, node in self.get_nodes():
+            node_id = name.replace(" ", "_")
+            label = name
+            
+            # Determine shape based on node type
+            if node.type == HUMAN:
+                lines.append(f"    {node_id}({label})")
+            else:
+                lines.append(f"    {node_id}[{label}]")
+        
+        # Add edges from workflow definition
+        for start, end in self.edges:
+            start_id = start.name.replace(" ", "_")
+            end_id = end.name.replace(" ", "_")
+            lines.append(f"    {start_id} --> {end_id}")
+        
+        # TODO: Add styling for completed/active tasks
+        # This would require additional Mermaid syntax for node styling
+        
+        return "\n".join(lines)
 
     def cancel(self, user=None):
         self.task_set.cancel(user)

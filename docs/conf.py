@@ -71,10 +71,13 @@ intersphinx_mapping = {
     ),
     "dramatiq": ("https://dramatiq.io/", None),
     "celery": ("https://docs.celeryproject.org/en/stable/", None),
+    "graphviz": ("https://graphviz.readthedocs.io/en/stable/", None),
 }
 
 spelling_word_list_filename = "spelling_wordlist.txt"
 spelling_show_suggestions = True
+
+graphviz_output_format = "svg"
 
 inheritance_graph_attrs = dict(
     rankdir="TB", size='"6.0, 8.0"', fontsize=14, ratio="compress"

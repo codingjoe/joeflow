@@ -8,21 +8,20 @@ user. A human selects the user (or leaves the field blank). If the user is set
 a welcome emails is being sent. If the user is blank no email will be send and
 the workflow will end right way.
 
-.. code-block:: mermaid
+.. graphviz::
 
-    graph LR
-        start(start)
-        send_welcome_email[send welcome email]
-        end[end]
-        has_user[has user]
-        start --> has_user
-        has_user --> end
-        has_user --> send_welcome_email
-        send_welcome_email --> end
-        style start fill:white,stroke:#000,stroke-width:2px,color:#000
-        style send_welcome_email fill:white,stroke:#000,stroke-width:2px,color:#000
-        style end fill:white,stroke:#000,stroke-width:2px,color:#000
-        style has_user fill:white,stroke:#000,stroke-width:2px,color:#000
+    digraph {
+        graph [rankdir=LR]
+        node [fillcolor=white fontname="Georgia, serif" shape=rect style=filled]
+        start [color=black fontcolor=black style="filled, rounded"]
+        "send welcome email" [color=black fontcolor=black style=filled]
+        end [color=black fontcolor=black style=filled]
+        "has user" [color=black fontcolor=black style=filled]
+        start -> "has user"
+        "has user" -> end
+        "has user" -> "send welcome email"
+        "send welcome email" -> end
+    }
 
 Let's start with the data structure or workflow state. We need a model that can
 store a user. Like so:

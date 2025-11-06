@@ -9,18 +9,26 @@ def test_call_no_args():
     tmp_dir = Path(tempfile.mkdtemp())
     call_command("render_workflow_graph", "-d", tmp_dir)
     assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow.svg"))
+    assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow"))
 
 
-def test_call_format_mermaid():
+def test_call_cleanup():
     tmp_dir = Path(tempfile.mkdtemp())
-    call_command("render_workflow_graph", "-d", tmp_dir, "-f", "mermaid")
-    assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow.mmd"))
-
-
-def test_call_format_svg():
-    tmp_dir = Path(tempfile.mkdtemp())
-    call_command("render_workflow_graph", "-d", tmp_dir, "-f", "svg")
+    call_command("render_workflow_graph", "-d", tmp_dir, "-c")
     assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow.svg"))
+    assert not os.path.exists(str(tmp_dir / "testapp_simpleworkflow"))
+
+
+def test_call_format_pdf():
+    tmp_dir = Path(tempfile.mkdtemp())
+    call_command("render_workflow_graph", "-d", tmp_dir, "-f", "pdf")
+    assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow.pdf"))
+
+
+def test_call_format_png():
+    tmp_dir = Path(tempfile.mkdtemp())
+    call_command("render_workflow_graph", "-d", tmp_dir, "-f", "png")
+    assert os.path.exists(str(tmp_dir / "testapp_simpleworkflow.png"))
 
 
 def test_call_explicit_workflow():

@@ -9,8 +9,8 @@ render_workflow_graph
 
 Render workflow graph to file::
 
-    usage: manage.py render_workflow_graph [-h] [-f {svg,mmd,mermaid}] [-d DIRECTORY]
-                                          [workflow [workflow ...]]
+    usage: manage.py render_workflow_graph [-h] [-f {svg,pdf,png}] [-d DIRECTORY]
+                                          [-c] [model [model ...]]
 
     Render workflow graph to file.
 
@@ -20,8 +20,9 @@ Render workflow graph to file::
 
     optional arguments:
       -h, --help            show this help message and exit
-      -f {svg,mmd,mermaid}, --format {svg,mmd,mermaid}
+      -f {svg,pdf,png}, --format {svg,pdf,png}
                             Output file format. Default: svg
       -d DIRECTORY, --directory DIRECTORY
                             Output directory. Default is current working
                             directory.
+      -c, --cleanup         Remove dot-files after rendering.

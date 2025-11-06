@@ -147,11 +147,24 @@ class WorkflowAdmin(VersionAdmin):
 
     def get_readonly_fields(self, *args, **kwargs):
         return [
-            "get_instance_graph_svg",
+            "display_workflow_diagram",
             *super().get_readonly_fields(*args, **kwargs),
             "modified",
             "created",
         ]
+
+    @admin.display(description="Workflow Diagram")
+    def display_workflow_diagram(self, obj):
+        """Display workflow diagram using MermaidJS for client-side rendering."""
+        if obj.pk:
+            # Get Mermaid diagram syntax
+            mermaid_syntax = obj.get_instance_graph_mermaid()
+            # Wrap in div with mermaid class for client-side rendering
+            return format_html(
+                '<div class="mermaid-diagram"><div class="mermaid">{}</div></div>',
+                mermaid_syntax
+            )
+        return ""
 
     @transaction.atomic()
     def save_model(self, request, obj, form, change):
