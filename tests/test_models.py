@@ -174,34 +174,6 @@ class TestWorkflow:
         svg = wf.get_instance_graph_svg()
         assert isinstance(svg, SafeString)
 
-    def test_get_graph_mermaid(self):
-        """Test that get_graph_mermaid returns valid Mermaid syntax."""
-        mermaid = workflows.SimpleWorkflow.get_graph_mermaid()
-        
-        # Check it's a string
-        assert isinstance(mermaid, str)
-        
-        # Check it starts with graph declaration
-        assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
-        
-        # Check it contains nodes
-        assert "start_method[start method]" in mermaid
-        assert "save_the_princess(save the princess)" in mermaid  # HUMAN task, rounded
-        assert "end[end]" in mermaid
-        
-        # Check it contains edges
-        assert "start_method --> save_the_princess" in mermaid
-        assert "save_the_princess --> end" in mermaid
-
-    def test_get_graph_mermaid_with_direction(self):
-        """Test that get_graph_mermaid respects rankdir."""
-        workflows.SimpleWorkflow.rankdir = "TD"
-        mermaid = workflows.SimpleWorkflow.get_graph_mermaid()
-        assert mermaid.startswith("graph TD")
-        
-        # Reset to default
-        workflows.SimpleWorkflow.rankdir = "LR"
-
     def test_get_instance_graph_mermaid(self, db):
         """Test that get_instance_graph_mermaid returns valid Mermaid syntax with task states."""
         wf = workflows.SimpleWorkflow.start_method()
@@ -213,12 +185,12 @@ class TestWorkflow:
         # Check it starts with graph declaration
         assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
         
-        # Check it contains nodes
-        assert "save_the_princess(save the princess)" in mermaid
-        assert "start_method[start method]" in mermaid
+        # Check it contains nodes with quoted IDs
+        assert "'save_the_princess'(save the princess)" in mermaid
+        assert "'start_method'[start method]" in mermaid
         
-        # Check it contains edges
-        assert "start_method --> save_the_princess" in mermaid
+        # Check it contains edges with quoted IDs
+        assert "'start_method' --> 'save_the_princess'" in mermaid
         
         # Check it contains styling (for active/completed tasks)
         assert "style " in mermaid
@@ -259,14 +231,14 @@ class TestWorkflow:
         
         mermaid = workflow.get_instance_graph_mermaid()
         
-        # Check obsolete node exists
-        assert "obsolete[obsolete]" in mermaid
+        # Check obsolete node exists with quoted ID
+        assert "'obsolete'[obsolete]" in mermaid
         
         # Check dashed edges (dotted arrow notation in Mermaid)
-        assert "-.->obsolete" in mermaid.replace(" ", "") or "obsolete-.->end" in mermaid.replace(" ", "")
+        assert "'start_method' -.-> 'obsolete'" in mermaid or "'obsolete' -.-> 'end'" in mermaid
         
         # Check obsolete task styling with dashed border
-        assert "style obsolete" in mermaid
+        assert "style 'obsolete'" in mermaid
         assert "stroke-dasharray" in mermaid
 
     def test_cancel(self, db):

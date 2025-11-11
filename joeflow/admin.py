@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.auth import get_permission_codename
 from django.db import transaction
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as t
 
 from . import forms, models
@@ -159,11 +160,17 @@ class WorkflowAdmin(VersionAdmin):
         if obj.pk:
             # Get Mermaid diagram syntax
             mermaid_syntax = obj.get_instance_graph_mermaid()
-            # Wrap in div with mermaid class for client-side rendering
-            return format_html(
-                '<div class="mermaid-diagram"><div class="mermaid">{}</div></div>',
-                mermaid_syntax
-            )
+            # Include MermaidJS script and wrap diagram
+            html = f"""
+            <script type="module">
+              import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+              mermaid.initialize({{ startOnLoad: true }});
+            </script>
+            <div class="mermaid-diagram">
+              <div class="mermaid">{mermaid_syntax}</div>
+            </div>
+            """
+            return mark_safe(html)
         return ""
 
     @transaction.atomic()
