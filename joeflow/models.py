@@ -257,7 +257,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         # Add nodes
         for name, node in cls.get_nodes():
             node_id = name.replace(" ", "_")
-            label = name
+            # Keep original name with spaces for label
+            label = name.replace("_", " ")
             
             # Determine shape based on node type
             if node.type == HUMAN:
@@ -375,28 +376,111 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             (str): Mermaid diagram syntax for the instance graph.
         """
         lines = [f"graph {self.rankdir}"]
+        node_styles = []
+        edge_styles = []
+        edge_index = 0
         
         names = dict(self.get_nodes()).keys()
         
-        # Add all nodes from workflow definition
+        # Add all nodes from workflow definition (inactive/gray style)
         for name, node in self.get_nodes():
             node_id = name.replace(" ", "_")
-            label = name
+            # Keep original name with spaces for label
+            label = name.replace("_", " ")
             
             # Determine shape based on node type
             if node.type == HUMAN:
                 lines.append(f"    {node_id}({label})")
             else:
                 lines.append(f"    {node_id}[{label}]")
+            
+            # Default gray styling for nodes not yet processed
+            node_styles.append(f"    style {node_id} fill:#f9f9f9,stroke:#999,color:#999")
         
-        # Add edges from workflow definition
+        # Add edges from workflow definition (gray style)
         for start, end in self.edges:
             start_id = start.name.replace(" ", "_")
             end_id = end.name.replace(" ", "_")
             lines.append(f"    {start_id} --> {end_id}")
+            edge_styles.append(f"    linkStyle {edge_index} stroke:#999")
+            edge_index += 1
         
-        # TODO: Add styling for completed/active tasks
-        # This would require additional Mermaid syntax for node styling
+        # Process actual tasks to highlight active/completed states
+        for task in self.task_set.filter(name__in=names):
+            node_id = task.name.replace(" ", "_")
+            
+            # Active tasks (not completed) get bold black styling
+            if not task.completed:
+                node_styles.append(f"    style {node_id} fill:#fff,stroke:#000,stroke-width:3px,color:#000")
+            else:
+                # Completed tasks get normal black styling
+                node_styles.append(f"    style {node_id} fill:#fff,stroke:#000,stroke-width:2px,color:#000")
+            
+            # Add edges for actual task connections (black style)
+            for child in task.child_task_set.exclude(name="override"):
+                child_id = child.name.replace(" ", "_")
+                lines.append(f"    {node_id} --> {child_id}")
+                edge_styles.append(f"    linkStyle {edge_index} stroke:#000,stroke-width:2px")
+                edge_index += 1
+        
+        # Handle override tasks
+        for task in self.task_set.filter(name="override").prefetch_related(
+            "parent_task_set", "child_task_set"
+        ):
+            override_id = f"override_{task.pk}"
+            override_label = f"override {task.pk}"
+            
+            # Add override node with dashed style
+            lines.append(f"    {override_id}({override_label})")
+            node_styles.append(f"    style {override_id} fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000")
+            
+            # Add dashed edges for override connections
+            for parent in task.parent_task_set.all():
+                parent_id = parent.name.replace(" ", "_")
+                lines.append(f"    {parent_id} -.-> {override_id}")
+                edge_styles.append(f"    linkStyle {edge_index} stroke:#000,stroke-dasharray:5 5")
+                edge_index += 1
+            
+            for child in task.child_task_set.all():
+                child_id = child.name.replace(" ", "_")
+                lines.append(f"    {override_id} -.-> {child_id}")
+                edge_styles.append(f"    linkStyle {edge_index} stroke:#000,stroke-dasharray:5 5")
+                edge_index += 1
+        
+        # Handle obsolete/custom tasks (not in workflow definition)
+        for task in self.task_set.exclude(name__in=names).exclude(name="override"):
+            node_id = task.name.replace(" ", "_")
+            # Keep original name with spaces for label
+            label = task.name.replace("_", " ")
+            
+            # Determine shape based on node type
+            if task.type == HUMAN:
+                lines.append(f"    {node_id}({label})")
+            else:
+                lines.append(f"    {node_id}[{label}]")
+            
+            # Dashed styling for obsolete tasks
+            if not task.completed:
+                node_styles.append(f"    style {node_id} fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray:5 5,color:#000")
+            else:
+                node_styles.append(f"    style {node_id} fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000")
+            
+            # Add dashed edges for obsolete task connections
+            for parent in task.parent_task_set.all():
+                parent_id = parent.name.replace(" ", "_")
+                lines.append(f"    {parent_id} -.-> {node_id}")
+                edge_styles.append(f"    linkStyle {edge_index} stroke:#000,stroke-dasharray:5 5")
+                edge_index += 1
+            
+            for child in task.child_task_set.all():
+                child_id = child.name.replace(" ", "_")
+                lines.append(f"    {node_id} -.-> {child_id}")
+                edge_styles.append(f"    linkStyle {edge_index} stroke:#000,stroke-dasharray:5 5")
+                edge_index += 1
+        
+        # Add all styling at the end
+        lines.extend(node_styles)
+        lines.extend(edge_styles)
         
         return "\n".join(lines)
 

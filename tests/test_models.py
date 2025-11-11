@@ -174,6 +174,101 @@ class TestWorkflow:
         svg = wf.get_instance_graph_svg()
         assert isinstance(svg, SafeString)
 
+    def test_get_graph_mermaid(self):
+        """Test that get_graph_mermaid returns valid Mermaid syntax."""
+        mermaid = workflows.SimpleWorkflow.get_graph_mermaid()
+        
+        # Check it's a string
+        assert isinstance(mermaid, str)
+        
+        # Check it starts with graph declaration
+        assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
+        
+        # Check it contains nodes
+        assert "start_method[start method]" in mermaid
+        assert "save_the_princess(save the princess)" in mermaid  # HUMAN task, rounded
+        assert "end[end]" in mermaid
+        
+        # Check it contains edges
+        assert "start_method --> save_the_princess" in mermaid
+        assert "save_the_princess --> end" in mermaid
+
+    def test_get_graph_mermaid_with_direction(self):
+        """Test that get_graph_mermaid respects rankdir."""
+        workflows.SimpleWorkflow.rankdir = "TD"
+        mermaid = workflows.SimpleWorkflow.get_graph_mermaid()
+        assert mermaid.startswith("graph TD")
+        
+        # Reset to default
+        workflows.SimpleWorkflow.rankdir = "LR"
+
+    def test_get_instance_graph_mermaid(self, db):
+        """Test that get_instance_graph_mermaid returns valid Mermaid syntax with task states."""
+        wf = workflows.SimpleWorkflow.start_method()
+        mermaid = wf.get_instance_graph_mermaid()
+        
+        # Check it's a string
+        assert isinstance(mermaid, str)
+        
+        # Check it starts with graph declaration
+        assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
+        
+        # Check it contains nodes
+        assert "save_the_princess(save the princess)" in mermaid
+        assert "start_method[start method]" in mermaid
+        
+        # Check it contains edges
+        assert "start_method --> save_the_princess" in mermaid
+        
+        # Check it contains styling (for active/completed tasks)
+        assert "style " in mermaid
+        assert "linkStyle " in mermaid
+
+    def test_get_instance_graph_mermaid_with_override(
+        self, db, stub_worker, admin_client
+    ):
+        """Test that get_instance_graph_mermaid handles override tasks correctly."""
+        wf = workflows.SimpleWorkflow.start_method()
+        url = reverse("simpleworkflow:override", args=[wf.pk])
+        response = admin_client.post(url, data={"next_tasks": ["end"]})
+        assert response.status_code == 302
+        stub_worker.wait()
+        
+        task = wf.task_set.get(name="override")
+        mermaid = wf.get_instance_graph_mermaid()
+        
+        # Check override node exists
+        override_id = f"override_{task.pk}"
+        assert override_id in mermaid
+        
+        # Check dashed edges (dotted arrow notation in Mermaid)
+        assert ".-.->" in mermaid
+        
+        # Check override styling with dashed border
+        assert f"style {override_id}" in mermaid
+        assert "stroke-dasharray" in mermaid
+
+    def test_get_instance_graph_mermaid_with_obsolete(self, db):
+        """Test that get_instance_graph_mermaid handles obsolete tasks correctly."""
+        workflow = workflows.SimpleWorkflow.objects.create()
+        start = workflow.task_set.create(name="start_method", status=Task.SUCCEEDED)
+        obsolete = workflow.task_set.create(name="obsolete", status=Task.SUCCEEDED)
+        end = workflow.task_set.create(name="end", status=Task.SUCCEEDED)
+        obsolete.parent_task_set.add(start)
+        end.parent_task_set.add(obsolete)
+        
+        mermaid = workflow.get_instance_graph_mermaid()
+        
+        # Check obsolete node exists
+        assert "obsolete[obsolete]" in mermaid
+        
+        # Check dashed edges (dotted arrow notation in Mermaid)
+        assert "-.->obsolete" in mermaid.replace(" ", "") or "obsolete-.->end" in mermaid.replace(" ", "")
+        
+        # Check obsolete task styling with dashed border
+        assert "style obsolete" in mermaid
+        assert "stroke-dasharray" in mermaid
+
     def test_cancel(self, db):
         workflow = workflows.SimpleWorkflow.objects.create()
         workflow.task_set.create()
