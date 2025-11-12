@@ -12,7 +12,7 @@ the PyPi package…
 
 .. code:: shell
 
-    python3 -m pip install "joeflow[reversion,dramatiq,celery]"
+    python3 -m pip install "joeflow[reversion,dramatiq,celery,graphviz]"
 
 …and add ``joeflow`` to the ``INSTALLED_APP`` setting. You will also need to have
 celery setup.
