@@ -2,7 +2,10 @@ import os
 import tempfile
 from pathlib import Path
 
+import pytest
 from django.core.management import call_command
+
+pytest.importorskip("graphviz")
 
 
 def test_call_no_args():

@@ -1,6 +1,9 @@
 from collections import defaultdict
 
-import graphviz as gv
+try:
+    import graphviz as gv
+except ImportError:
+    gv = type("gv", (), {"Digraph": object})
 
 
 class NoDashDiGraph(gv.Digraph):

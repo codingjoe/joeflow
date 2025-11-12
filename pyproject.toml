@@ -60,13 +60,6 @@ test = [
   "pytest-env",
   "redis",
 ]
-lint = [
-  "bandit==1.8.6",
-  "black==25.9.0",
-  "flake8==7.3.0",
-  "isort==6.1.0",
-  "pydocstyle[toml]==6.3.0",
-]
 docs = [
   "celery>=4.2.0",
   "django-reversion",

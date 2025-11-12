@@ -1,4 +1,7 @@
+import pytest
 from joeflow.utils import NoDashDiGraph
+
+pytest.importorskip("graphviz")
 
 
 class TestNoDashDiGraph:
