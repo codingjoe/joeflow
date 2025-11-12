@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from joeflow.admin import WorkflowAdmin
 
 from . import workflows

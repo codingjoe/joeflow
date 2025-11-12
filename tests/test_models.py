@@ -4,9 +4,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.safestring import SafeString
 from graphviz import Digraph
-
 from joeflow.models import Task, Workflow
 from joeflow.tasks import HUMAN, MACHINE, StartView
+
 from tests.testapp import models, workflows
 
 
@@ -178,20 +178,20 @@ class TestWorkflow:
         """Test that get_instance_graph_mermaid returns valid Mermaid syntax with task states."""
         wf = workflows.SimpleWorkflow.start_method()
         mermaid = wf.get_instance_graph_mermaid()
-        
+
         # Check it's a string
         assert isinstance(mermaid, str)
-        
+
         # Check it starts with graph declaration
         assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
-        
+
         # Check it contains nodes with quoted IDs
         assert "'save_the_princess'(save the princess)" in mermaid
         assert "'start_method'[start method]" in mermaid
-        
+
         # Check it contains edges with quoted IDs
         assert "'start_method' --> 'save_the_princess'" in mermaid
-        
+
         # Check it contains styling (for active/completed tasks)
         assert "style " in mermaid
         assert "linkStyle " in mermaid
@@ -205,17 +205,17 @@ class TestWorkflow:
         response = admin_client.post(url, data={"next_tasks": ["end"]})
         assert response.status_code == 302
         stub_worker.wait()
-        
+
         task = wf.task_set.get(name="override")
         mermaid = wf.get_instance_graph_mermaid()
-        
+
         # Check override node exists
         override_id = f"override_{task.pk}"
         assert override_id in mermaid
-        
+
         # Check dashed edges (dotted arrow notation in Mermaid)
         assert ".-.->" in mermaid
-        
+
         # Check override styling with dashed border
         assert f"style {override_id}" in mermaid
         assert "stroke-dasharray" in mermaid
@@ -228,15 +228,18 @@ class TestWorkflow:
         end = workflow.task_set.create(name="end", status=Task.SUCCEEDED)
         obsolete.parent_task_set.add(start)
         end.parent_task_set.add(obsolete)
-        
+
         mermaid = workflow.get_instance_graph_mermaid()
-        
+
         # Check obsolete node exists with quoted ID
         assert "'obsolete'[obsolete]" in mermaid
-        
+
         # Check dashed edges (dotted arrow notation in Mermaid)
-        assert "'start_method' -.-> 'obsolete'" in mermaid or "'obsolete' -.-> 'end'" in mermaid
-        
+        assert (
+            "'start_method' -.-> 'obsolete'" in mermaid
+            or "'obsolete' -.-> 'end'" in mermaid
+        )
+
         # Check obsolete task styling with dashed border
         assert "style 'obsolete'" in mermaid
         assert "stroke-dasharray" in mermaid
@@ -475,5 +478,5 @@ class TestTask:
         with pytest.raises(ValueError) as e:
             task.save()
         assert (
-            "You need to provide explicit 'update_fields'" " to avoid race conditions."
+            "You need to provide explicit 'update_fields' to avoid race conditions."
         ) in str(e.value)

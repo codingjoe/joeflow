@@ -27,7 +27,6 @@ to add code to their runtime environment that they don't need.
 All features need to be tested. A CI suite should be in place. Running and
 writing tests should be reasonably accessible for first time contributors.
 
-
 ## Release
 
 We follow [semantic versioning](https://semver.org/). To release a new version

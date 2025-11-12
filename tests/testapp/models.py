@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-
 from joeflow import tasks
 from joeflow.models import Workflow
 
@@ -32,7 +31,7 @@ class WelcomeWorkflow(Workflow):
     def send_welcome_email(self):
         self.user.email_user(
             subject="Welcome",
-            message="Hello %s!" % self.user.get_short_name(),
+            message=f"Hello {self.user.get_short_name()}!",
         )
 
     def end(self):

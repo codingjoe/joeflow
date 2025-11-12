@@ -53,8 +53,7 @@ class Command(BaseCommand):
                 opt = workflow._meta
                 if verbosity > 0:
                     self.stdout.write(
-                        "Rendering graph for '%s.%s'… "
-                        % (opt.app_label, opt.model_name),
+                        f"Rendering graph for '{opt.app_label}.{opt.model_name}'… ",
                         ending="",
                     )
                 filename = f"{opt.app_label}_{workflow.__name__}".lower()
@@ -65,5 +64,5 @@ class Command(BaseCommand):
                     self.stdout.write("Done!", self.style.SUCCESS)
             else:
                 self.stderr.write(
-                    "%r is not a Workflow subclass" % workflow, self.style.WARNING
+                    f"{workflow!r} is not a Workflow subclass", self.style.WARNING
                 )

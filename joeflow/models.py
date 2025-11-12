@@ -56,8 +56,7 @@ class WorkflowBase(ModelBase):
 
 
 class Workflow(models.Model, metaclass=WorkflowBase):
-    """
-    The `WorkflowState` object holds the state of a workflow instances.
+    """The `WorkflowState` object holds the state of a workflow instances.
 
     It is represented by a Django Model. This way all workflow states
     are persisted in your database.
@@ -119,8 +118,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def urls(cls):
-        """
-        Return all URLs to workflow related task and other special views.
+        """Return all URLs to workflow related task and other special views.
 
         Example::
 
@@ -182,16 +180,15 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     def get_absolute_url(self):
         """Return URL to workflow detail view."""
-        return reverse(f"{self.get_url_namespace()}:detail", kwargs=dict(pk=self.pk))
+        return reverse(f"{self.get_url_namespace()}:detail", kwargs={"pk": self.pk})
 
     def get_override_url(self):
         """Return URL to workflow override view."""
-        return reverse(f"{self.get_url_namespace()}:override", kwargs=dict(pk=self.pk))
+        return reverse(f"{self.get_url_namespace()}:override", kwargs={"pk": self.pk})
 
     @classmethod
     def get_graph(cls, color="black"):
-        """
-        Return workflow graph.
+        """Return workflow graph.
 
         Returns:
             (graphviz.Digraph): Directed graph of the workflow.
@@ -201,9 +198,12 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         graph.attr("graph", rankdir=cls.rankdir)
         graph.attr(
             "node",
-            _attributes=dict(
-                fontname="sans-serif", shape="rect", style="filled", fillcolor="white"
-            ),
+            _attributes={
+                "fontname": "sans-serif",
+                "shape": "rect",
+                "style": "filled",
+                "fillcolor": "white",
+            },
         )
         for name, node in cls.get_nodes():
             node_style = "filled"
@@ -217,8 +217,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def get_graph_svg(cls):
-        """
-        Return graph representation of a model workflow as SVG.
+        """Return graph representation of a model workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -273,12 +272,12 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
-            label = "override_%s" % task.pk
+            label = f"override_{task.pk}"
             peripheries = "1"
             for parent in task.parent_task_set.all():
-                graph.edge(parent.name, "override_%s" % task.pk, style="dashed")
+                graph.edge(parent.name, f"override_{task.pk}", style="dashed")
             for child in task.child_task_set.all():
-                graph.edge("override_%s" % task.pk, child.name, style="dashed")
+                graph.edge(f"override_{task.pk}", child.name, style="dashed")
             if not task.child_task_set.all() and task.completed:
                 peripheries = "2"
             graph.node(label, style="filled, rounded, dashed", peripheries=peripheries)
@@ -307,8 +306,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return graph
 
     def get_instance_graph_svg(self, output_format="svg"):
-        """
-        Return graph representation of a running workflow as SVG.
+        """Return graph representation of a running workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -333,8 +331,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     get_instance_graph_svg.short_description = t("instance graph")
 
     def get_instance_graph_mermaid(self):
-        """
-        Return instance graph as Mermaid diagram syntax.
+        """Return instance graph as Mermaid diagram syntax.
 
         This can be used with MermaidJS for client-side rendering in admin.
 
@@ -639,7 +636,7 @@ class Task(models.Model):
             return  # completed tasks have no detail view
         url_name = f"{self.workflow.get_url_namespace()}:{self.name}"
         try:
-            return reverse(url_name, kwargs=dict(pk=self.pk))
+            return reverse(url_name, kwargs={"pk": self.pk})
         except NoReverseMatch:
             return  # no URL was defined for this task
 
@@ -675,8 +672,7 @@ class Task(models.Model):
         self.save(update_fields=["status", "exception", "stacktrace"])
 
     def enqueue(self, countdown=None, eta=None):
-        """
-        Schedule the tasks for execution.
+        """Schedule the tasks for execution.
 
         Args:
             countdown (int):
@@ -705,8 +701,7 @@ class Task(models.Model):
         )
 
     def start_next_tasks(self, next_nodes: list = None):
-        """
-        Start new tasks following another tasks.
+        """Start new tasks following another tasks.
 
         Args:
             self (Task): The task that precedes the next tasks.
@@ -745,7 +740,7 @@ def get_workflows() -> types.GeneratorType:
     return  # empty generator
 
 
-def get_workflow(name) -> typing.Optional[Workflow]:
+def get_workflow(name) -> Workflow | None:
     for workflow_cls in get_workflows():
         if (
             name.lower()

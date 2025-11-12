@@ -1,9 +1,9 @@
 from datetime import timedelta
 
 from django.utils import timezone
-
 from joeflow import tasks
 from joeflow.models import Task
+
 from tests.testapp import workflows
 
 

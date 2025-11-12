@@ -4,8 +4,7 @@ import graphviz as gv
 
 
 class NoDashDiGraph(gv.Digraph):
-    """
-    Like `.graphviz.Digraph` but with unique nodes and edges.
+    """Like `.graphviz.Digraph` but with unique nodes and edges.
 
     Nodes and edges are unique and their attributes will be overridden
     should the same node or edge be added twice. Nodes are unique by name
@@ -33,7 +32,7 @@ class NoDashDiGraph(gv.Digraph):
         yield head(self._quote(self.name) + " " if self.name else "")
 
         for kw in ("graph", "node", "edge"):
-            attrs = getattr(self, "%s_attr" % kw)
+            attrs = getattr(self, f"{kw}_attr")
             if attrs:
                 yield self._attr(kw, self._attr_list(None, kwargs=attrs))
 
