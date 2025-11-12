@@ -65,3 +65,5 @@ jobs:
       - run: python -m pip install -e .[${{ matrix.extras }}]
       - run: python -m pytest
       - uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
