@@ -59,25 +59,28 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.9"
           - "3.10"
           - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
         django-version:
-          - "3.2"
-          - "4.0"
-          - "4.1"
+          - "5.2"
         extras:
           - "test"
         include:
           - python-version: "3.x"
-            django-version: "4.1"
+            django-version: "5.2"
             extras: "test,dramatiq"
           - python-version: "3.x"
-            django-version: "4.1"
+            django-version: "5.2"
             extras: "test,celery"
           - python-version: "3.x"
-            django-version: "4.1"
+            django-version: "5.2"
             extras: "test,reversion"
+          - python-version: "3.x"
+            django-version: "5.2"
+            extras: "test,graphiz"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -88,30 +91,3 @@ jobs:
       - run: python -m pip install -e .[${{ matrix.extras }}]
       - run: python -m pytest
       - uses: codecov/codecov-action@v5
-
-  analyze:
-    name: CodeQL
-    needs: [ PyTest ]
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ python ]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          queries: +security-and-quality
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:${{ matrix.language }}"

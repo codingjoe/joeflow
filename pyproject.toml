@@ -19,14 +19,14 @@ classifiers = [
   "Programming Language :: JavaScript",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3 :: Only",
   "Framework :: Django",
-  "Framework :: Django :: 3.2",
-  "Framework :: Django :: 4.0",
-  "Framework :: Django :: 4.1",
+  "Framework :: Django :: 5.2",
   "Topic :: Software Development",
   "Topic :: Home Automation",
   "Topic :: Internet",
@@ -46,9 +46,9 @@ keywords = [
   "framework",
   "task",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-  "django>=2.2",
+  "django>=5.2",
   "django-appconf",
 ]
 

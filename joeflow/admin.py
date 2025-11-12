@@ -1,6 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth import get_permission_codename
 from django.db import transaction
+from django.forms.widgets import MediaAsset, Media, Script
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as t
@@ -136,6 +137,15 @@ class TaskInlineAdmin(admin.TabularInline):
     classes = ["collapse"]
 
 
+class CSS(MediaAsset):
+
+    element_template = "<style{attributes}>{path}</style>"
+
+    @property
+    def path(self):
+        return mark_safe(self._path)
+
+
 class WorkflowAdmin(VersionAdmin):
     list_filter = (
         "modified",
@@ -158,22 +168,30 @@ class WorkflowAdmin(VersionAdmin):
     def display_workflow_diagram(self, obj):
         """Display workflow diagram using MermaidJS for client-side rendering."""
         if obj.pk:
-            # Get Mermaid diagram syntax
-            mermaid_syntax = obj.get_instance_graph_mermaid()
-            # Include MermaidJS script and wrap diagram
-            html = f"""
-            <script type="module">
-              import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-              mermaid.initialize({{ startOnLoad: true }});
-            </script>
-            <div class="mermaid-diagram">
-              <div class="mermaid">{mermaid_syntax}</div>
-            </div>
-            """
-            return mark_safe(html)
+            return mark_safe(
+                f"""<pre class="mermaid" style="width: 100%; display: block">{obj.get_instance_graph_mermaid()}</pre>"""
+            )
         return ""
 
     @transaction.atomic()
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         form.start_next_tasks(request.user)
+
+    @property
+    def media(self):
+        return super().media + Media(
+            js=[
+                Script(
+                    "https://cdn.jsdelivr.net/npm/mermaid@latest/dist/mermaid.esm.min.mjs",
+                    type="module",
+                )
+            ],
+            css={
+                "all": [
+                    CSS(
+                        ".field-display_workflow_diagram .flex-container > .readonly { flex: 1 }"
+                    )
+                ]
+            },
+        )

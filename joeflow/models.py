@@ -345,24 +345,26 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         node_styles = []
         edge_styles = {}  # Map of (start, end) -> style
         edge_list = []  # List to maintain order of edges
-        
+
         names = dict(self.get_nodes()).keys()
-        
+
         # Add all nodes from workflow definition (inactive/gray style)
         for name, node in self.get_nodes():
             node_id = name.replace(" ", "_")
             # Keep original name with spaces for label
             label = name.replace("_", " ")
-            
+
             # Determine shape based on node type, quote IDs to handle reserved words
             if node.type == HUMAN:
                 lines.append(f"    '{node_id}'({label})")
             else:
                 lines.append(f"    '{node_id}'[{label}]")
-            
+
             # Default gray styling for nodes not yet processed
-            node_styles.append(f"    style '{node_id}' fill:#f9f9f9,stroke:#999,color:#999")
-        
+            node_styles.append(
+                f"    style '{node_id}' fill:#f9f9f9,stroke:#999,color:#999"
+            )
+
         # Add edges from workflow definition with default gray style
         for start, end in self.edges:
             start_id = start.name.replace(" ", "_")
@@ -371,18 +373,22 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             if edge_key not in edge_styles:
                 edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#999"
-        
+
         # Process actual tasks to highlight active/completed states
         for task in self.task_set.filter(name__in=names):
             node_id = task.name.replace(" ", "_")
-            
+
             # Active tasks (not completed) get bold black styling
             if not task.completed:
-                node_styles.append(f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,color:#000")
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,color:#000"
+                )
             else:
                 # Completed tasks get normal black styling
-                node_styles.append(f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,color:#000")
-            
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,color:#000"
+                )
+
             # Update edge styling for actual task connections (black style)
             for child in task.child_task_set.exclude(name="override"):
                 child_id = child.name.replace(" ", "_")
@@ -391,18 +397,20 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                     edge_list.append(edge_key)
                 # Update styling to black (overrides gray)
                 edge_styles[edge_key] = "stroke:#000,stroke-width:2px"
-        
+
         # Handle override tasks
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
             override_id = f"override_{task.pk}"
             override_label = f"override {task.pk}"
-            
+
             # Add override node with dashed style, quote ID
             lines.append(f"    '{override_id}'({override_label})")
-            node_styles.append(f"    style '{override_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000")
-            
+            node_styles.append(
+                f"    style '{override_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000"
+            )
+
             # Add dashed edges for override connections
             for parent in task.parent_task_set.all():
                 parent_id = parent.name.replace(" ", "_")
@@ -410,32 +418,36 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 if edge_key not in edge_styles:
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
-            
+
             for child in task.child_task_set.all():
                 child_id = child.name.replace(" ", "_")
                 edge_key = (override_id, child_id)
                 if edge_key not in edge_styles:
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
-        
+
         # Handle obsolete/custom tasks (not in workflow definition)
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             node_id = task.name.replace(" ", "_")
             # Keep original name with spaces for label
             label = task.name.replace("_", " ")
-            
+
             # Determine shape based on node type, quote IDs
             if task.type == HUMAN:
                 lines.append(f"    '{node_id}'({label})")
             else:
                 lines.append(f"    '{node_id}'[{label}]")
-            
+
             # Dashed styling for obsolete tasks
             if not task.completed:
-                node_styles.append(f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray:5 5,color:#000")
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray:5 5,color:#000"
+                )
             else:
-                node_styles.append(f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000")
-            
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000"
+                )
+
             # Add dashed edges for obsolete task connections
             for parent in task.parent_task_set.all():
                 parent_id = parent.name.replace(" ", "_")
@@ -443,14 +455,14 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 if edge_key not in edge_styles:
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
-            
+
             for child in task.child_task_set.all():
                 child_id = child.name.replace(" ", "_")
                 edge_key = (node_id, child_id)
                 if edge_key not in edge_styles:
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
-        
+
         # Add edges to output (using dotted arrow for dashed edges)
         for start_id, end_id in edge_list:
             style = edge_styles[(start_id, end_id)]
@@ -460,15 +472,15 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             else:
                 # Use solid arrow for normal edges
                 lines.append(f"    '{start_id}' --> '{end_id}'")
-        
+
         # Add all styling at the end
         lines.extend(node_styles)
-        
+
         # Add edge styling
         for idx, (start_id, end_id) in enumerate(edge_list):
             style = edge_styles[(start_id, end_id)]
             lines.append(f"    linkStyle {idx} {style}")
-        
+
         return "\n".join(lines)
 
     def cancel(self, user=None):
