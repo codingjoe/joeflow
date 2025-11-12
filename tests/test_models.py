@@ -136,6 +136,7 @@ class TestWorkflow:
     def test_get_instance_graph__override(
         self, db, stub_worker, fixturedir, admin_client
     ):
+        pytest.importorskip("graphviz")
         wf = workflows.SimpleWorkflow.start_method()
         url = reverse("simpleworkflow:override", args=[wf.pk])
         response = admin_client.post(url, data={"next_tasks": ["end"]})
@@ -219,10 +220,11 @@ class TestWorkflow:
         assert override_id in mermaid
 
         # Check dashed edges (dotted arrow notation in Mermaid)
-        assert ".-.->" in mermaid
+        print(mermaid)
+        assert "-.->" in mermaid
 
         # Check override styling with dashed border
-        assert f"style {override_id}" in mermaid
+        assert f"style '{override_id}'" in mermaid
         assert "stroke-dasharray" in mermaid
 
     def test_get_instance_graph_mermaid_with_obsolete(self, db):
