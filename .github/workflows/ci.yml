@@ -54,7 +54,7 @@ jobs:
             extras: "test,reversion"
           - python-version: "3.x"
             django-version: "5.2"
-            extras: "test,graphiz"
+            extras: "test,graphviz"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
