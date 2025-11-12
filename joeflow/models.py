@@ -56,8 +56,7 @@ class WorkflowBase(ModelBase):
 
 
 class Workflow(models.Model, metaclass=WorkflowBase):
-    """
-    The `WorkflowState` object holds the state of a workflow instances.
+    """The `WorkflowState` object holds the state of a workflow instances.
 
     It is represented by a Django Model. This way all workflow states
     are persisted in your database.
@@ -119,8 +118,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def urls(cls):
-        """
-        Return all URLs to workflow related task and other special views.
+        """Return all URLs to workflow related task and other special views.
 
         Example::
 
@@ -182,16 +180,15 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     def get_absolute_url(self):
         """Return URL to workflow detail view."""
-        return reverse(f"{self.get_url_namespace()}:detail", kwargs=dict(pk=self.pk))
+        return reverse(f"{self.get_url_namespace()}:detail", kwargs={"pk": self.pk})
 
     def get_override_url(self):
         """Return URL to workflow override view."""
-        return reverse(f"{self.get_url_namespace()}:override", kwargs=dict(pk=self.pk))
+        return reverse(f"{self.get_url_namespace()}:override", kwargs={"pk": self.pk})
 
     @classmethod
     def get_graph(cls, color="black"):
-        """
-        Return workflow graph.
+        """Return workflow graph.
 
         Returns:
             (graphviz.Digraph): Directed graph of the workflow.
@@ -201,9 +198,12 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         graph.attr("graph", rankdir=cls.rankdir)
         graph.attr(
             "node",
-            _attributes=dict(
-                fontname="sans-serif", shape="rect", style="filled", fillcolor="white"
-            ),
+            _attributes={
+                "fontname": "sans-serif",
+                "shape": "rect",
+                "style": "filled",
+                "fillcolor": "white",
+            },
         )
         for name, node in cls.get_nodes():
             node_style = "filled"
@@ -217,8 +217,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def get_graph_svg(cls):
-        """
-        Return graph representation of a model workflow as SVG.
+        """Return graph representation of a model workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -273,12 +272,12 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
-            label = "override_%s" % task.pk
+            label = f"override_{task.pk}"
             peripheries = "1"
             for parent in task.parent_task_set.all():
-                graph.edge(parent.name, "override_%s" % task.pk, style="dashed")
+                graph.edge(parent.name, f"override_{task.pk}", style="dashed")
             for child in task.child_task_set.all():
-                graph.edge("override_%s" % task.pk, child.name, style="dashed")
+                graph.edge(f"override_{task.pk}", child.name, style="dashed")
             if not task.child_task_set.all() and task.completed:
                 peripheries = "2"
             graph.node(label, style="filled, rounded, dashed", peripheries=peripheries)
@@ -307,8 +306,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return graph
 
     def get_instance_graph_svg(self, output_format="svg"):
-        """
-        Return graph representation of a running workflow as SVG.
+        """Return graph representation of a running workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -331,6 +329,156 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return SafeString(graph.pipe(encoding="utf-8"))  # nosec
 
     get_instance_graph_svg.short_description = t("instance graph")
+
+    def get_instance_graph_mermaid(self):
+        """Return instance graph as Mermaid diagram syntax.
+
+        This can be used with MermaidJS for client-side rendering in admin.
+
+        Returns:
+            (str): Mermaid diagram syntax for the instance graph.
+        """
+        lines = [f"graph {self.rankdir}"]
+        node_styles = []
+        edge_styles = {}  # Map of (start, end) -> style
+        edge_list = []  # List to maintain order of edges
+
+        names = dict(self.get_nodes()).keys()
+
+        # Add all nodes from workflow definition (inactive/gray style)
+        for name, node in self.get_nodes():
+            node_id = name.replace(" ", "_")
+            # Keep original name with spaces for label
+            label = name.replace("_", " ")
+
+            # Determine shape based on node type, quote IDs to handle reserved words
+            if node.type == HUMAN:
+                lines.append(f"    '{node_id}'({label})")
+            else:
+                lines.append(f"    '{node_id}'[{label}]")
+
+            # Default gray styling for nodes not yet processed
+            node_styles.append(
+                f"    style '{node_id}' fill:#f9f9f9,stroke:#999,color:#999"
+            )
+
+        # Add edges from workflow definition with default gray style
+        for start, end in self.edges:
+            start_id = start.name.replace(" ", "_")
+            end_id = end.name.replace(" ", "_")
+            edge_key = (start_id, end_id)
+            if edge_key not in edge_styles:
+                edge_list.append(edge_key)
+                edge_styles[edge_key] = "stroke:#999"
+
+        # Process actual tasks to highlight active/completed states
+        for task in self.task_set.filter(name__in=names):
+            node_id = task.name.replace(" ", "_")
+
+            # Active tasks (not completed) get bold black styling
+            if not task.completed:
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,color:#000"
+                )
+            else:
+                # Completed tasks get normal black styling
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,color:#000"
+                )
+
+            # Update edge styling for actual task connections (black style)
+            for child in task.child_task_set.exclude(name="override"):
+                child_id = child.name.replace(" ", "_")
+                edge_key = (node_id, child_id)
+                if edge_key not in edge_styles:
+                    edge_list.append(edge_key)
+                # Update styling to black (overrides gray)
+                edge_styles[edge_key] = "stroke:#000,stroke-width:2px"
+
+        # Handle override tasks
+        for task in self.task_set.filter(name="override").prefetch_related(
+            "parent_task_set", "child_task_set"
+        ):
+            override_id = f"override_{task.pk}"
+            override_label = f"override {task.pk}"
+
+            # Add override node with dashed style, quote ID
+            lines.append(f"    '{override_id}'({override_label})")
+            node_styles.append(
+                f"    style '{override_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000"
+            )
+
+            # Add dashed edges for override connections
+            for parent in task.parent_task_set.all():
+                parent_id = parent.name.replace(" ", "_")
+                edge_key = (parent_id, override_id)
+                if edge_key not in edge_styles:
+                    edge_list.append(edge_key)
+                edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
+
+            for child in task.child_task_set.all():
+                child_id = child.name.replace(" ", "_")
+                edge_key = (override_id, child_id)
+                if edge_key not in edge_styles:
+                    edge_list.append(edge_key)
+                edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
+
+        # Handle obsolete/custom tasks (not in workflow definition)
+        for task in self.task_set.exclude(name__in=names).exclude(name="override"):
+            node_id = task.name.replace(" ", "_")
+            # Keep original name with spaces for label
+            label = task.name.replace("_", " ")
+
+            # Determine shape based on node type, quote IDs
+            if task.type == HUMAN:
+                lines.append(f"    '{node_id}'({label})")
+            else:
+                lines.append(f"    '{node_id}'[{label}]")
+
+            # Dashed styling for obsolete tasks
+            if not task.completed:
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:3px,stroke-dasharray:5 5,color:#000"
+                )
+            else:
+                node_styles.append(
+                    f"    style '{node_id}' fill:#fff,stroke:#000,stroke-width:2px,stroke-dasharray:5 5,color:#000"
+                )
+
+            # Add dashed edges for obsolete task connections
+            for parent in task.parent_task_set.all():
+                parent_id = parent.name.replace(" ", "_")
+                edge_key = (parent_id, node_id)
+                if edge_key not in edge_styles:
+                    edge_list.append(edge_key)
+                edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
+
+            for child in task.child_task_set.all():
+                child_id = child.name.replace(" ", "_")
+                edge_key = (node_id, child_id)
+                if edge_key not in edge_styles:
+                    edge_list.append(edge_key)
+                edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
+
+        # Add edges to output (using dotted arrow for dashed edges)
+        for start_id, end_id in edge_list:
+            style = edge_styles[(start_id, end_id)]
+            if "dasharray" in style:
+                # Use dotted arrow for dashed edges
+                lines.append(f"    '{start_id}' -.-> '{end_id}'")
+            else:
+                # Use solid arrow for normal edges
+                lines.append(f"    '{start_id}' --> '{end_id}'")
+
+        # Add all styling at the end
+        lines.extend(node_styles)
+
+        # Add edge styling
+        for idx, (start_id, end_id) in enumerate(edge_list):
+            style = edge_styles[(start_id, end_id)]
+            lines.append(f"    linkStyle {idx} {style}")
+
+        return "\n".join(lines)
 
     def cancel(self, user=None):
         self.task_set.cancel(user)
@@ -488,7 +636,7 @@ class Task(models.Model):
             return  # completed tasks have no detail view
         url_name = f"{self.workflow.get_url_namespace()}:{self.name}"
         try:
-            return reverse(url_name, kwargs=dict(pk=self.pk))
+            return reverse(url_name, kwargs={"pk": self.pk})
         except NoReverseMatch:
             return  # no URL was defined for this task
 
@@ -524,8 +672,7 @@ class Task(models.Model):
         self.save(update_fields=["status", "exception", "stacktrace"])
 
     def enqueue(self, countdown=None, eta=None):
-        """
-        Schedule the tasks for execution.
+        """Schedule the tasks for execution.
 
         Args:
             countdown (int):
@@ -554,8 +701,7 @@ class Task(models.Model):
         )
 
     def start_next_tasks(self, next_nodes: list = None):
-        """
-        Start new tasks following another tasks.
+        """Start new tasks following another tasks.
 
         Args:
             self (Task): The task that precedes the next tasks.
@@ -594,7 +740,7 @@ def get_workflows() -> types.GeneratorType:
     return  # empty generator
 
 
-def get_workflow(name) -> typing.Optional[Workflow]:
+def get_workflow(name) -> Workflow | None:
     for workflow_cls in get_workflows():
         if (
             name.lower()

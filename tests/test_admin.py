@@ -6,10 +6,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.urls import reverse
-
 from joeflow import admin
 from joeflow.admin import WorkflowAdmin
 from joeflow.models import Task
+
 from tests.testapp import models, workflows
 
 
@@ -25,8 +25,8 @@ class TestTaskAdmin:
 
         # adding messages
         messages = FallbackStorage(request)
-        setattr(request, "_messages", messages)
-        setattr(request, "user", AnonymousUser())
+        request._messages = messages
+        request.user = AnonymousUser()
         return request
 
     def test_rerun(self, db, post_request, stub_worker):

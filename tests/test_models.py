@@ -3,10 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.safestring import SafeString
-from graphviz import Digraph
-
 from joeflow.models import Task, Workflow
 from joeflow.tasks import HUMAN, MACHINE, StartView
+
 from tests.testapp import models, workflows
 
 
@@ -104,23 +103,27 @@ class TestWorkflow:
         assert list(MyWorkflow.get_next_nodes(MyWorkflow.c)) == []
 
     def test_get_graph(self, fixturedir):
+        graphviz = pytest.importorskip("graphviz")
         graph = workflows.SimpleWorkflow.get_graph()
-        assert isinstance(graph, Digraph)
+        assert isinstance(graph, graphviz.Digraph)
         with open(str(fixturedir / "simpleworkflow.dot")) as fp:
             expected_graph = fp.read().splitlines()
         print(str(graph))
         assert set(str(graph).splitlines()) == set(expected_graph)
 
     def test_change_graph_direction(self, fixturedir):
+        pytest.importorskip("graphviz")
         workflows.SimpleWorkflow.rankdir = "TD"
         graph = workflows.SimpleWorkflow.get_graph()
         assert "rankdir=TD" in str(graph)
 
     def test_get_graph_svg(self, fixturedir):
+        pytest.importorskip("graphviz")
         svg = workflows.SimpleWorkflow.get_graph_svg()
         assert isinstance(svg, SafeString)
 
     def test_get_instance_graph(self, db, fixturedir):
+        pytest.importorskip("graphviz")
         wf = workflows.SimpleWorkflow.start_method()
         task_url = wf.task_set.get(name="save_the_princess").get_absolute_url()
         graph = wf.get_instance_graph()
@@ -133,6 +136,7 @@ class TestWorkflow:
     def test_get_instance_graph__override(
         self, db, stub_worker, fixturedir, admin_client
     ):
+        pytest.importorskip("graphviz")
         wf = workflows.SimpleWorkflow.start_method()
         url = reverse("simpleworkflow:override", args=[wf.pk])
         response = admin_client.post(url, data={"next_tasks": ["end"]})
@@ -153,6 +157,7 @@ class TestWorkflow:
         assert f'\t"{task.name} {task.pk}" -> end [style=dashed]\n' in list(graph)
 
     def test_get_instance_graph__obsolete(self, db, fixturedir, admin_client):
+        pytest.importorskip("graphviz")
         workflow = workflows.SimpleWorkflow.objects.create()
         start = workflow.task_set.create(name="start_method", status=Task.SUCCEEDED)
         obsolete = workflow.task_set.create(name="obsolete", status=Task.SUCCEEDED)
@@ -170,9 +175,81 @@ class TestWorkflow:
         assert "\tobsolete -> end [style=dashed]\n" in list(graph)
 
     def test_get_instance_graph_svg(self, db, fixturedir):
+        pytest.importorskip("graphviz")
         wf = workflows.SimpleWorkflow.start_method()
         svg = wf.get_instance_graph_svg()
         assert isinstance(svg, SafeString)
+
+    def test_get_instance_graph_mermaid(self, db):
+        """Test that get_instance_graph_mermaid returns valid Mermaid syntax with task states."""
+        wf = workflows.SimpleWorkflow.start_method()
+        mermaid = wf.get_instance_graph_mermaid()
+
+        # Check it's a string
+        assert isinstance(mermaid, str)
+
+        # Check it starts with graph declaration
+        assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
+
+        # Check it contains nodes with quoted IDs
+        assert "'save_the_princess'(save the princess)" in mermaid
+        assert "'start_method'[start method]" in mermaid
+
+        # Check it contains edges with quoted IDs
+        assert "'start_method' --> 'save_the_princess'" in mermaid
+
+        # Check it contains styling (for active/completed tasks)
+        assert "style " in mermaid
+        assert "linkStyle " in mermaid
+
+    def test_get_instance_graph_mermaid_with_override(
+        self, db, stub_worker, admin_client
+    ):
+        """Test that get_instance_graph_mermaid handles override tasks correctly."""
+        wf = workflows.SimpleWorkflow.start_method()
+        url = reverse("simpleworkflow:override", args=[wf.pk])
+        response = admin_client.post(url, data={"next_tasks": ["end"]})
+        assert response.status_code == 302
+        stub_worker.wait()
+
+        task = wf.task_set.get(name="override")
+        mermaid = wf.get_instance_graph_mermaid()
+
+        # Check override node exists
+        override_id = f"override_{task.pk}"
+        assert override_id in mermaid
+
+        # Check dashed edges (dotted arrow notation in Mermaid)
+        print(mermaid)
+        assert "-.->" in mermaid
+
+        # Check override styling with dashed border
+        assert f"style '{override_id}'" in mermaid
+        assert "stroke-dasharray" in mermaid
+
+    def test_get_instance_graph_mermaid_with_obsolete(self, db):
+        """Test that get_instance_graph_mermaid handles obsolete tasks correctly."""
+        workflow = workflows.SimpleWorkflow.objects.create()
+        start = workflow.task_set.create(name="start_method", status=Task.SUCCEEDED)
+        obsolete = workflow.task_set.create(name="obsolete", status=Task.SUCCEEDED)
+        end = workflow.task_set.create(name="end", status=Task.SUCCEEDED)
+        obsolete.parent_task_set.add(start)
+        end.parent_task_set.add(obsolete)
+
+        mermaid = workflow.get_instance_graph_mermaid()
+
+        # Check obsolete node exists with quoted ID
+        assert "'obsolete'[obsolete]" in mermaid
+
+        # Check dashed edges (dotted arrow notation in Mermaid)
+        assert (
+            "'start_method' -.-> 'obsolete'" in mermaid
+            or "'obsolete' -.-> 'end'" in mermaid
+        )
+
+        # Check obsolete task styling with dashed border
+        assert "style 'obsolete'" in mermaid
+        assert "stroke-dasharray" in mermaid
 
     def test_cancel(self, db):
         workflow = workflows.SimpleWorkflow.objects.create()
@@ -408,5 +485,5 @@ class TestTask:
         with pytest.raises(ValueError) as e:
             task.save()
         assert (
-            "You need to provide explicit 'update_fields'" " to avoid race conditions."
+            "You need to provide explicit 'update_fields' to avoid race conditions."
         ) in str(e.value)

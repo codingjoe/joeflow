@@ -1,7 +1,9 @@
 from django.contrib import admin, messages
 from django.contrib.auth import get_permission_codename
 from django.db import transaction
+from django.forms.widgets import Media, MediaAsset, Script
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as t
 
 from . import forms, models
@@ -19,13 +21,13 @@ def rerun(modeladmin, request, queryset):
     if succeeded:
         messages.warning(
             request,
-            "Only failed tasks can be retried. %s tasks have been skipped" % succeeded,
+            f"Only failed tasks can be retried. {succeeded} tasks have been skipped",
         )
     counter = 0
     for obj in queryset.not_succeeded().iterator():
         obj.enqueue()
         counter += 1
-    messages.success(request, "%s tasks have been successfully queued" % counter)
+    messages.success(request, f"{counter} tasks have been successfully queued")
 
 
 @admin.action(
@@ -37,8 +39,7 @@ def cancel(modeladmin, request, queryset):
     if not_scheduled:
         messages.warning(
             request,
-            "Only scheduled tasks can be canceled. %s tasks have been skipped"
-            % not_scheduled,
+            f"Only scheduled tasks can be canceled. {not_scheduled} tasks have been skipped",
         )
     queryset.scheduled().cancel(request.user)
     messages.success(request, "Tasks have been successfully canceled")
@@ -135,6 +136,14 @@ class TaskInlineAdmin(admin.TabularInline):
     classes = ["collapse"]
 
 
+class CSS(MediaAsset):
+    element_template = "<style{attributes}>{path}</style>"
+
+    @property
+    def path(self):
+        return mark_safe(self._path)  # noqa: S308
+
+
 class WorkflowAdmin(VersionAdmin):
     list_filter = (
         "modified",
@@ -147,13 +156,40 @@ class WorkflowAdmin(VersionAdmin):
 
     def get_readonly_fields(self, *args, **kwargs):
         return [
-            "get_instance_graph_svg",
+            "display_workflow_diagram",
             *super().get_readonly_fields(*args, **kwargs),
             "modified",
             "created",
         ]
 
+    @admin.display(description="Workflow Diagram")
+    def display_workflow_diagram(self, obj):
+        """Display workflow diagram using MermaidJS for client-side rendering."""
+        if obj.pk:
+            return mark_safe(  # noqa: S308
+                f"""<pre class="mermaid" style="width: 100%; display: block">{obj.get_instance_graph_mermaid()}</pre>"""
+            )
+        return ""
+
     @transaction.atomic()
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         form.start_next_tasks(request.user)
+
+    @property
+    def media(self):
+        return super().media + Media(
+            js=[
+                Script(
+                    "https://cdn.jsdelivr.net/npm/mermaid@latest/dist/mermaid.esm.min.mjs",
+                    type="module",
+                )
+            ],
+            css={
+                "all": [
+                    CSS(
+                        ".field-display_workflow_diagram .flex-container > .readonly { flex: 1 }"
+                    )
+                ]
+            },
+        )

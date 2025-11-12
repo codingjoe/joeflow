@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from django.core.mail import send_mail
 from django.views import generic
-
 from joeflow import tasks
 from joeflow.views import StartViewMixin
 

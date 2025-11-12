@@ -5,8 +5,7 @@ __all__ = ("settings",)
 
 
 class JoeflowAppConfig(AppConf):
-    """
-    List of available settings.
+    """List of available settings.
 
     To change the default values just set the setting in your settings file.
     """

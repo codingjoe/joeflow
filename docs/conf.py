@@ -49,7 +49,7 @@ def linkcode_resolve(domain, info):
             pass
         try:
             lines, first_line = inspect.getsourcelines(item)
-            lineno = "#L%d-L%s" % (first_line, first_line + len(lines) - 1)
+            lineno = f"#L{first_line:d}-L{first_line + len(lines) - 1:d}"
         except (TypeError, OSError):
             pass
     return (
@@ -79,6 +79,9 @@ spelling_show_suggestions = True
 
 graphviz_output_format = "svg"
 
-inheritance_graph_attrs = dict(
-    rankdir="TB", size='"6.0, 8.0"', fontsize=14, ratio="compress"
-)
+inheritance_graph_attrs = {
+    "rankdir": "TB",
+    "size": '"6.0, 8.0"',
+    "fontsize": 14,
+    "ratio": "compress",
+}

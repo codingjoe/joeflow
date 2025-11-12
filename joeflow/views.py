@@ -14,17 +14,11 @@ class WorkflowTemplateNameViewMixin:
 
     def get_template_names(self):
         names = [
-            "%s/%s_%s.html"
-            % (
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-                self.name,
-            )
+            f"{self.model._meta.app_label}/{self.model._meta.model_name}_{self.name}.html"
         ]
         names.extend(super().get_template_names())
         names.append(
-            "%s/workflow%s.html"
-            % (self.model._meta.app_label, self.template_name_suffix)
+            f"{self.model._meta.app_label}/workflow{self.template_name_suffix}.html"
         )
         return names
 
@@ -75,8 +69,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         return response
 
     def create_task(self, workflow, prev_task):
-        """
-        Return a new database instance of this task.
+        """Return a new database instance of this task.
 
         The factory method should be overridden, to create custom database instances
         based on the task node's class, the workflow or the previous task.
@@ -98,8 +91,7 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
 
 
 class StartViewMixin(TaskViewMixin):
-    """
-    View-mixin to create a start workflow.
+    """View-mixin to create a start workflow.
 
     Example:
         class MyStartWorkflowView(StartViewMixin, View):

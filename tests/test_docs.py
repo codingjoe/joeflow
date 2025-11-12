@@ -53,7 +53,7 @@ class WelcomeWorkflowHumanTest(TestCase):
             username="spidy",
         )
 
-        response = self.client.post(self.start_url, data=dict(user=user.pk))
+        response = self.client.post(self.start_url, data={"user": user.pk})
         self.assertEqual(response.status_code, 302)
         workflow = models.WelcomeWorkflow.objects.get()
         self.assertTrue(workflow.user)

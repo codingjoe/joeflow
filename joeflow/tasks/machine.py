@@ -21,8 +21,7 @@ except ImportError:
 
 
 class Start:
-    """
-    Start a new function via a callable.
+    """Start a new function via a callable.
 
     Creates a new workflow instance and executes a start task.
     The start task does not do anything beyond creating the workflow.
@@ -61,8 +60,7 @@ class Start:
 
 
 class Join:
-    """
-    Wait for all parent tasks to complete before continuing the workflow.
+    """Wait for all parent tasks to complete before continuing the workflow.
 
     Args:
         *parents (str): List of parent task names to wait for.
@@ -121,8 +119,7 @@ class Join:
 
 
 class Wait:
-    """
-    Wait for a certain amount of time and then continue with the next tasks.
+    """Wait for a certain amount of time and then continue with the next tasks.
 
     Args:
         duration (datetime.timedelta): Time to wait in time delta from creation of task.

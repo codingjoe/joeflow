@@ -1,39 +1,34 @@
 {% extends 'testapp/base.html' %}
-
 {% block body %}
-<div class="w3-card w3-panel w3-content w3-card-4 w3-white">
-  <div class="w3-center">
-    {{ object.get_instance_graph_svg }}
+  <div class="w3-card w3-panel w3-content w3-card-4 w3-white">
+    <div class="w3-center">{{ object.get_instance_graph_svg }}</div>
+    <h1>{{ object }}</h1>
+    <table class="w3-table">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>node name</th>
+          <th>completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in object.task_set.all %}
+          <tr>
+            <td>{{ task.pk }}</td>
+            <td>
+              {% if task.get_absolute_url %}
+                <a href="{{ task.get_absolute_url }}">{{ task.name }}</a>
+              {% else %}
+                {{ task.name }}
+              {% endif %}
+            </td>
+            <td>{{ task.completed }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p>
+      <a href="{{ object.get_override_url }}" class="w3-btn w3-orange">Override</a>
+    </p>
   </div>
-  <h1>{{ object }}</h1>
-  <table class="w3-table">
-    <thead>
-    <tr>
-      <th>id</th>
-      <th>node name</th>
-      <th>completed</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for task in object.task_set.all %}
-    <tr>
-      <td>{{ task.pk }}</td>
-      <td>
-        {% if task.get_absolute_url %}
-        <a href="{{ task.get_absolute_url }}">{{ task.name }}</a>
-        {% else %}
-        {{ task.name }}
-        {% endif %}
-      </td>
-      <td>{{ task.completed }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  <p>
-    <a href="{{ object.get_override_url }}" class="w3-btn w3-orange">
-      Override
-    </a>
-  </p>
-</div>
 {% endblock body %}
