@@ -48,7 +48,9 @@ def stub_worker(monkeypatch, settings, _runner):
         class Meta:
             @staticmethod
             def wait():
-                broker.join(settings.JOEFLOW_CELERY_QUEUE_NAME, timeout=60000)
+                broker.join(
+                    settings.JOEFLOW_CELERY_QUEUE_NAME, timeout=60000, fail_fast=False
+                )
                 worker.join()
 
         yield Meta
