@@ -32,12 +32,17 @@ class RetryError(dramatiq.errors.Retry):
 def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
     Task = apps.get_model("joeflow", "Task")
     with transaction.atomic():
-        task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
+        task = (
+            Task.objects.filter(pk=task_pk, completed=None)
+            .select_for_update(nowait=True)
+            .get()
+        )
 
         workflow = (
             task.content_type.model_class()
-            .objects.select_for_update(nowait=True)
-            .get(pk=workflow_pk)
+            .objects.filter(pk=workflow_pk)
+            .select_for_update(nowait=True)
+            .get()
         )
 
         try:
