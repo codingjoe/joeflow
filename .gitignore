@@ -105,3 +105,6 @@ venv.bak/
 
 # flit
 joeflow/_version.py
+
+# uv
+uv.lock

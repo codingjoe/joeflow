@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" font-family="Segoe UI, system-ui, sans-serif" viewBox="0 0 1280 640">
+  <circle cx="260" cy="320" r="200" fill="#f1fff7"/>
+  <g fill="none" stroke="#092e20" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="icon icon-tabler icons-tabler-outline icon-tabler-heart-rate-monitor">
+    <path stroke="none" d="M112.5 175h300v300h-300z"/>
+    <path stroke-width="25" d="M150 237.5a12.5 12.5 0 0 1 12.5-12.5h200a12.5 12.5 0 0 1 12.5 12.5v125a12.5 12.5 0 0 1-12.5 12.5h-200a12.5 12.5 0 0 1-12.5-12.5zM200 425h125M225 375v50M300 375v50"/>
+    <path stroke-width="25" d="M200 300h25l25 37.5 25-75 12.5 37.5H325"/>
+  </g>
+  <text x="240" y="70" fill="#f1fff7" font-size="64" font-weight="bold" transform="matrix(1.6 0 0 1.6 120 120)">
+    Django
+  </text>
+  <text x="244" y="175" fill="#c9d1d9" font-size="120" font-weight="bold" transform="matrix(1.6 0 0 1.6 120 120)">
+    joeflow
+  </text>
+  <text x="240" y="230" fill="#c9d1d9" font-size="20" font-style="italic" transform="matrix(1.6 0 0 1.6 120 120)">
+    Lean workflow automation for machines with hearts
+  </text>
+</svg>

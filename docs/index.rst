@@ -1,11 +1,25 @@
+.. image:: https://github.com/codingjoe/joeflow/raw/main/docs/images/logo-light.svg
+   :align: center
+   :alt: Django joeflow: Lean workflow automation for machines with hearts
+   :class: only-light
+
+.. image:: https://github.com/codingjoe/joeflow/raw/main/docs/images/logo-dark.svg
+   :align: center
+   :alt: Django joeflow: Lean workflow automation for machines with hearts
+   :class: only-dark
+
 =======
 joeflow
 =======
 
-**The lean workflow automation framework for machines with heart.**
+**Lean workflow automation for machines with hearts.**
 
-.. image:: img/pexels-photo-1020325.jpeg
-   :alt: a hand drawn robot
+`Documentation`_ | `Issues`_ | `Changelog`_ | `Funding`_ 💚
+
+.. _documentation: https://joeflow.rtfd.io/
+.. _issues: https://github.com/codingjoe/joeflow/issues/new/choose
+.. _changelog: https://github.com/codingjoe/joeflow/releases
+.. _funding: https://github.com/sponsors/codingjoe
 
 Joeflow is a free workflow automation framework designed to bring simplicity
 to complex workflows. Joeflow written in Python_ based on the world famous
