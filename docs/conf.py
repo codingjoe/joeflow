@@ -61,7 +61,7 @@ def linkcode_resolve(domain, info):
 master_doc = "index"
 project = "Joeflow"
 
-html_theme = "alabaster"
+html_theme = "furo"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

@@ -7,7 +7,7 @@ name = "joeflow"
 authors = [
   { name = "Johannes Maron", email = "johannes@maron.family" }
 ]
-readme = "README.rst"
+readme = "README.md"
 license = { file = "LICENSE" }
 dynamic = ["version", "description"]
 classifiers = [
@@ -53,21 +53,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-  "pytest",
-  "pytest-cov",
-  "pytest-django",
-  "pytest-env",
-  "redis",
-]
-docs = [
-  "celery>=4.2.0",
-  "django-reversion",
-  "dramatiq>=2.0.0",
-  "django_dramatiq",
-  "redis",
-  "graphviz>=0.18",
-]
 graphviz = [
   "graphviz>=0.18",
 ]
@@ -82,8 +67,37 @@ dramatiq = [
   "django_dramatiq",
 ]
 
+[dependency-groups]
+dev = [
+  { include-group = "test" },
+]
+test = [
+  "pytest",
+  "pytest-cov",
+  "pytest-django",
+  "pytest-env",
+  "redis",
+]
+docs = [
+  "sphinx",
+  "furo",
+  "celery>=4.2.0",
+  "django-reversion",
+  "dramatiq>=2.0.0",
+  "django_dramatiq",
+  "redis",
+  "graphviz>=0.18",
+]
+
 [project.urls]
-Project-URL = "https://github.com/codingjoe/joeflow"
+# https://packaging.python.org/en/latest/specifications/well-known-project-urls/#well-known-labels
+Homepage = "https://github.com/codingjoe/joeflow"
+Changelog = "https://github.com/codingjoe/joeflow/releases"
+Source = "https://github.com/codingjoe/joeflow"
+Releasenotes = "https://github.com/codingjoe/joeflow/releases/latest"
+Documentation = "https://joeflow.rtfd.io/"
+Issues = "https://github.com/codingjoe/joeflow/issues"
+Funding = "https://github.com/sponsors/codingjoe"
 
 [tool.flit.module]
 name = "joeflow"
@@ -93,7 +107,7 @@ write_to = "joeflow/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=joeflow --doctest-modules"
+addopts = "--cov=joeflow --cov-report=xml --cov-report=term --doctest-modules"
 testpaths = [
   "tests",
 ]
@@ -103,7 +117,7 @@ env = "D:DRAMATIQ_BROKER = dramatiq.brokers.stub.StubBroker"
 
 [tool.coverage.report]
 show_missing = true
-
+skip_covered = true
 
 [tool.ruff]
 src = ["joeflow", "tests"]

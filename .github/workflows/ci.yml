@@ -5,27 +5,23 @@ on:
       - main
   pull_request:
 jobs:
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
-      - run: sudo apt install -y python3-enchant graphviz
-      - run: python -m pip install sphinxcontrib-spelling
-      - run: python -m pip install -e '.[docs]'
-      - run: python -m sphinx -W -b spelling docs docs/_build
   dist:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
+      - run: uvx --from build pyproject-build --sdist --wheel
+      - run: uvx twine check dist/*
+      - uses: actions/upload-artifact@v6
         with:
-          python-version: "3.x"
-      - run: python -m pip install --upgrade pip build wheel twine readme-renderer
-      - run: python -m build --sdist --wheel
-      - run: python -m twine check dist/*
+          path: dist/*
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get install -y gettext graphviz
+      - uses: astral-sh/setup-uv@v7
+      - run: uv run --group docs sphinx-build -W -b doctest -b spelling -b html docs docs/_build
   PyTest:
     needs:
       - dist
@@ -41,29 +37,28 @@ jobs:
         django-version:
           - "5.2"
         extras:
-          - "test"
+          - ""
         include:
-          - python-version: "3.x"
+          - python-version: "3.13"
             django-version: "5.2"
-            extras: "test,dramatiq"
-          - python-version: "3.x"
+            extras: "--extra dramatiq"
+          - python-version: "3.13"
             django-version: "5.2"
-            extras: "test,celery"
-          - python-version: "3.x"
+            extras: "--extra celery"
+          - python-version: "3.13"
             django-version: "5.2"
-            extras: "test,reversion"
-          - python-version: "3.x"
+            extras: "--extra reversion"
+          - python-version: "3.13"
             django-version: "5.2"
-            extras: "test,graphviz,dramatiq"
+            extras: "--extra graphviz --extra dramatiq"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - run: sudo apt install -y graphviz redis-server
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - run: sudo apt install -y graphviz redis-server
-      - run: python -m pip install "django==${{ matrix.django-version }}.*"
-      - run: python -m pip install -e .[${{ matrix.extras }}]
-      - run: python -m pytest
+      - run: uv run ${{ matrix.extras }} --with Django~=${{ matrix.django-version }}.0 pytest
       - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          flags: python-${{ matrix.python-version }}-django-${{ matrix.django-version }}

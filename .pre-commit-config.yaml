@@ -47,6 +47,10 @@ repos:
     rev: v1.36.4
     hooks:
       - id: djlint-reformat-django
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.2
+    hooks:
+      - id: sphinx-lint
 ci:
   autoupdate_schedule: weekly
   skip:
