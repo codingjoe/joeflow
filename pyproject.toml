@@ -54,7 +54,7 @@ dependencies = [
 
 [project.optional-dependencies]
 graphviz = [
-  "graphviz>=0.18",
+  "graphviz>=0.21",
 ]
 reversion = [
   "django-reversion",
@@ -86,7 +86,7 @@ docs = [
   "dramatiq>=2.0.0",
   "django_dramatiq",
   "redis",
-  "graphviz>=0.18",
+  "graphviz>=0.21",
 ]
 
 [project.urls]
