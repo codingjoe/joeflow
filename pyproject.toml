@@ -63,7 +63,7 @@ celery = [
   "celery>=4.2.0",
 ]
 dramatiq = [
-  "dramatiq>=2.0.0",
+  "dramatiq>=2.1.0",
   "django_dramatiq",
 ]
 
@@ -83,7 +83,7 @@ docs = [
   "furo",
   "celery>=4.2.0",
   "django-reversion",
-  "dramatiq>=2.0.0",
+  "dramatiq>=2.1.0",
   "django_dramatiq",
   "redis",
   "graphviz>=0.18",
