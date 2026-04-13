@@ -60,7 +60,7 @@ reversion = [
   "django-reversion",
 ]
 celery = [
-  "celery>=4.2.0",
+  "celery>=5.6.3",
 ]
 dramatiq = [
   "dramatiq>=2.0.0",
@@ -81,7 +81,7 @@ test = [
 docs = [
   "sphinx",
   "furo",
-  "celery>=4.2.0",
+  "celery>=5.6.3",
   "django-reversion",
   "dramatiq>=2.0.0",
   "django_dramatiq",
