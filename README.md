@@ -15,6 +15,10 @@
 
 _Lean workflow automation for machines with hearts._
 
+## Sponsors
+
+[![Sponsors](https://django.the-box.sh/sponsors/codingjoe/joeflow.svg)](https://github.com/sponsors/codingjoe)
+
 [![version](https://img.shields.io/pypi/v/joeflow.svg)](https://pypi.python.org/pypi/joeflow/)
 [![coverage](https://codecov.io/gh/codingjoe/joeflow/branch/main/graph/badge.svg)](https://codecov.io/gh/codingjoe/joeflow)
 [![license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/codingjoe/joeflow/main/LICENSE)
