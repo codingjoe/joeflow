@@ -1,8 +1,8 @@
-{% extends 'testapp/base.html' %}
+{% extends "testapp/base.html" %}
 {% block body %}
   <div class="w3-card w3-content w3-card-4 w3-white">
     <div class="w3-center">{{ object.get_workflow_graph }}</div>
-    <form method="POST" class="w3-container">
+    <form method="post" class="w3-container">
       {% csrf_token %}
       {{ form.as_p }}
       <p>
