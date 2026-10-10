@@ -141,7 +141,7 @@ DRAMATIQ_BROKER = {
 
 # Celery
 
-CELERY_BROKER_URL = "redis:///2"
+CELERY_BROKER_URL = "memory://"
 CELERY_TASK_ALWAYS_EAGER = True
 
 try:
@@ -151,4 +151,3 @@ try:
 except ImportError:
     JOEFLOW_TASK_RUNNER = "joeflow.runner.celery.task_runner"
 JOEFLOW_CELERY_QUEUE_NAME = "yoloflow"
-JOEFLOW_REDIS_LOCK_URL = "redis:///3"
