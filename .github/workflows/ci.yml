@@ -23,6 +23,9 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv run --group docs sphinx-build -W -b doctest -b spelling -b html docs docs/_build
   PyTest:
+    permissions:
+      contents: read
+      id-token: write
     needs:
       - dist
     runs-on: ubuntu-latest
@@ -56,5 +59,5 @@ jobs:
       - run: uv run ${{ matrix.extras }} --with Django~=${{ matrix.django-version }}.0 pytest
       - uses: codecov/codecov-action@v7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           flags: python-${{ matrix.python-version }}-django-${{ matrix.django-version }}
