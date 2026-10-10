@@ -42,7 +42,7 @@ def stub_worker(monkeypatch, settings, _runner):
         broker = dramatiq.get_broker()
         broker.emit_after("process_boot")
         broker.flush_all()
-        worker = dramatiq.Worker(broker, worker_timeout=100)
+        worker = dramatiq.Worker(broker, worker_timeout=100, worker_threads=1)
         worker.start()
 
         class Meta:

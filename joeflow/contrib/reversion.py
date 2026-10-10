@@ -17,8 +17,9 @@ def register_workflows():
         pass
     else:
         for workflow in joeflow.models.get_workflows():
-            if not revisions.is_registered(workflow):
-                revisions.register(workflow)
+            for model in (workflow, workflow._meta.concrete_model):
+                if not revisions.is_registered(model):
+                    revisions.register(model)
 
 
 @contextmanager
