@@ -49,7 +49,7 @@ jobs:
             extras: "--extra graphviz --extra dramatiq"
     steps:
       - uses: actions/checkout@v7
-      - run: sudo apt install -y graphviz redis-server
+      - run: sudo apt install -y graphviz
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}

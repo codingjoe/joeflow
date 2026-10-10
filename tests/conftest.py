@@ -55,3 +55,20 @@ def stub_worker(monkeypatch, settings, _runner):
 
         yield Meta
         worker.stop()
+
+
+@pytest.fixture(autouse=True)
+def fake_redis(monkeypatch):
+    """Serve all Redis traffic from an in-process fake server."""
+    import fakeredis
+    import redis
+
+    server = fakeredis.FakeServer()
+
+    class FakeRedis(fakeredis.FakeStrictRedis):
+        def __init__(self, *args, **kwargs):
+            kwargs.setdefault("server", server)
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(redis, "Redis", FakeRedis)
+    monkeypatch.setattr(redis, "StrictRedis", FakeRedis)
