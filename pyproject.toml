@@ -24,6 +24,8 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Framework :: Django",
   "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
+  "Framework :: Django :: 6.1",
   "Topic :: Software Development",
   "Topic :: Home Automation",
   "Topic :: Internet",
