@@ -77,11 +77,12 @@ def _retry_on_failure(task, *args, **kwargs):
                 "support deferred execution. The task is not re-enqueued: %s",
                 task.name,
                 backend.alias,
-                e,
+                str(e),
+                exc_info=True,
             )
             raise
         run_after = _get_run_after(countdown=_RETRY_DELAY)
-        logger.warning("Re-enqueueing task %s%r: %s", task.name, args, e)
+        logger.warning("Re-enqueueing task %s%r: %s", task.name, args, str(e))
         transaction.on_commit(
             lambda: task.using(run_after=run_after).enqueue(*args, **kwargs)
         )
