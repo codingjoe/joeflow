@@ -11,6 +11,7 @@ django.setup()
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
     "sphinx.ext.napoleon",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.intersphinx",
