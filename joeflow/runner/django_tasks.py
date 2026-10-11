@@ -92,12 +92,9 @@ def _machine_task(task_pk, workflow_pk):
     Task = apps.get_model("joeflow", "Task")
     with retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk):
         with transaction.atomic():
-            task = (
-                Task.objects.select_for_update()
-                .filter(pk=task_pk, completed=None)
-                .first()
-            )
-            if task is None:
+            try:
+                task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
+            except Task.DoesNotExist:
                 logger.info(
                     "Task %s does not exist or has already been completed.", task_pk
                 )
