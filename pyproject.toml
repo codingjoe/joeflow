@@ -14,7 +14,6 @@ keywords = [
   "workflow",
 ]
 license = { file = "LICENSE" }
-authors = [ { name = "Johannes Maron", email = "johannes@maron.family" } ]
 requires-python = ">=3.14"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -45,20 +44,25 @@ dependencies = [
   "django>=6",
   "django-appconf",
 ]
-optional-dependencies.graphviz = [
+[[project.authors]]
+name = "Johannes Maron"
+email = "johannes@maron.family"
+[project.optional-dependencies]
+graphviz = [
   "graphviz>=0.18",
 ]
-optional-dependencies.reversion = [
+reversion = [
   "django-reversion",
 ]
-urls.Changelog = "https://github.com/codingjoe/joeflow/releases"
-urls.Documentation = "https://joeflow.rtfd.io/"
-urls.Funding = "https://github.com/sponsors/codingjoe"
+[project.urls]
+Changelog = "https://github.com/codingjoe/joeflow/releases"
+Documentation = "https://joeflow.rtfd.io/"
+Funding = "https://github.com/sponsors/codingjoe"
 # https://packaging.python.org/en/latest/specifications/well-known-project-urls/#well-known-labels
-urls.Homepage = "https://github.com/codingjoe/joeflow"
-urls.Issues = "https://github.com/codingjoe/joeflow/issues"
-urls.Releasenotes = "https://github.com/codingjoe/joeflow/releases/latest"
-urls.Source = "https://github.com/codingjoe/joeflow"
+Homepage = "https://github.com/codingjoe/joeflow"
+Issues = "https://github.com/codingjoe/joeflow/issues"
+Releasenotes = "https://github.com/codingjoe/joeflow/releases/latest"
+Source = "https://github.com/codingjoe/joeflow"
 
 [dependency-groups]
 dev = [
@@ -81,7 +85,8 @@ docs = [
 write_to = "joeflow/_version.py"
 
 [tool.flit]
-module.name = "joeflow"
+[tool.flit.module]
+name = "joeflow"
 
 [tool.djlint]
 profile = "django"
@@ -91,7 +96,8 @@ max_line_length = 120
 
 [tool.ruff]
 src = [ "joeflow", "tests" ]
-lint.select = [
+[tool.ruff.lint]
+select = [
   "B",  # flake8-bugbear
   "C",  # flake8-comprehensions
   "D",  # pydocstyle
@@ -102,23 +108,25 @@ lint.select = [
   "UP", # pyupgrade
   "W",  # pycodestyle warnings
 ]
-lint.ignore = [ "B904", "C901", "D1", "E501", "S101" ]
-lint.per-file-ignores."tests/**/*.py" = [ "B018", "DJ", "E731", "S" ]
-lint.isort.combine-as-imports = true
-lint.isort.force-wrap-aliases = true
-lint.isort.section-order = [ "future", "standard-library", "third-party", "first-party", "local-folder" ]
-lint.isort.split-on-trailing-comma = true
-lint.pydocstyle.convention = "google"
+ignore = [ "B904", "C901", "D1", "E501", "S101" ]
+per-file-ignores."tests/**/*.py" = [ "B018", "DJ", "E731", "S" ]
+isort.combine-as-imports = true
+isort.force-wrap-aliases = true
+isort.section-order = [ "future", "standard-library", "third-party", "first-party", "local-folder" ]
+isort.split-on-trailing-comma = true
+pydocstyle.convention = "google"
 
 [tool.pytest]
-ini_options.minversion = "6.0"
-ini_options.testpaths = [
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
   "tests",
 ]
-ini_options.norecursedirs = "tests/testapp"
-ini_options.addopts = "--cov=joeflow --cov-report=xml --cov-report=term --doctest-modules"
-ini_options.DJANGO_SETTINGS_MODULE = "tests.testapp.settings"
+norecursedirs = "tests/testapp"
+addopts = "--cov=joeflow --cov-report=xml --cov-report=term --doctest-modules"
+DJANGO_SETTINGS_MODULE = "tests.testapp.settings"
 
 [tool.coverage]
-report.skip_covered = true
-report.show_missing = true
+[tool.coverage.report]
+skip_covered = true
+show_missing = true
