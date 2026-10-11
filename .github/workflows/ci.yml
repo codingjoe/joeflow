@@ -52,6 +52,9 @@ jobs:
           - python-version: "3.14"
             django-version: "5.2"
             extras: "--extra graphviz --extra dramatiq"
+          - python-version: "3.14"
+            django-version: "6.1"
+            extras: "--extra dramatiq --extra celery"
     steps:
       - uses: actions/checkout@v7
       - run: sudo apt install -y graphviz

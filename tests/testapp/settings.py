@@ -144,10 +144,22 @@ DRAMATIQ_BROKER = {
 CELERY_BROKER_URL = "memory://"
 CELERY_TASK_ALWAYS_EAGER = True
 
-try:
-    import dramatiq  # NoQA
+JOEFLOW_TASK_QUEUE_NAME = "yoloflow"
+# Retry machine tasks right away, so the test suite does not have to wait.
+JOEFLOW_TASK_RETRY_DELAY = 0
 
-    JOEFLOW_TASK_RUNNER = "joeflow.runner.dramatiq.task_runner"
+# Django Tasks
+
+try:
+    import django.tasks  # NoQA
 except ImportError:
-    JOEFLOW_TASK_RUNNER = "joeflow.runner.celery.task_runner"
-JOEFLOW_CELERY_QUEUE_NAME = "yoloflow"
+    # Django < 6.0 does not ship the Tasks framework.
+    # The test suite is executed with the deprecated task runners instead.
+    pass
+else:
+    TASKS = {
+        "default": {
+            "BACKEND": "tests.testapp.backends.InMemoryBackend",
+            "QUEUES": [JOEFLOW_TASK_QUEUE_NAME],
+        },
+    }

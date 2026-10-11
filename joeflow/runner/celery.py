@@ -1,5 +1,7 @@
 import logging
+import warnings
 
+import django
 from celery import shared_task
 from django.apps import apps
 from django.db import OperationalError, transaction
@@ -56,11 +58,19 @@ def _celery_task_runner(self, task_pk, workflow_pk):
             task.finish()
 
 
-def task_runner(*, task_pk, workflow_pk, countdown, eta):
+def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None):
     """Schedule asynchronous machine task using celery."""
+    if django.VERSION >= (6, 0):
+        warnings.warn(
+            "The Celery task runner is deprecated in favor of Django's task "
+            "framework. Deletion is scheduled with the expiration of Django "
+            "5.2 LTS version support.",
+            PendingDeprecationWarning,
+            stacklevel=2,
+        )
     _celery_task_runner.apply_async(
         args=(task_pk, workflow_pk),
         countdown=countdown,
         eta=eta,
-        queue=settings.JOEFLOW_CELERY_QUEUE_NAME,
+        queue=settings.JOEFLOW_TASK_QUEUE_NAME,
     )

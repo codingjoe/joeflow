@@ -39,6 +39,19 @@ Furthermore tasks can implement things like sending emails or fetching data
 from an 3rd party API. All tasks are executed asynchronously to avoid blocking
 IO and locked to prevent raise conditions.
 
+Tasks are executed by the task runner configured with the
+``JOEFLOW_TASK_RUNNER`` setting. On Django 6.0 and later tasks are run with
+`Django Tasks`_ using the task backend of the ``TASKS`` setting. The queue
+name can be changed with the ``JOEFLOW_TASK_QUEUE_NAME`` setting. It has to be
+listed in the ``QUEUES`` of the used task backend.
+
+.. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
+
+.. warning::
+    The Celery and Dramatiq task runners are deprecated in favor of Django
+    Tasks. They will be removed with the expiration of Django 5.2 LTS version
+    support.
+
 Return values
 ~~~~~~~~~~~~~
 

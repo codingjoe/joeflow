@@ -1,5 +1,7 @@
 import logging
+import warnings
 
+import django
 import dramatiq
 from django.apps import apps
 from django.db import OperationalError, transaction
@@ -11,7 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
-    """Schedule asynchronous machine task using celery."""
+    """Schedule asynchronous machine task using dramatiq."""
+    if django.VERSION >= (6, 0):
+        warnings.warn(
+            "The Dramatiq task runner is deprecated in favor of Django's task "
+            "framework. Deletion is scheduled with the expiration of Django "
+            "5.2 LTS version support.",
+            PendingDeprecationWarning,
+            stacklevel=2,
+        )
     _dramatiq_task_runner.send_with_options(
         args=(task_pk, workflow_pk),
         delay=countdown,
@@ -26,7 +36,7 @@ class RetryError(dramatiq.errors.Retry):
 
 
 @dramatiq.actor(
-    queue_name=settings.JOEFLOW_CELERY_QUEUE_NAME,
+    queue_name=settings.JOEFLOW_TASK_QUEUE_NAME,
     retry_when=lambda a, b: isinstance(b, (OperationalError, RetryError)),
 )
 def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):

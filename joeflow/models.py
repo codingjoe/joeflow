@@ -682,7 +682,7 @@ class Task(models.Model):
                 Time at which the task should be started.
 
         Returns:
-            celery.result.AsyncResult: Celery task result.
+            django.tasks.TaskResult: The enqueued task result.
 
         """
         self.status = self.SCHEDULED
