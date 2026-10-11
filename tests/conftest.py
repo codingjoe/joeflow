@@ -4,17 +4,17 @@ import pathlib
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def testdir():
     return pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
 
-@pytest.fixture()
+@pytest.fixture
 def fixturedir(testdir):
     return testdir / "fixtures"
 
 
-@pytest.fixture()
+@pytest.fixture
 def stub_worker():
     """Execute machine tasks with the in-memory task backend."""
     from tests.testapp import backends

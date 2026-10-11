@@ -1,4 +1,5 @@
-"""Execute machine tasks with Django's task framework.
+"""
+Execute machine tasks with Django's task framework.
 
 A task backend must be configured with the ``TASKS`` setting.
 """
@@ -29,7 +30,8 @@ class RetryError(Exception):
 
 
 def _get_run_after(countdown=None, eta=None):
-    """Return the point in time a machine task should start.
+    """
+    Return the point in time a machine task should start.
 
     An ``eta`` takes precedence over a ``countdown``.
     """
@@ -42,7 +44,8 @@ def _get_run_after(countdown=None, eta=None):
 
 @contextmanager
 def _retry_on_failure(task, *args, **kwargs):
-    """Re-enqueue a task if the wrapped code block fails.
+    """
+    Re-enqueue a task if the wrapped code block fails.
 
     Machine tasks are locked to prevent race conditions. Django's task
     framework has no retry mechanism of its own, so a task that is locked or
@@ -115,7 +118,8 @@ _machine_task = _create_machine_task()
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None):
-    """Schedule an asynchronous machine task.
+    """
+    Schedule an asynchronous machine task.
 
     Args:
         task_pk (int): Primary key of the task that should be executed.

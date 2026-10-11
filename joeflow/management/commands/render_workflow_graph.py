@@ -42,7 +42,7 @@ class Command(BaseCommand):
         verbosity = options["verbosity"]
         file_format = options["format"]
         cleanup = options["cleanup"]
-        directory = options.get("directory", None)
+        directory = options.get("directory")
 
         workflows = [
             joeflow.models.get_workflow(s) for s in workflows

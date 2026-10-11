@@ -7,7 +7,8 @@ except ImportError:
 
 
 class NoDashDiGraph(gv.Digraph):
-    """Like `.graphviz.Digraph` but with unique nodes and edges.
+    """
+    Like `.graphviz.Digraph` but with unique nodes and edges.
 
     Nodes and edges are unique and their attributes will be overridden
     should the same node or edge be added twice. Nodes are unique by name

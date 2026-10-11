@@ -52,7 +52,7 @@ class TestTaskRunner:
 
 
 class TestRetryOnFailure:
-    @pytest.fixture()
+    @pytest.fixture
     def task(self):
         task = mock.Mock()
         task.get_backend.return_value.supports_defer = True

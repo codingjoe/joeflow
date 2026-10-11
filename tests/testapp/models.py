@@ -25,8 +25,7 @@ class WelcomeWorkflow(Workflow):
     def has_user(self):
         if self.user:
             return [self.send_welcome_email]
-        else:
-            return [self.end]
+        return [self.end]
 
     def send_welcome_email(self):
         self.user.email_user(
