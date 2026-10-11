@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import pytest
@@ -6,7 +5,7 @@ import pytest
 
 @pytest.fixture
 def testdir():
-    return pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
+    return pathlib.Path(__file__).resolve().parent
 
 
 @pytest.fixture

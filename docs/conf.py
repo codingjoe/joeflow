@@ -1,12 +1,14 @@
+import contextlib
 import importlib
 import inspect
 import os
 import sys
+from pathlib import Path
 
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.testapp.settings")
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, str(Path("..").resolve()))
 django.setup()
 
 extensions = [
@@ -37,17 +39,15 @@ def linkcode_resolve(domain, info):
         return None
     filename = info["module"].replace(".", "/")
     mod = importlib.import_module(info["module"])
-    basename = os.path.splitext(mod.__file__)[0]
-    if basename.endswith("__init__"):
+    basename = Path(mod.__file__).with_suffix("")
+    if str(basename).endswith("__init__"):
         filename += "/__init__"
     item = mod
     lineno = ""
 
     for piece in info["fullname"].split("."):
-        try:
+        with contextlib.suppress(AttributeError):
             item = getattr(item, piece)
-        except AttributeError:
-            pass
         try:
             lines, first_line = inspect.getsourcelines(item)
             lineno = f"#L{first_line:d}-L{first_line + len(lines) - 1:d}"

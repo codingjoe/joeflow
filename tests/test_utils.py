@@ -41,7 +41,6 @@ class TestNoDashDiGraph:
         graph.node("bar", color="green")
         graph.edge("foo", "bar", color="blue")
         graph.comment = "This is a comment."
-        print(str(graph))
         assert list(graph.__iter__()) == [
             "// This is a comment.\n",
             "digraph {\n",
@@ -58,7 +57,6 @@ class TestNoDashDiGraph:
         graph.node("bar", color="green")
         graph.edge("foo", "bar", color="blue")
         graph.comment = "This is a comment."
-        print(str(graph))
         assert list(graph.__iter__(subgraph=True)) == [
             "// This is a comment.\n",
             "{\n",

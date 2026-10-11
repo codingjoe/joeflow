@@ -60,13 +60,11 @@ def _retry_on_failure(task, *args, **kwargs):
     except (OperationalError, RetryError) as e:
         backend = task.get_backend()
         if not backend.supports_defer:
-            logger.error(
+            logger.exception(
                 "%r must be executed again, but the %r task backend does not "
-                "support deferred execution. The task is not re-enqueued: %s",
+                "support deferred execution. The task is not re-enqueued.",
                 task.name,
                 backend.alias,
-                str(e),
-                exc_info=True,
             )
             raise
         run_after = _get_run_after(countdown=_RETRY_DELAY)
@@ -79,28 +77,31 @@ def _retry_on_failure(task, *args, **kwargs):
 def _machine_task(task_pk, workflow_pk):
     """Run the scheduled node and continue the workflow."""
     Task = apps.get_model("joeflow", "Task")
-    with _retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk):
-        with transaction.atomic():
-            try:
-                task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
-            except Task.DoesNotExist:
-                logger.info(
-                    "Task %s does not exist or has already been completed.", task_pk
-                )
-                return
-
-            workflow = (
-                task.content_type.model_class()
-                .objects.select_for_update(nowait=True)
-                .get(pk=workflow_pk)
+    with (
+        _retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk),
+        transaction.atomic(),
+    ):
+        try:
+            task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
+        except Task.DoesNotExist:
+            logger.info(
+                "Task %s does not exist or has already been completed.", task_pk
             )
+            return
 
-            executed, result = execute(workflow, task)
-            if not executed:
-                return
-            if result is False:
-                raise RetryError(f"{task} is not ready to continue yet.")
-            finish(task, result)
+        workflow = (
+            task.content_type.model_class()
+            .objects.select_for_update(nowait=True)
+            .get(pk=workflow_pk)
+        )
+
+        executed, result = execute(workflow, task)
+        if not executed:
+            return
+        if result is False:
+            msg = f"{task} is not ready to continue yet."
+            raise RetryError(msg)
+        finish(task, result)
 
 
 def _create_machine_task():
@@ -108,10 +109,11 @@ def _create_machine_task():
     try:
         return task(queue_name=settings.JOEFLOW_TASK_QUEUE_NAME)(_machine_task)
     except exceptions.InvalidTask as e:
-        raise ImproperlyConfigured(
+        msg = (
             f"The {settings.JOEFLOW_TASK_QUEUE_NAME!r} queue is not configured in "
             "the 'TASKS' setting. Add it to the 'QUEUES' of the used task backend."
-        ) from e
+        )
+        raise ImproperlyConfigured(msg) from e
 
 
 _machine_task = _create_machine_task()

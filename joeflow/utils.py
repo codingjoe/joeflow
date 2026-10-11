@@ -29,7 +29,8 @@ class NoDashDiGraph(gv.Digraph):
 
         if subgraph:
             if self.strict:
-                raise ValueError("subgraphs cannot be strict")
+                msg = "subgraphs cannot be strict"
+                raise ValueError(msg)
             head = self._subgraph if self.name else self._subgraph_plain
         else:
             head = self._head_strict if self.strict else self._head

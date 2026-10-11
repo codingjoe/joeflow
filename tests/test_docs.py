@@ -15,11 +15,11 @@ class WelcomeWorkflowMachineTest(SimpleTestCase):
             username="spidy",
         )
         workflow = models.WelcomeWorkflow(user=user)
-        self.assertEqual(workflow.has_user(), [workflow.send_welcome_email])
+        assert workflow.has_user() == [workflow.send_welcome_email]
 
     def test_has_user__without_user(self):
         workflow = models.WelcomeWorkflow()
-        self.assertEqual(workflow.has_user(), [workflow.end])
+        assert workflow.has_user() == [workflow.end]
 
     def test_send_welcome_email(self):
         user = get_user_model()(
@@ -33,9 +33,9 @@ class WelcomeWorkflowMachineTest(SimpleTestCase):
         workflow.send_welcome_email()
 
         email = mail.outbox[-1]
-        self.assertEqual(email.subject, "Welcome")
-        self.assertEqual(email.body, "Hello Peter!")
-        self.assertIn("spiderman@avengers.com", email.to)
+        assert email.subject == "Welcome"
+        assert email.body == "Hello Peter!"
+        assert "spiderman@avengers.com" in email.to
 
 
 class WelcomeWorkflowHumanTest(TestCase):
@@ -43,7 +43,7 @@ class WelcomeWorkflowHumanTest(TestCase):
 
     def test_start__get(self):
         response = self.client.get(self.start_url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
     def test_start__post_with_user(self):
         user = get_user_model().objects.create(
@@ -54,14 +54,14 @@ class WelcomeWorkflowHumanTest(TestCase):
         )
 
         response = self.client.post(self.start_url, data={"user": user.pk})
-        self.assertEqual(response.status_code, 302)
+        assert response.status_code == 302
         workflow = models.WelcomeWorkflow.objects.get()
-        self.assertTrue(workflow.user)
-        self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())
+        assert workflow.user
+        assert workflow.task_set.succeeded().filter(name="start").exists()
 
     def test_start__post_without_user(self):
         response = self.client.post(self.start_url)
-        self.assertEqual(response.status_code, 302)
+        assert response.status_code == 302
         workflow = models.WelcomeWorkflow.objects.get()
-        self.assertFalse(workflow.user)
-        self.assertTrue(workflow.task_set.succeeded().filter(name="start").exists())
+        assert not workflow.user
+        assert workflow.task_set.succeeded().filter(name="start").exists()
