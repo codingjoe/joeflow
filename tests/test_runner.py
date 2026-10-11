@@ -98,8 +98,9 @@ class TestRetryOnFailure:
                 raise OperationalError("database is locked")
         task.using.assert_called_once_with(run_after=None)
 
-    def test_retry__without_defer_support(self, task, settings, caplog):
-        settings.JOEFLOW_TASK_RETRY_DELAY = 42
+    @pytest.mark.parametrize("delay", [0, 42])
+    def test_retry__without_defer_support(self, task, settings, caplog, delay):
+        settings.JOEFLOW_TASK_RETRY_DELAY = delay
         task.get_backend.return_value.supports_defer = False
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError):
             with django_tasks.retry_on_failure(task, 1, 2):

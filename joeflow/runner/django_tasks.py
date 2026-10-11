@@ -58,6 +58,9 @@ def retry_on_failure(task, *args, **kwargs):
     retry mechanism, so the task is re-enqueued once the current transaction
     has been committed.
 
+    A task backend with support for deferred execution is required. The
+    failure is raised otherwise, so the task is not re-enqueued.
+
     Args:
         task (django.tasks.Task): The task that is re-enqueued on failure.
         *args: Positional arguments the task is called with.
@@ -68,8 +71,7 @@ def retry_on_failure(task, *args, **kwargs):
         yield
     except (OperationalError, RetryError) as e:
         backend = task.get_backend()
-        delay = settings.JOEFLOW_TASK_RETRY_DELAY
-        if delay and not backend.supports_defer:
+        if not backend.supports_defer:
             logger.error(
                 "%r must be executed again, but the %r task backend does not "
                 "support deferred execution. The task is not re-enqueued: %s",
@@ -78,7 +80,7 @@ def retry_on_failure(task, *args, **kwargs):
                 e,
             )
             raise
-        run_after = _get_run_after(countdown=delay)
+        run_after = _get_run_after(countdown=settings.JOEFLOW_TASK_RETRY_DELAY)
         logger.warning("Re-enqueueing task %s%r: %s", task.name, args, e)
         transaction.on_commit(
             lambda: task.using(run_after=run_after).enqueue(*args, **kwargs)

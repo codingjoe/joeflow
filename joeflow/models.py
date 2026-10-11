@@ -681,9 +681,6 @@ class Task(models.Model):
             eta (datetime.datetime):
                 Time at which the task should be started.
 
-        Returns:
-            django.tasks.TaskResult: The enqueued task result.
-
         """
         self.status = self.SCHEDULED
         self.completed = None
