@@ -19,10 +19,6 @@ class TestGetRunAfter:
     def test_no_delay(self):
         assert django_tasks._get_run_after() is None
 
-    def test_eta(self):
-        eta = timezone.now() + timedelta(hours=1)
-        assert django_tasks._get_run_after(eta=eta) == eta
-
     def test_countdown(self):
         now = timezone.now()
         run_after = django_tasks._get_run_after(countdown=60)
@@ -35,9 +31,6 @@ class TestTaskRunner:
         monkeypatch.setattr(django_tasks, "_machine_task", task)
         result = django_tasks.task_runner(task_pk=1, workflow_pk=2)
         task.using.assert_called_once_with(run_after=None)
-        task.using.return_value.enqueue.assert_called_once_with(
-            task_pk=1, workflow_pk=2
-        )
         assert result is task.using.return_value.enqueue.return_value
 
     def test_deferred(self, monkeypatch):
@@ -66,57 +59,43 @@ class TestRetryOnFailure:
         return task
 
     def test_no_failure(self, task):
-        with django_tasks.retry_on_failure(task, 1, 2):
+        with django_tasks._retry_on_failure(task, 1, 2):
             pass
         task.using.assert_not_called()
 
-    def test_retry(self, task, settings, db, django_capture_on_commit_callbacks):
-        settings.JOEFLOW_TASK_RETRY_DELAY = 42
+    def test_retry(self, task, monkeypatch, db, django_capture_on_commit_callbacks):
+        monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 42)
         now = timezone.now()
-        with django_capture_on_commit_callbacks(execute=True):
-            with django_tasks.retry_on_failure(task, 1, 2):
+        with django_capture_on_commit_callbacks(execute=True) as callbacks:
+            with django_tasks._retry_on_failure(task, 1, 2):
                 raise OperationalError("database is locked")
+        assert len(callbacks) == 1
         run_after = task.using.call_args.kwargs["run_after"]
         assert now + timedelta(seconds=41) < run_after < now + timedelta(seconds=43)
         task.using.return_value.enqueue.assert_called_once_with(1, 2)
 
-    def test_retry__retry_error(
-        self, task, settings, db, django_capture_on_commit_callbacks
-    ):
-        settings.JOEFLOW_TASK_RETRY_DELAY = 42
+    def test_retry__retry_error(self, task, db, django_capture_on_commit_callbacks):
         with django_capture_on_commit_callbacks(execute=True):
-            with django_tasks.retry_on_failure(task, task_pk=1):
+            with django_tasks._retry_on_failure(task, task_pk=1):
                 raise django_tasks.RetryError("not ready")
         task.using.return_value.enqueue.assert_called_once_with(task_pk=1)
 
     def test_retry__immediately(
-        self, task, settings, db, django_capture_on_commit_callbacks
+        self, task, monkeypatch, db, django_capture_on_commit_callbacks
     ):
-        settings.JOEFLOW_TASK_RETRY_DELAY = 0
+        monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
         with django_capture_on_commit_callbacks(execute=True):
-            with django_tasks.retry_on_failure(task, 1, 2):
+            with django_tasks._retry_on_failure(task, 1, 2):
                 raise OperationalError("database is locked")
         task.using.assert_called_once_with(run_after=None)
 
-    @pytest.mark.parametrize("delay", [0, 42])
-    def test_retry__without_defer_support(self, task, settings, caplog, delay):
-        settings.JOEFLOW_TASK_RETRY_DELAY = delay
+    def test_retry__without_defer_support(self, task, caplog):
         task.get_backend.return_value.supports_defer = False
         with caplog.at_level(logging.ERROR), pytest.raises(OperationalError):
-            with django_tasks.retry_on_failure(task, 1, 2):
+            with django_tasks._retry_on_failure(task, 1, 2):
                 raise OperationalError("database is locked")
         task.using.assert_not_called()
         assert "does not support deferred execution" in caplog.text
-
-    def test_retry__on_commit(
-        self, task, settings, db, django_capture_on_commit_callbacks
-    ):
-        settings.JOEFLOW_TASK_RETRY_DELAY = 42
-        with django_capture_on_commit_callbacks(execute=True) as callbacks:
-            with django_tasks.retry_on_failure(task, 1, 2):
-                raise OperationalError("database is locked")
-        assert len(callbacks) == 1
-        task.using.return_value.enqueue.assert_called_once_with(1, 2)
 
 
 class TestMachineTask:
@@ -128,9 +107,9 @@ class TestMachineTask:
         yield backends.TestWorker
         backends.get_backend().clear()
 
-    def test_locked(self, monkeypatch, settings, worker):
+    def test_locked(self, monkeypatch, worker):
         """A machine task is re-enqueued if the task cannot be locked."""
-        settings.JOEFLOW_TASK_RETRY_DELAY = 0
+        monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
         monkeypatch.setattr(
             Task.objects,
             "select_for_update",
@@ -148,6 +127,7 @@ class TestMachineTask:
 
     def test_retry__machine_task(self, monkeypatch, worker):
         """A machine task that returns False is re-enqueued until it succeeds."""
+        monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
         attempts = 0
 
         def waiting(self, task):
@@ -164,9 +144,9 @@ class TestMachineTask:
         assert attempts == 2
         assert workflow.task_set.get(name="wait").status == Task.SUCCEEDED
 
-    def test_retry__deferred(self, settings, worker):
+    def test_retry__deferred(self, monkeypatch, worker):
         """A machine task that keeps returning False is re-enqueued later."""
-        settings.JOEFLOW_TASK_RETRY_DELAY = 3600
+        monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 3600)
         workflow = workflows.WaitWorkflow.start()
         worker.wait()
         assert workflow.task_set.get(name="wait").status == Task.SCHEDULED

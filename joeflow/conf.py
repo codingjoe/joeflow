@@ -1,5 +1,6 @@
 import warnings
 
+import django
 from appconf import AppConf
 from django.conf import settings
 
@@ -7,17 +8,11 @@ __all__ = ("settings",)
 
 
 def _default_task_runner() -> str:
-    """Return the default task runner for the installed environment."""
-    try:
-        import django.tasks  # NoQA
-    except ImportError:
-        # Django < 6.0 does not ship the Tasks framework.
-        try:
-            import dramatiq  # NoQA
-        except ImportError:
-            return "joeflow.runner.celery.task_runner"
-        return "joeflow.runner.dramatiq.task_runner"
-    return "joeflow.runner.django_tasks.task_runner"
+    """Return the default task runner for the installed Django version."""
+    if django.VERSION >= (6, 0):
+        return "joeflow.runner.django_tasks.task_runner"
+    # Django < 6.0 does not ship the Tasks framework.
+    return "joeflow.runner.dramatiq.task_runner"
 
 
 def _default_task_queue_name() -> str:
@@ -72,13 +67,4 @@ class JoeflowAppConfig(AppConf):
     The queue must be listed in the ``QUEUES`` of the task backend used by
     the ``TASKS`` setting. The deprecated ``JOEFLOW_CELERY_QUEUE_NAME``
     setting is used as a fallback if it is set.
-    """
-
-    JOEFLOW_TASK_RETRY_DELAY = 60
-    """
-    Time in seconds to wait before a machine task is re-enqueued.
-
-    A machine task is re-enqueued if it cannot be executed, because another
-    process holds the lock or because the task is not ready to continue yet.
-    This requires a task backend with support for deferred execution.
     """

@@ -25,14 +25,14 @@ except ImportError as e:  # Django < 6.0
     ) from e
 
 from ..conf import settings
-from ..contrib.reversion import with_reversion
+from .base import execute, finish
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
-    "retry_on_failure",
-    "task_runner",
-]
+__all__ = ["task_runner"]
+
+_RETRY_DELAY = 60
+"""Time in seconds to wait before a machine task is re-enqueued."""
 
 
 class RetryError(Exception):
@@ -49,7 +49,7 @@ def _get_run_after(countdown=None, eta=None):
 
 
 @contextmanager
-def retry_on_failure(task, *args, **kwargs):
+def _retry_on_failure(task, *args, **kwargs):
     """Re-enqueue a task if the wrapped code block fails.
 
     Machine tasks are locked to prevent race conditions. If the lock cannot
@@ -80,7 +80,7 @@ def retry_on_failure(task, *args, **kwargs):
                 e,
             )
             raise
-        run_after = _get_run_after(countdown=settings.JOEFLOW_TASK_RETRY_DELAY)
+        run_after = _get_run_after(countdown=_RETRY_DELAY)
         logger.warning("Re-enqueueing task %s%r: %s", task.name, args, e)
         transaction.on_commit(
             lambda: task.using(run_after=run_after).enqueue(*args, **kwargs)
@@ -90,7 +90,7 @@ def retry_on_failure(task, *args, **kwargs):
 def _machine_task(task_pk, workflow_pk):
     """Execute a single machine task."""
     Task = apps.get_model("joeflow", "Task")
-    with retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk):
+    with _retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk):
         with transaction.atomic():
             try:
                 task = Task.objects.select_for_update().get(pk=task_pk, completed=None)
@@ -106,29 +106,12 @@ def _machine_task(task_pk, workflow_pk):
                 .get(pk=workflow_pk)
             )
 
-            try:
-                logger.info("Executing %r", task)
-                node = task.node
-                kwargs = {}
-                if getattr(node, "with_task", False):
-                    kwargs["task"] = task
-                with with_reversion(task):
-                    result = node(workflow, **kwargs)
-            except OperationalError:
-                raise
-            except:  # NoQA
-                task.fail()
-                logger.exception("Execution of %r failed", task)
-            else:
-                if result is False:
-                    raise RetryError(f"{task} is not ready to continue yet.")
-                if result is True:
-                    result = None
-                logger.info(
-                    "Task completed successful, starting next tasks: %s", result
-                )
-                task.start_next_tasks(next_nodes=result)
-                task.finish()
+            executed, result = execute(workflow, task)
+            if not executed:
+                return
+            if result is False:
+                raise RetryError(f"{task} is not ready to continue yet.")
+            finish(task, result)
 
 
 def _create_machine_task():

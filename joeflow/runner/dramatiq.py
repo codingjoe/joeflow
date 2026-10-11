@@ -1,4 +1,3 @@
-import logging
 import warnings
 
 import django
@@ -7,9 +6,7 @@ from django.apps import apps
 from django.db import OperationalError, transaction
 
 from ..conf import settings
-from ..contrib.reversion import with_reversion
-
-logger = logging.getLogger(__name__)
+from .base import execute, finish
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
@@ -55,30 +52,10 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
             .get()
         )
 
-        try:
-            logger.info("Executing %r", task)
-            node = task.node
-            with_task = getattr(node, "with_task", False)
-            kwargs = {}
-            if with_task:
-                kwargs["task"] = task
-            with with_reversion(task):
-                result = node(workflow, **kwargs)
-        except OperationalError:
-            raise
-        except:  # NoQA
-            task.fail()
-            logger.exception("Execution of %r failed", task)
-        else:
-            if result is False:
-                _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
-                raise RetryError("Task returned False, retrying …")
-            elif result is True:
-                result = None
-            _dramatiq_task_runner.logger.info(
-                "%r completed successfully, starting next tasks: %s",
-                task,
-                result,
-            )
-            task.start_next_tasks(next_nodes=result)
-            task.finish()
+        executed, result = execute(workflow, task)
+        if not executed:
+            return
+        if result is False:
+            _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
+            raise RetryError("Task returned False, retrying …")
+        finish(task, result)

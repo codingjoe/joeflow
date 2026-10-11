@@ -145,8 +145,6 @@ CELERY_BROKER_URL = "memory://"
 CELERY_TASK_ALWAYS_EAGER = True
 
 JOEFLOW_TASK_QUEUE_NAME = "yoloflow"
-# Retry machine tasks right away, so the test suite does not have to wait.
-JOEFLOW_TASK_RETRY_DELAY = 0
 
 # Django Tasks
 
