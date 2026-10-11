@@ -1,17 +1,27 @@
-import logging
+import warnings
 
+import django
 import dramatiq
 from django.apps import apps
 from django.db import OperationalError, transaction
 
 from ..conf import settings
-from ..contrib.reversion import with_reversion
-
-logger = logging.getLogger(__name__)
+from .base import execute, finish
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
-    """Schedule asynchronous machine task using celery."""
+    """Schedule an asynchronous machine task with Dramatiq.
+
+    Deprecated in favor of Django's task framework.
+    """
+    if django.VERSION >= (6, 0):
+        warnings.warn(
+            "The Dramatiq task runner is deprecated in favor of Django's task "
+            "framework. Deletion is scheduled with the expiration of Django "
+            "5.2 LTS version support.",
+            PendingDeprecationWarning,
+            stacklevel=2,
+        )
     _dramatiq_task_runner.send_with_options(
         args=(task_pk, workflow_pk),
         delay=countdown,
@@ -26,7 +36,7 @@ class RetryError(dramatiq.errors.Retry):
 
 
 @dramatiq.actor(
-    queue_name=settings.JOEFLOW_CELERY_QUEUE_NAME,
+    queue_name=settings.JOEFLOW_TASK_QUEUE_NAME,
     retry_when=lambda a, b: isinstance(b, (OperationalError, RetryError)),
 )
 def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
@@ -45,30 +55,10 @@ def _dramatiq_task_runner(task_pk, workflow_pk, retries=0):
             .get()
         )
 
-        try:
-            logger.info("Executing %r", task)
-            node = task.node
-            with_task = getattr(node, "with_task", False)
-            kwargs = {}
-            if with_task:
-                kwargs["task"] = task
-            with with_reversion(task):
-                result = node(workflow, **kwargs)
-        except OperationalError:
-            raise
-        except:  # NoQA
-            task.fail()
-            logger.exception("Execution of %r failed", task)
-        else:
-            if result is False:
-                _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
-                raise RetryError("Task returned False, retrying …")
-            elif result is True:
-                result = None
-            _dramatiq_task_runner.logger.info(
-                "%r completed successfully, starting next tasks: %s",
-                task,
-                result,
-            )
-            task.start_next_tasks(next_nodes=result)
-            task.finish()
+        executed, result = execute(workflow, task)
+        if not executed:
+            return
+        if result is False:
+            _dramatiq_task_runner.logger.info("%r returned False, retrying …", task)
+            raise RetryError("Task returned False, retrying …")
+        finish(task, result)

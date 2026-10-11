@@ -7,21 +7,28 @@ The following tutorial should give you a quick overview on how to write a
 workflow, integrate it into your Django application and write robust and
 automated tests.
 
-Before we get started make you you have the package installed. Simply install
+Before we get started make sure you have the package installed. Simply install
 the PyPi package…
 
 .. code:: shell
 
-    python3 -m pip install "joeflow[reversion,dramatiq,celery,graphviz]"
+    python3 -m pip install "joeflow[reversion,graphviz]"
 
-…and add ``joeflow`` to the ``INSTALLED_APP`` setting. You will also need to have
-celery setup.
+…and add ``joeflow`` to the ``INSTALLED_APPS`` setting.
+
+Machine tasks are executed asynchronously with `Django Tasks`_. Configure a
+task backend in the ``TASKS`` setting and make sure the queue of the
+``JOEFLOW_TASK_QUEUE_NAME`` setting is part of its ``QUEUES``.
 
 .. seealso::
-    If you don't have celery setup yet, simply follow their setup instructions
-    for Django projects.
+    If you don't have a task backend setup yet, follow the `Django Tasks`_
+    documentation.
 
-    https://celery.readthedocs.io/en/latest/django/first-steps-with-django.html
+.. note::
+    Django < 6.0 does not ship the Tasks framework. Install the ``celery`` or
+    ``dramatiq`` extra and use the deprecated task runner instead.
+
+.. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
 
 Once the setup is completed you can get started writing your first workflow!
 

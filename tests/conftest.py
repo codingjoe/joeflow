@@ -16,25 +16,34 @@ def fixturedir(testdir):
 
 
 @pytest.fixture(
-    params=["joeflow.runner.dramatiq.task_runner", "joeflow.runner.celery.task_runner"]
+    params=[
+        "joeflow.runner.django_tasks.task_runner",
+        "joeflow.runner.dramatiq.task_runner",
+        "joeflow.runner.celery.task_runner",
+    ]
 )
-def _runner(request, monkeypatch, settings):
-    settings.JOEFLOW_TASK_RUNNER = request.param
-    if request.param == "joeflow.runner.dramatiq.task_runner":
+def _runner(request, settings):
+    runner = request.param
+    if runner == "joeflow.runner.django_tasks.task_runner":
         try:
-            import dramatiq  # NoQA
+            import django.tasks  # NoQA
         except ImportError:
-            pytest.skip("Dramatiq is not installed")
-    if request.param == "joeflow.runner.celery.task_runner":
-        try:
-            from celery import shared_task  # NoQA
-        except ImportError:
-            pytest.skip("Celery is not installed")
+            pytest.skip("Django < 6.0 does not ship the Tasks framework.")
+    if runner == "joeflow.runner.dramatiq.task_runner":
+        pytest.importorskip("dramatiq")
+    if runner == "joeflow.runner.celery.task_runner":
+        pytest.importorskip("celery")
+    settings.JOEFLOW_TASK_RUNNER = runner
 
 
 @pytest.fixture()
-def stub_worker(monkeypatch, settings, _runner):
-    if settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.celery.task_runner":
+def stub_worker(settings, _runner):
+    if settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.django_tasks.task_runner":
+        from tests.testapp import backends
+
+        yield backends.TestWorker
+        backends.get_backend().clear()
+    elif settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.celery.task_runner":
         yield mock.Mock()
     else:
         import dramatiq
@@ -49,7 +58,7 @@ def stub_worker(monkeypatch, settings, _runner):
             @staticmethod
             def wait():
                 broker.join(
-                    settings.JOEFLOW_CELERY_QUEUE_NAME, timeout=60000, fail_fast=False
+                    settings.JOEFLOW_TASK_QUEUE_NAME, timeout=60000, fail_fast=False
                 )
                 worker.join()
 
@@ -72,3 +81,11 @@ def fake_redis(monkeypatch):
 
     monkeypatch.setattr(redis, "Redis", FakeRedis)
     monkeypatch.setattr(redis, "StrictRedis", FakeRedis)
+
+
+collect_ignore = []
+try:
+    import django.tasks  # NoQA
+except ImportError:
+    # Django < 6.0 does not ship the Tasks framework.
+    collect_ignore.append("test_runner.py")

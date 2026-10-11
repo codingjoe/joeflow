@@ -1,6 +1,9 @@
 admin
+backend
 boolean
+Celery
 Django
+Dramatiq
 jitter
 joeflow
 mixins

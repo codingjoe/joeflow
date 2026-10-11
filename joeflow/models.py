@@ -672,17 +672,14 @@ class Task(models.Model):
         self.save(update_fields=["status", "exception", "stacktrace"])
 
     def enqueue(self, countdown=None, eta=None):
-        """Schedule the tasks for execution.
+        """Schedule the task for execution.
 
         Args:
             countdown (int):
-                Time in seconds until the time should be started.
+                Time in seconds until the task should be started.
 
             eta (datetime.datetime):
                 Time at which the task should be started.
-
-        Returns:
-            celery.result.AsyncResult: Celery task result.
 
         """
         self.status = self.SCHEDULED

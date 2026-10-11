@@ -36,8 +36,21 @@ decide which task to execute next (exclusive gateway) but also start or wait
 for multiple other tasks (split/join gateways).
 
 Furthermore tasks can implement things like sending emails or fetching data
-from an 3rd party API. All tasks are executed asynchronously to avoid blocking
-IO and locked to prevent raise conditions.
+from a third-party API. All tasks are executed asynchronously to avoid
+blocking IO and are locked to prevent race conditions.
+
+Machine tasks are executed by the task runner of the ``JOEFLOW_TASK_RUNNER``
+setting. On Django 6.0 and later they run with `Django Tasks`_, using the task
+backend of the ``TASKS`` setting. Configure the queue with the
+``JOEFLOW_TASK_QUEUE_NAME`` setting and list it in the ``QUEUES`` of that
+backend.
+
+.. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
+
+.. warning::
+    The Celery and Dramatiq task runners are deprecated in favor of Django
+    Tasks. They will be removed with the expiration of Django 5.2 LTS version
+    support.
 
 Return values
 ~~~~~~~~~~~~~

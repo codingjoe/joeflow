@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: sudo apt-get install -y gettext graphviz
+      - run: sudo apt-get install -y gettext graphviz libenchant-2-2
       - uses: astral-sh/setup-uv@v7
-      - run: uv run --group docs sphinx-build -W -b doctest -b spelling -b html docs docs/_build
+      - run: uv run --group docs sphinx-build -W -b doctest docs docs/_build
+      - run: uv run --group docs sphinx-build -W -b spelling docs docs/_build
+      - run: uv run --group docs sphinx-build -W -b html docs docs/_build
   PyTest:
     permissions:
       contents: read
@@ -52,6 +54,9 @@ jobs:
           - python-version: "3.14"
             django-version: "5.2"
             extras: "--extra graphviz --extra dramatiq"
+          - python-version: "3.14"
+            django-version: "6.1"
+            extras: "--extra dramatiq --extra celery"
     steps:
       - uses: actions/checkout@v7
       - run: sudo apt install -y graphviz
