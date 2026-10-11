@@ -23,7 +23,6 @@ classifiers = [
   "Programming Language :: Python :: 3.15",
   "Programming Language :: Python :: 3 :: Only",
   "Framework :: Django",
-  "Framework :: Django :: 5.2",
   "Framework :: Django :: 6.0",
   "Framework :: Django :: 6.1",
   "Topic :: Software Development",
@@ -47,7 +46,7 @@ keywords = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-  "django>=5.2",
+  "django>=6.0",
   "django-appconf",
 ]
 
@@ -58,13 +57,6 @@ graphviz = [
 reversion = [
   "django-reversion",
 ]
-celery = [
-  "celery>=4.2.0",
-]
-dramatiq = [
-  "dramatiq>=2.0.0",
-  "django_dramatiq",
-]
 
 [dependency-groups]
 dev = [
@@ -74,18 +66,12 @@ test = [
   "pytest",
   "pytest-cov",
   "pytest-django",
-  "pytest-env",
-  "fakeredis",
 ]
 docs = [
   "sphinx",
   "sphinxcontrib-spelling>=8.0.2",
   "furo",
-  "celery>=4.2.0",
   "django-reversion",
-  "dramatiq>=2.0.0",
-  "django_dramatiq",
-  "redis",
   "graphviz>=0.18",
 ]
 
@@ -113,7 +99,6 @@ testpaths = [
 ]
 norecursedirs = "tests/testapp"
 DJANGO_SETTINGS_MODULE = "tests.testapp.settings"
-env = "D:DRAMATIQ_BROKER = dramatiq.brokers.stub.StubBroker"
 
 [tool.coverage.report]
 show_missing = true

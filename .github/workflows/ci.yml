@@ -36,27 +36,20 @@ jobs:
         python-version:
           - "3.14"
         django-version:
-          - "5.2"
           - "6.0"
           - "6.1"
         extras:
           - ""
         include:
           - python-version: "3.14"
-            django-version: "5.2"
-            extras: "--extra dramatiq"
-          - python-version: "3.14"
-            django-version: "5.2"
-            extras: "--extra celery"
-          - python-version: "3.14"
-            django-version: "5.2"
+            django-version: "6.1"
             extras: "--extra reversion"
           - python-version: "3.14"
-            django-version: "5.2"
-            extras: "--extra graphviz --extra dramatiq"
+            django-version: "6.1"
+            extras: "--extra graphviz"
           - python-version: "3.14"
             django-version: "6.1"
-            extras: "--extra dramatiq --extra celery"
+            extras: "--extra graphviz --extra reversion"
     steps:
       - uses: actions/checkout@v7
       - run: sudo apt install -y graphviz

@@ -12,13 +12,6 @@ __all__ = (
     "Wait",
 )
 
-try:
-    # We need to import the Dramatiq task,to ensure
-    # it is detected by django-dramatiq `rundramatiq` command.
-    from joeflow.runner.dramatiq import _dramatiq_task_runner  # NoQA
-except ImportError:
-    pass
-
 
 class Start:
     """Start a new function via a callable.

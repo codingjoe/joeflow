@@ -27,14 +27,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Application definition
-try:
-    import dramatiq  # NoQA
-except ImportError:
-    INSTALLED_APPS = []
-else:
-    INSTALLED_APPS = ["django_dramatiq"]
-
-INSTALLED_APPS += [
+INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -125,39 +118,17 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
-
-# Dramatiq
-
-DRAMATIQ_BROKER = {
-    "BROKER": os.getenv("DRAMATIQ_BROKER", "dramatiq.brokers.redis.RedisBroker"),
-    "MIDDLEWARE": [
-        "dramatiq.middleware.AgeLimit",
-        "dramatiq.middleware.TimeLimit",
-        "dramatiq.middleware.Callbacks",
-        "dramatiq.middleware.Retries",
-    ],
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.dummy.EmailBackend",
+    },
 }
-
-# Celery
-
-CELERY_BROKER_URL = "memory://"
-CELERY_TASK_ALWAYS_EAGER = True
 
 JOEFLOW_TASK_QUEUE_NAME = "yoloflow"
 
-# Django Tasks
-
-try:
-    import django.tasks  # NoQA
-except ImportError:
-    # Django < 6.0 does not ship the Tasks framework.
-    # The test suite is executed with the deprecated task runners instead.
-    pass
-else:
-    TASKS = {
-        "default": {
-            "BACKEND": "tests.testapp.backends.InMemoryBackend",
-            "QUEUES": [JOEFLOW_TASK_QUEUE_NAME],
-        },
-    }
+TASKS = {
+    "default": {
+        "BACKEND": "tests.testapp.backends.InMemoryBackend",
+        "QUEUES": [JOEFLOW_TASK_QUEUE_NAME],
+    },
+}
