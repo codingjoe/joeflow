@@ -24,10 +24,6 @@ task backend in the ``TASKS`` setting and make sure the queue of the
     If you don't have a task backend setup yet, follow the `Django Tasks`_
     documentation.
 
-.. note::
-    Django < 6.0 does not ship the Tasks framework. Install the ``celery`` or
-    ``dramatiq`` extra and use the deprecated task runner instead.
-
 .. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
 
 Once the setup is completed you can get started writing your first workflow!

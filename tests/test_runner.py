@@ -100,12 +100,9 @@ class TestRetryOnFailure:
 
 class TestMachineTask:
     @pytest.fixture()
-    def worker(self, settings, transactional_db):
+    def worker(self, stub_worker, transactional_db):
         """Execute machine tasks with the in-memory task backend."""
-        settings.JOEFLOW_TASK_RUNNER = "joeflow.runner.django_tasks.task_runner"
-        backends.get_backend().clear()
-        yield backends.TestWorker
-        backends.get_backend().clear()
+        yield stub_worker
 
     def test_locked(self, monkeypatch, worker):
         """A machine task is re-enqueued if the task cannot be locked."""

@@ -10,15 +10,8 @@ from datetime import timedelta
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
 from django.db import OperationalError, transaction
+from django.tasks import exceptions, task
 from django.utils import timezone
-
-try:
-    from django.tasks import exceptions, task
-except ImportError as e:
-    raise ImproperlyConfigured(
-        "The 'joeflow.runner.django_tasks' task runner requires Django 6.0 or "
-        "later. Use the deprecated Celery or Dramatiq task runner instead."
-    ) from e
 
 from ..conf import settings
 from .base import execute, finish
@@ -114,8 +107,7 @@ def _create_machine_task():
     except exceptions.InvalidTask as e:
         raise ImproperlyConfigured(
             f"The {settings.JOEFLOW_TASK_QUEUE_NAME!r} queue is not configured in "
-            "the 'TASKS' setting. Add it to the 'QUEUES' of the used task backend "
-            "or set JOEFLOW_TASK_RUNNER to use a deprecated task runner."
+            "the 'TASKS' setting. Add it to the 'QUEUES' of the used task backend."
         ) from e
 
 

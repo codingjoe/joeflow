@@ -1,30 +1,14 @@
 """Tests for the joeflow application settings."""
 
-import pytest
-from joeflow import conf
+from django.conf import settings
 
 
-class TestDefaultTaskQueueName:
-    def test_default(self, monkeypatch):
-        monkeypatch.setattr(conf.settings, "is_overridden", lambda name: False)
-        assert conf._default_task_queue_name() == "joeflow"
+class TestTaskRunner:
+    def test_default(self):
+        assert settings.JOEFLOW_TASK_RUNNER == "joeflow.runner.django_tasks.task_runner"
 
-    def test_deprecated_setting(self, monkeypatch):
-        monkeypatch.setattr(
-            conf.settings,
-            "is_overridden",
-            lambda name: name == "JOEFLOW_CELERY_QUEUE_NAME",
-        )
-        monkeypatch.setattr(
-            conf.settings, "JOEFLOW_CELERY_QUEUE_NAME", "legacy", raising=False
-        )
-        with pytest.warns(DeprecationWarning, match="JOEFLOW_CELERY_QUEUE_NAME"):
-            assert conf._default_task_queue_name() == "legacy"
 
-    def test_deprecated_setting__new_setting_takes_precedence(self, monkeypatch):
-        monkeypatch.setattr(conf.settings, "is_overridden", lambda name: True)
-        monkeypatch.setattr(
-            conf.settings, "JOEFLOW_CELERY_QUEUE_NAME", "legacy", raising=False
-        )
-        with pytest.warns(DeprecationWarning, match="JOEFLOW_CELERY_QUEUE_NAME"):
-            assert conf._default_task_queue_name() == "joeflow"
+class TestTaskQueueName:
+    def test_override(self):
+        """The test project configures a queue other than the default."""
+        assert settings.JOEFLOW_TASK_QUEUE_NAME == "yoloflow"
