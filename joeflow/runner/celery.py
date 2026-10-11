@@ -43,7 +43,10 @@ def _celery_task_runner(self, task_pk, workflow_pk):
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None):
-    """Schedule asynchronous machine task using celery."""
+    """Schedule an asynchronous machine task with Celery.
+
+    Deprecated in favor of Django's task framework.
+    """
     if django.VERSION >= (6, 0):
         warnings.warn(
             "The Celery task runner is deprecated in favor of Django's task "

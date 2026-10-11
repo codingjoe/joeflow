@@ -15,7 +15,7 @@ __all__ = [
 
 
 def execute(workflow, task):
-    """Execute the node of a machine task.
+    """Run the node of a machine task.
 
     Returns:
         tuple: Whether the node executed successfully and its result.
@@ -38,7 +38,7 @@ def execute(workflow, task):
 
 
 def finish(task, result):
-    """Start the next tasks after a machine task completed successfully."""
+    """Start the next tasks after the current one completes successfully."""
     if result is True:
         result = None
     logger.info("Task completed successful, starting next tasks: %s", result)

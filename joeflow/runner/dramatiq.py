@@ -10,7 +10,10 @@ from .base import execute, finish
 
 
 def task_runner(*, task_pk, workflow_pk, countdown=None, eta=None, retries=0):
-    """Schedule asynchronous machine task using dramatiq."""
+    """Schedule an asynchronous machine task with Dramatiq.
+
+    Deprecated in favor of Django's task framework.
+    """
     if django.VERSION >= (6, 0):
         warnings.warn(
             "The Dramatiq task runner is deprecated in favor of Django's task "

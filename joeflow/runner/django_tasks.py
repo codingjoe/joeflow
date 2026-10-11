@@ -1,10 +1,6 @@
-"""Run machine tasks with Django's Tasks framework.
+"""Execute machine tasks with Django's task framework.
 
-Machine tasks are executed asynchronously using `Django Tasks`_. A task
-backend must be configured with the ``TASKS`` setting, see the Django
-documentation for details.
-
-.. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
+A task backend must be configured with the ``TASKS`` setting.
 """
 
 import logging
@@ -16,9 +12,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import OperationalError, transaction
 from django.utils import timezone
 
-try:  # Django >= 6.0
+try:
     from django.tasks import exceptions, task
-except ImportError as e:  # Django < 6.0
+except ImportError as e:
     raise ImproperlyConfigured(
         "The 'joeflow.runner.django_tasks' task runner requires Django 6.0 or "
         "later. Use the deprecated Celery or Dramatiq task runner instead."
@@ -36,11 +32,14 @@ _RETRY_DELAY = 60
 
 
 class RetryError(Exception):
-    """Signal that a machine task is not ready and has to be executed again."""
+    """Raised to re-enqueue a machine task that is not ready to continue."""
 
 
 def _get_run_after(countdown=None, eta=None):
-    """Return the earliest point in time a task should be executed at."""
+    """Return the point in time a machine task should start.
+
+    An ``eta`` takes precedence over a ``countdown``.
+    """
     if eta is not None:
         return eta
     if countdown:
@@ -52,20 +51,13 @@ def _get_run_after(countdown=None, eta=None):
 def _retry_on_failure(task, *args, **kwargs):
     """Re-enqueue a task if the wrapped code block fails.
 
-    Machine tasks are locked to prevent race conditions. If the lock cannot
-    be acquired or a task is not ready to continue yet, the task has to be
-    executed again at a later point. Django's Tasks framework has no built-in
-    retry mechanism, so the task is re-enqueued once the current transaction
-    has been committed.
+    Machine tasks are locked to prevent race conditions. Django's task
+    framework has no retry mechanism of its own, so a task that is locked or
+    not ready to continue gets re-enqueued once the current transaction
+    commits.
 
-    A task backend with support for deferred execution is required. The
-    failure is raised otherwise, so the task is not re-enqueued.
-
-    Args:
-        task (django.tasks.Task): The task that is re-enqueued on failure.
-        *args: Positional arguments the task is called with.
-        **kwargs: Keyword arguments the task is called with.
-
+    A task backend without support for deferred execution cannot re-enqueue
+    it, so the failure propagates instead.
     """
     try:
         yield
@@ -89,7 +81,7 @@ def _retry_on_failure(task, *args, **kwargs):
 
 
 def _machine_task(task_pk, workflow_pk):
-    """Execute a single machine task."""
+    """Run the scheduled node and continue the workflow."""
     Task = apps.get_model("joeflow", "Task")
     with _retry_on_failure(_machine_task, task_pk=task_pk, workflow_pk=workflow_pk):
         with transaction.atomic():
@@ -116,7 +108,7 @@ def _machine_task(task_pk, workflow_pk):
 
 
 def _create_machine_task():
-    """Create the machine task for the configured task queue."""
+    """Bind the runner to the queue named in the settings."""
     try:
         return task(queue_name=settings.JOEFLOW_TASK_QUEUE_NAME)(_machine_task)
     except exceptions.InvalidTask as e:

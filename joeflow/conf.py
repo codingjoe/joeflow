@@ -8,17 +8,21 @@ __all__ = ("settings",)
 
 
 def _default_task_runner() -> str:
-    """Return the default task runner for the installed Django version."""
+    """Select the import path that executes machine tasks.
+
+    The Tasks framework ships with Django 6.0 and later, older releases need a
+    third-party task runner.
+    """
     if django.VERSION >= (6, 0):
         return "joeflow.runner.django_tasks.task_runner"
-    # Django < 6.0 does not ship the Tasks framework.
     return "joeflow.runner.dramatiq.task_runner"
 
 
 def _default_task_queue_name() -> str:
-    """Return the default task queue name.
+    """Resolve the configured queue, honoring the deprecated setting.
 
-    Falls back to the deprecated ``JOEFLOW_CELERY_QUEUE_NAME`` setting.
+    A ``JOEFLOW_CELERY_QUEUE_NAME`` override applies while
+    ``JOEFLOW_TASK_QUEUE_NAME`` is unset and warns about the deprecation.
     """
     if settings.is_overridden("JOEFLOW_CELERY_QUEUE_NAME"):
         warnings.warn(
@@ -40,16 +44,14 @@ class JoeflowAppConfig(AppConf):
 
     JOEFLOW_TASK_RUNNER = _default_task_runner()
     """
-    Task runner is used to execute machine tasks.
+    Execute machine tasks with this task runner.
 
-    Machine tasks are executed asynchronously with `Django Tasks`_ on Django
-    6.0 and later. A task backend must be configured with the ``TASKS``
-    setting.
+    On Django 6.0 and later the default uses `Django Tasks`_ and requires a
+    task backend in the ``TASKS`` setting. On older releases the default uses
+    the deprecated Dramatiq_ task runner.
 
-    On Django < 6.0 the task runner defaults to Dramatiq_ if installed,
-    otherwise to Celery_. Both are deprecated in favor of Django Tasks.
-
-    Set this setting to execute machine tasks with a custom task runner.
+    Set this setting to the dotted path of a custom task runner, for example
+    ``joeflow.runner.celery.task_runner``.
 
     .. warning::
         The Celery_ and Dramatiq_ task runners are deprecated and will be
@@ -62,9 +64,9 @@ class JoeflowAppConfig(AppConf):
 
     JOEFLOW_TASK_QUEUE_NAME = _default_task_queue_name()
     """
-    Queue name in which all machine tasks will be queued.
+    Send machine tasks to the named queue.
 
-    The queue must be listed in the ``QUEUES`` of the task backend used by
-    the ``TASKS`` setting. The deprecated ``JOEFLOW_CELERY_QUEUE_NAME``
-    setting is used as a fallback if it is set.
+    The queue must be listed in the ``QUEUES`` of the task backend used by the
+    ``TASKS`` setting. A ``JOEFLOW_CELERY_QUEUE_NAME`` override applies as a
+    deprecated fallback while this setting is unset.
     """

@@ -7,7 +7,7 @@ The following tutorial should give you a quick overview on how to write a
 workflow, integrate it into your Django application and write robust and
 automated tests.
 
-Before we get started make you you have the package installed. Simply install
+Before we get started make sure you have the package installed. Simply install
 the PyPi package…
 
 .. code:: shell
@@ -21,14 +21,12 @@ task backend in the ``TASKS`` setting and make sure the queue of the
 ``JOEFLOW_TASK_QUEUE_NAME`` setting is part of its ``QUEUES``.
 
 .. seealso::
-    If you don't have a task backend setup yet, simply follow the Django
+    If you don't have a task backend setup yet, follow the `Django Tasks`_
     documentation.
 
-    https://docs.djangoproject.com/en/stable/topics/tasks/
-
 .. note::
-    Django < 6.0 does not ship the Tasks framework. Use the deprecated Celery
-    or Dramatiq task runner instead.
+    Django < 6.0 does not ship the Tasks framework. Install the ``celery`` or
+    ``dramatiq`` extra and use the deprecated task runner instead.
 
 .. _Django Tasks: https://docs.djangoproject.com/en/stable/topics/tasks/
 
