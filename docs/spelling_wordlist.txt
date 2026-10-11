@@ -1,16 +1,11 @@
 admin
 backend
 boolean
-Celery
 Django
-Dramatiq
-jitter
 joeflow
 mixins
 namespace
-Redis
 tuple
 tuples
-triple
 workflow
 workflows
