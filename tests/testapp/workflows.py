@@ -17,6 +17,7 @@ class ShippingWorkflow(models.Shipment):
     def has_email(self, task):
         if self.email:
             return [self.send_tracking_code]
+        return None
 
     def send_tracking_code(self, task):
         send_mail(
@@ -91,8 +92,11 @@ class GatewayWorkflow(models.GatewayWorkflowState):
     def is_princess_safe(self):
         return [self.happy_end]
 
-    happy_end = lambda s, task: s.finish()
-    bad_end = lambda s, task: s.finish()
+    def happy_end(self, task):
+        return self.finish()
+
+    def bad_end(self, task):
+        return self.finish()
 
     edges = (
         (start, is_princess_safe),
@@ -190,9 +194,12 @@ class FailingWorkflow(models.FailingWorkflowState):
 class TestWorkflow(models.TestWorkflowState):
     a = tasks.Start()
     b = tasks.UpdateView()
-    c = lambda s, t: s
 
-    not_a_node = lambda s, t: s
+    def c(self, t):
+        return self
+
+    def not_a_node(self, t):
+        return self
 
     edges = [
         (a, b),

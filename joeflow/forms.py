@@ -15,7 +15,7 @@ class OverrideForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["next_tasks"].choices = [
-            (name, name) for name in dict(self._meta.model.get_nodes()).keys()
+            (name, name) for name in dict(self._meta.model.get_nodes())
         ]
 
     def get_next_task_nodes(self):

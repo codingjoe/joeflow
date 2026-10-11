@@ -66,34 +66,47 @@ class TestRetryOnFailure:
     def test_retry(self, task, monkeypatch, db, django_capture_on_commit_callbacks):
         monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 42)
         now = timezone.now()
-        with django_capture_on_commit_callbacks(execute=True) as callbacks:
-            with django_tasks._retry_on_failure(task, 1, 2):
-                raise OperationalError("database is locked")
+        with (
+            django_capture_on_commit_callbacks(execute=True) as callbacks,
+            django_tasks._retry_on_failure(task, 1, 2),
+        ):
+            msg = "database is locked"
+            raise OperationalError(msg)
         assert len(callbacks) == 1
         run_after = task.using.call_args.kwargs["run_after"]
         assert now + timedelta(seconds=41) < run_after < now + timedelta(seconds=43)
         task.using.return_value.enqueue.assert_called_once_with(1, 2)
 
     def test_retry__retry_error(self, task, db, django_capture_on_commit_callbacks):
-        with django_capture_on_commit_callbacks(execute=True):
-            with django_tasks._retry_on_failure(task, task_pk=1):
-                raise django_tasks.RetryError("not ready")
+        with (
+            django_capture_on_commit_callbacks(execute=True),
+            django_tasks._retry_on_failure(task, task_pk=1),
+        ):
+            msg = "not ready"
+            raise django_tasks.RetryError(msg)
         task.using.return_value.enqueue.assert_called_once_with(task_pk=1)
 
     def test_retry__immediately(
         self, task, monkeypatch, db, django_capture_on_commit_callbacks
     ):
         monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
-        with django_capture_on_commit_callbacks(execute=True):
-            with django_tasks._retry_on_failure(task, 1, 2):
-                raise OperationalError("database is locked")
+        with (
+            django_capture_on_commit_callbacks(execute=True),
+            django_tasks._retry_on_failure(task, 1, 2),
+        ):
+            msg = "database is locked"
+            raise OperationalError(msg)
         task.using.assert_called_once_with(run_after=None)
 
     def test_retry__without_defer_support(self, task, caplog):
         task.get_backend.return_value.supports_defer = False
-        with caplog.at_level(logging.ERROR), pytest.raises(OperationalError):
-            with django_tasks._retry_on_failure(task, 1, 2):
-                raise OperationalError("database is locked")
+        msg = "database is locked"
+        with (
+            caplog.at_level(logging.ERROR),
+            pytest.raises(OperationalError),
+            django_tasks._retry_on_failure(task, 1, 2),
+        ):
+            raise OperationalError(msg)
         task.using.assert_not_called()
         assert "does not support deferred execution" in caplog.text
 

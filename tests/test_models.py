@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -14,25 +16,25 @@ class TestWorkflowBase:
         assert workflows.TestWorkflow.a.name == "a"
         assert workflows.TestWorkflow.b.name == "b"
         with pytest.raises(AttributeError):
-            workflows.TestWorkflow.not_a_node.name
+            _ = workflows.TestWorkflow.not_a_node.name
 
     def test_type(self):
         assert workflows.TestWorkflow.a.type == MACHINE
         assert workflows.TestWorkflow.b.type == HUMAN
         with pytest.raises(AttributeError):
-            workflows.TestWorkflow.not_a_node.type
+            _ = workflows.TestWorkflow.not_a_node.type
 
     def test_workflow_cls(self):
         assert workflows.TestWorkflow.a.workflow_cls == workflows.TestWorkflow
         assert workflows.TestWorkflow.b.workflow_cls == workflows.TestWorkflow
         with pytest.raises(AttributeError):
-            workflows.TestWorkflow.not_a_node.workflow_cls
+            _ = workflows.TestWorkflow.not_a_node.workflow_cls
 
 
 class TestWorkflow:
     @pytest.fixture
     def state_model(self):
-        yield models.TestWorkflowState
+        return models.TestWorkflowState
 
     def test_get_absolute_url(self, db):
         workflow = workflows.SimpleWorkflow.start_method()
@@ -44,10 +46,18 @@ class TestWorkflow:
 
     def test_get_nodes(self, state_model):
         class MyWorkflow(state_model, Workflow):
-            a = lambda s, t: None
-            b = lambda s, t: None
-            c = lambda s, t: None
-            d = lambda s, t: None
+            def a(self, t):
+                return None
+
+            def b(self, t):
+                return None
+
+            def c(self, t):
+                return None
+
+            def d(self, t):
+                return None
+
             edges = (
                 (a, b),
                 (b, c),
@@ -65,9 +75,15 @@ class TestWorkflow:
 
     def test_get_node(self, state_model):
         class MyWorkflow(state_model, Workflow):
-            a = lambda s, t: None
-            b = lambda s, t: None
-            c = lambda s, t: None
+            def a(self, t):
+                return None
+
+            def b(self, t):
+                return None
+
+            def c(self, t):
+                return None
+
             edges = ((a, b),)
 
             class Meta:
@@ -79,9 +95,15 @@ class TestWorkflow:
 
     def test_get_next_nodes(self, state_model):
         class MyWorkflow(state_model, Workflow):
-            a = lambda s, t: None
-            b = lambda s, t: None
-            c = lambda s, t: None
+            def a(self, t):
+                return None
+
+            def b(self, t):
+                return None
+
+            def c(self, t):
+                return None
+
             edges = (
                 (a, b),
                 (b, c),
@@ -106,9 +128,8 @@ class TestWorkflow:
         graphviz = pytest.importorskip("graphviz")
         graph = workflows.SimpleWorkflow.get_graph()
         assert isinstance(graph, graphviz.Digraph)
-        with open(str(fixturedir / "simpleworkflow.dot")) as fp:
+        with (fixturedir / "simpleworkflow.dot").open() as fp:
             expected_graph = fp.read().splitlines()
-        print(str(graph))
         assert set(str(graph).splitlines()) == set(expected_graph)
 
     def test_change_graph_direction(self, fixturedir):
@@ -127,8 +148,7 @@ class TestWorkflow:
         wf = workflows.SimpleWorkflow.start_method()
         task_url = wf.task_set.get(name="save_the_princess").get_absolute_url()
         graph = wf.get_instance_graph()
-        print(str(graph))
-        with open(str(fixturedir / "simpleworkflow_instance.dot")) as fp:
+        with (fixturedir / "simpleworkflow_instance.dot").open() as fp:
             assert set(str(graph).splitlines()) == set(
                 fp.read().replace("{url}", task_url).splitlines()
             )
@@ -144,7 +164,6 @@ class TestWorkflow:
         stub_worker.wait()
         task = wf.task_set.get(name="override")
         graph = wf.get_instance_graph()
-        print(str(graph))
 
         assert (
             f'\t"{task.name} {task.pk}" [peripheries=1 style="filled, rounded, dashed"]\n'
@@ -165,7 +184,6 @@ class TestWorkflow:
         obsolete.parent_task_set.add(start)
         end.parent_task_set.add(obsolete)
         graph = workflow.get_instance_graph()
-        print(str(graph))
 
         assert (
             '\tobsolete [color=black fontcolor=black peripheries=1 style="filled, dashed, bold"]'
@@ -189,7 +207,7 @@ class TestWorkflow:
         assert isinstance(mermaid, str)
 
         # Check it starts with graph declaration
-        assert mermaid.startswith("graph LR") or mermaid.startswith("graph TD")
+        assert mermaid.startswith(("graph LR", "graph TD"))
 
         # Check it contains nodes with quoted IDs
         assert "'save_the_princess'(save the princess)" in mermaid
@@ -220,7 +238,6 @@ class TestWorkflow:
         assert override_id in mermaid
 
         # Check dashed edges (dotted arrow notation in Mermaid)
-        print(mermaid)
         assert "-.->" in mermaid
 
         # Check override styling with dashed border
@@ -292,7 +309,7 @@ class TestWorkflow:
         }
 
     def test_urls__custom_path(self):
-        patterns, namespace = workflows.SimpleWorkflow.urls()
+        patterns, _namespace = workflows.SimpleWorkflow.urls()
         patterns = {pattern.pattern.describe() for pattern in patterns}
         assert "'start_view/custom/postfix/' [name='start_view']" in patterns
 
@@ -300,7 +317,9 @@ class TestWorkflow:
         class MyWorkflow(state_model):
             override_view = None
             start = StartView()
-            end = lambda s: None
+
+            def end(self):
+                return None
 
             edges = ((start, end),)
 
@@ -319,7 +338,9 @@ class TestWorkflow:
         class MyWorkflow(state_model):
             detail_view = None
             start = StartView()
-            end = lambda s: None
+
+            def end(self):
+                return None
 
             edges = ((start, end),)
 
@@ -433,8 +454,12 @@ class TestTask:
     def test_fail(self, db):
         workflow = workflows.SimpleWorkflow.objects.create()
         task = workflow.task_set.create()
-        try:
+
+        def raise_error():
             raise OSError("nope")
+
+        try:
+            raise_error()
         except OSError:
             task.fail()
 
@@ -482,8 +507,9 @@ class TestTask:
     def test_save__no_update_fields(self, db):
         workflow = workflows.SimpleWorkflow.objects.create()
         task = workflow.task_set.create()
-        with pytest.raises(ValueError) as e:
-            task.save()
-        assert (
+        expected_error = (
             "You need to provide explicit 'update_fields' to avoid race conditions."
-        ) in str(e.value)
+        )
+        with pytest.raises(ValueError, match=re.escape(expected_error)) as e:
+            task.save()
+        assert expected_error in str(e.value)

@@ -27,7 +27,8 @@ class InMemoryBackend(DummyBackend):
                 return
             for result in due:
                 self._execute(result)
-        raise RuntimeError("Too many tasks, is a task re-enqueueing itself forever?")
+        msg = "Too many tasks, is a task re-enqueueing itself forever?"
+        raise RuntimeError(msg)
 
     def _execute(self, result):
         now = timezone.now()

@@ -39,11 +39,11 @@ class WorkflowBase(ModelBase):
         for edge in edges:
             nodes |= set(edge)
 
-        for name, func in attrs.items():
+        for attr_name, func in attrs.items():
             try:
                 if func in nodes:
-                    node = getattr(klass, name)
-                    node.name = name
+                    node = getattr(klass, attr_name)
+                    node.name = attr_name
                     node.type = getattr(node, "type", MACHINE)
                     node.workflow_cls = klass
             except TypeError:
@@ -77,6 +77,9 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     class Meta:
         permissions = [("override", t("Can override a workflow."))]
 
+    def __str__(self):
+        return f"{self._meta.verbose_name} ({self.pk})"
+
     def save(self, **kwargs):
         if self.pk:
             try:
@@ -102,6 +105,10 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     override_view = "joeflow.views.OverrideView"
     detail_view = "joeflow.views.WorkflowDetailView"
+
+    def get_absolute_url(self):
+        """Return URL to workflow detail view."""
+        return reverse(f"{self.get_url_namespace()}:detail", kwargs={"pk": self.pk})
 
     @classmethod
     def _wrap_view_instance(cls, name, view_instance):
@@ -180,10 +187,6 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     def get_url_namespace(cls):
         return cls.__name__.lower()
 
-    def get_absolute_url(self):
-        """Return URL to workflow detail view."""
-        return reverse(f"{self.get_url_namespace()}:detail", kwargs={"pk": self.pk})
-
     def get_override_url(self):
         """Return URL to workflow override view."""
         return reverse(f"{self.get_url_namespace()}:override", kwargs={"pk": self.pk})
@@ -248,9 +251,13 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     def get_instance_graph(self):
         """Return workflow instance graph."""
         graph = self.get_graph(color="#888888")
-
         names = dict(self.get_nodes()).keys()
+        self._add_task_nodes(graph, names)
+        self._add_override_task_nodes(graph)
+        self._add_obsolete_task_nodes(graph, names)
+        return graph
 
+    def _add_task_nodes(self, graph, names):
         for task in self.task_set.filter(name__in=names):
             href = task.get_absolute_url()
             style = "filled"
@@ -273,6 +280,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
             for child in task.child_task_set.exclude(name="override"):
                 graph.edge(task.name, child.name, color="black")
 
+    def _add_override_task_nodes(self, graph):
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
@@ -286,6 +294,7 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 peripheries = "2"
             graph.node(label, style="filled, rounded, dashed", peripheries=peripheries)
 
+    def _add_obsolete_task_nodes(self, graph, names):
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             style = "filled, dashed"
             peripheries = "1"
@@ -306,8 +315,6 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 fontcolor="black",
                 peripheries=peripheries,
             )
-
-        return graph
 
     def get_instance_graph_svg(self, output_format="svg"):
         """
@@ -348,10 +355,37 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         node_styles = []
         edge_styles = {}  # Map of (start, end) -> style
         edge_list = []  # List to maintain order of edges
-
         names = dict(self.get_nodes()).keys()
 
-        # Add all nodes from workflow definition (inactive/gray style)
+        self._add_mermaid_definition(lines, node_styles, edge_styles, edge_list)
+        self._add_mermaid_task_nodes(lines, node_styles, edge_styles, edge_list, names)
+        self._add_mermaid_override_nodes(lines, node_styles, edge_styles, edge_list)
+        self._add_mermaid_obsolete_nodes(
+            lines, node_styles, edge_styles, edge_list, names
+        )
+
+        # Add edges to output (using dotted arrow for dashed edges)
+        for start_id, end_id in edge_list:
+            style = edge_styles[(start_id, end_id)]
+            if "dasharray" in style:
+                # Use dotted arrow for dashed edges
+                lines.append(f"    '{start_id}' -.-> '{end_id}'")
+            else:
+                # Use solid arrow for normal edges
+                lines.append(f"    '{start_id}' --> '{end_id}'")
+
+        # Add all styling at the end
+        lines.extend(node_styles)
+
+        # Add edge styling
+        for idx, (start_id, end_id) in enumerate(edge_list):
+            style = edge_styles[(start_id, end_id)]
+            lines.append(f"    linkStyle {idx} {style}")
+
+        return "\n".join(lines)
+
+    def _add_mermaid_definition(self, lines, node_styles, edge_styles, edge_list):
+        """Add nodes and edges of the workflow definition with gray styling."""
         for name, node in self.get_nodes():
             node_id = name.replace(" ", "_")
             # Keep original name with spaces for label
@@ -377,7 +411,10 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#999"
 
-        # Process actual tasks to highlight active/completed states
+    def _add_mermaid_task_nodes(
+        self, lines, node_styles, edge_styles, edge_list, names
+    ):
+        """Add actual tasks to highlight active and completed states."""
         for task in self.task_set.filter(name__in=names):
             node_id = task.name.replace(" ", "_")
 
@@ -401,7 +438,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 # Update styling to black (overrides gray)
                 edge_styles[edge_key] = "stroke:#000,stroke-width:2px"
 
-        # Handle override tasks
+    def _add_mermaid_override_nodes(self, lines, node_styles, edge_styles, edge_list):
+        """Add override tasks with dashed nodes and connections."""
         for task in self.task_set.filter(name="override").prefetch_related(
             "parent_task_set", "child_task_set"
         ):
@@ -429,7 +467,10 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
 
-        # Handle obsolete/custom tasks (not in workflow definition)
+    def _add_mermaid_obsolete_nodes(
+        self, lines, node_styles, edge_styles, edge_list, names
+    ):
+        """Add obsolete and custom tasks that are not part of the definition."""
         for task in self.task_set.exclude(name__in=names).exclude(name="override"):
             node_id = task.name.replace(" ", "_")
             # Keep original name with spaces for label
@@ -465,26 +506,6 @@ class Workflow(models.Model, metaclass=WorkflowBase):
                 if edge_key not in edge_styles:
                     edge_list.append(edge_key)
                 edge_styles[edge_key] = "stroke:#000,stroke-dasharray:5 5"
-
-        # Add edges to output (using dotted arrow for dashed edges)
-        for start_id, end_id in edge_list:
-            style = edge_styles[(start_id, end_id)]
-            if "dasharray" in style:
-                # Use dotted arrow for dashed edges
-                lines.append(f"    '{start_id}' -.-> '{end_id}'")
-            else:
-                # Use solid arrow for normal edges
-                lines.append(f"    '{start_id}' --> '{end_id}'")
-
-        # Add all styling at the end
-        lines.extend(node_styles)
-
-        # Add edge styling
-        for idx, (start_id, end_id) in enumerate(edge_list):
-            style = edge_styles[(start_id, end_id)]
-            lines.append(f"    linkStyle {idx} {style}")
-
-        return "\n".join(lines)
 
     def cancel(self, user=None):
         self.task_set.cancel(user)
@@ -630,9 +651,8 @@ class Task(models.Model):
             try:
                 update_fields = kwargs["update_fields"]
             except KeyError as e:
-                raise ValueError(
-                    "You need to provide explicit 'update_fields' to avoid race conditions."
-                ) from e
+                msg = "You need to provide explicit 'update_fields' to avoid race conditions."
+                raise ValueError(msg) from e
             else:
                 update_fields.append("modified")
         super().save(**kwargs)
@@ -752,3 +772,4 @@ def get_workflow(name) -> Workflow | None:
             == f"{workflow_cls._meta.app_label}.{workflow_cls.__name__}".lower()
         ):
             return workflow_cls
+    return None
