@@ -3,10 +3,10 @@ from contextlib import contextmanager
 import joeflow.models
 
 __all__ = (
-    "register_workflows",
     "RevisionMixin",
-    "with_reversion",
     "VersionAdmin",
+    "register_workflows",
+    "with_reversion",
 )
 
 

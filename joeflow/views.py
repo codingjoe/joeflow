@@ -69,7 +69,8 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
         return response
 
     def create_task(self, workflow, prev_task):
-        """Return a new database instance of this task.
+        """
+        Return a new database instance of this task.
 
         The factory method should be overridden, to create custom database instances
         based on the task node's class, the workflow or the previous task.
@@ -91,7 +92,8 @@ class TaskViewMixin(WorkflowTemplateNameViewMixin, RevisionMixin):
 
 
 class StartViewMixin(TaskViewMixin):
-    """View-mixin to create a start workflow.
+    """
+    View-mixin to create a start workflow.
 
     Example:
         class MyStartWorkflowView(StartViewMixin, View):

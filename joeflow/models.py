@@ -24,8 +24,8 @@ from .views import StartViewMixin
 logger = logging.getLogger(__name__)
 
 __all__ = (
-    "Workflow",
     "Task",
+    "Workflow",
 )
 
 
@@ -56,7 +56,8 @@ class WorkflowBase(ModelBase):
 
 
 class Workflow(models.Model, metaclass=WorkflowBase):
-    """The `WorkflowState` object holds the state of a workflow instances.
+    """
+    The `WorkflowState` object holds the state of a workflow instances.
 
     It is represented by a Django Model. This way all workflow states
     are persisted in your database.
@@ -118,7 +119,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def urls(cls):
-        """Return all URLs to workflow related task and other special views.
+        """
+        Return all URLs to workflow related task and other special views.
 
         Example::
 
@@ -188,7 +190,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def get_graph(cls, color="black"):
-        """Return workflow graph.
+        """
+        Return workflow graph.
 
         Returns:
             (graphviz.Digraph): Directed graph of the workflow.
@@ -217,7 +220,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
 
     @classmethod
     def get_graph_svg(cls):
-        """Return graph representation of a model workflow as SVG.
+        """
+        Return graph representation of a model workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -306,7 +310,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
         return graph
 
     def get_instance_graph_svg(self, output_format="svg"):
-        """Return graph representation of a running workflow as SVG.
+        """
+        Return graph representation of a running workflow as SVG.
 
         The SVG is HTML safe and can be included in a template, e.g.:
 
@@ -331,7 +336,8 @@ class Workflow(models.Model, metaclass=WorkflowBase):
     get_instance_graph_svg.short_description = t("instance graph")
 
     def get_instance_graph_mermaid(self):
-        """Return instance graph as Mermaid diagram syntax.
+        """
+        Return instance graph as Mermaid diagram syntax.
 
         This can be used with MermaidJS for client-side rendering in admin.
 
@@ -633,12 +639,12 @@ class Task(models.Model):
 
     def get_absolute_url(self):
         if self.completed:
-            return  # completed tasks have no detail view
+            return None  # completed tasks have no detail view
         url_name = f"{self.workflow.get_url_namespace()}:{self.name}"
         try:
             return reverse(url_name, kwargs={"pk": self.pk})
         except NoReverseMatch:
-            return  # no URL was defined for this task
+            return None  # no URL was defined for this task
 
     @property
     def node(self):
@@ -672,7 +678,8 @@ class Task(models.Model):
         self.save(update_fields=["status", "exception", "stacktrace"])
 
     def enqueue(self, countdown=None, eta=None):
-        """Schedule the task for execution.
+        """
+        Schedule the task for execution.
 
         Args:
             countdown (int):
@@ -698,7 +705,8 @@ class Task(models.Model):
         )
 
     def start_next_tasks(self, next_nodes: list = None):
-        """Start new tasks following another tasks.
+        """
+        Start new tasks following another tasks.
 
         Args:
             self (Task): The task that precedes the next tasks.

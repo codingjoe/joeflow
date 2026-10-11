@@ -33,8 +33,9 @@ class TestTaskAdmin:
         workflow = models.SimpleWorkflowState.objects.create()
         task = workflow.task_set.create(status=Task.FAILED, name="save_the_princess")
         admin.rerun(None, post_request, workflow.task_set.all())
-        assert "1 tasks have been successfully queued" == str(
-            post_request._messages._queued_messages[0]
+        assert (
+            str(post_request._messages._queued_messages[0])
+            == "1 tasks have been successfully queued"
         )
         task.refresh_from_db()
         assert task.status == Task.SCHEDULED
@@ -43,11 +44,13 @@ class TestTaskAdmin:
         workflow = models.SimpleWorkflowState.objects.create()
         task = workflow.task_set.create(status=Task.SUCCEEDED, name="save_the_princess")
         admin.rerun(None, post_request, workflow.task_set.all())
-        assert "Only failed tasks can be retried. 1 tasks have been skipped" == str(
-            post_request._messages._queued_messages[0]
+        assert (
+            str(post_request._messages._queued_messages[0])
+            == "Only failed tasks can be retried. 1 tasks have been skipped"
         )
-        assert "0 tasks have been successfully queued" == str(
-            post_request._messages._queued_messages[1]
+        assert (
+            str(post_request._messages._queued_messages[1])
+            == "0 tasks have been successfully queued"
         )
         task.refresh_from_db()
         assert task.status == Task.SUCCEEDED
@@ -56,8 +59,9 @@ class TestTaskAdmin:
         workflow = models.SimpleWorkflowState.objects.create()
         task = workflow.task_set.create(name="save_the_princess")
         admin.cancel(None, post_request, workflow.task_set.all())
-        assert "Tasks have been successfully canceled" == str(
-            post_request._messages._queued_messages[0]
+        assert (
+            str(post_request._messages._queued_messages[0])
+            == "Tasks have been successfully canceled"
         )
         task.refresh_from_db()
         assert task.status == Task.CANCELED
@@ -66,11 +70,13 @@ class TestTaskAdmin:
         workflow = models.SimpleWorkflowState.objects.create()
         task = workflow.task_set.create(status=Task.SUCCEEDED, name="save_the_princess")
         admin.cancel(None, post_request, workflow.task_set.all())
-        assert "Only scheduled tasks can be canceled. 1 tasks have been skipped" == str(
-            post_request._messages._queued_messages[0]
+        assert (
+            str(post_request._messages._queued_messages[0])
+            == "Only scheduled tasks can be canceled. 1 tasks have been skipped"
         )
-        assert "Tasks have been successfully canceled" == str(
-            post_request._messages._queued_messages[1]
+        assert (
+            str(post_request._messages._queued_messages[1])
+            == "Tasks have been successfully canceled"
         )
         task.refresh_from_db()
         assert task.status == Task.SUCCEEDED

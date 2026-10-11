@@ -11,7 +11,8 @@ __all__ = (
 
 
 class StartView(StartViewMixin, generic.CreateView):
-    """Start a new workflow by a human with a view.
+    """
+    Start a new workflow by a human with a view.
 
     Starting a workflow with a view allows users to provide initial data.
 
@@ -19,14 +20,11 @@ class StartView(StartViewMixin, generic.CreateView):
     but does not only create the workflow but also completes a tasks.
     """
 
-    pass
-
 
 class UpdateView(TaskViewMixin, generic.UpdateView):
-    """Modify the workflow state and complete a human task.
+    """
+    Modify the workflow state and complete a human task.
 
     Similar to Django's :class:`UpdateView<django.views.generic.edit.UpdateView>`
     but does not only update the workflow but also completes a tasks.
     """
-
-    pass

@@ -30,7 +30,7 @@ class TestWorkflowBase:
 
 
 class TestWorkflow:
-    @pytest.fixture()
+    @pytest.fixture
     def state_model(self):
         yield models.TestWorkflowState
 

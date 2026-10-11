@@ -15,7 +15,8 @@ __all__ = [
 
 
 def execute(workflow, task):
-    """Run the node of a machine task.
+    """
+    Run the node of a machine task.
 
     Returns:
         tuple: Whether the node executed successfully and its result.
