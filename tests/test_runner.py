@@ -99,12 +99,7 @@ class TestRetryOnFailure:
 
 
 class TestMachineTask:
-    @pytest.fixture()
-    def worker(self, stub_worker, transactional_db):
-        """Execute machine tasks with the in-memory task backend."""
-        yield stub_worker
-
-    def test_locked(self, monkeypatch, worker):
+    def test_locked(self, monkeypatch, stub_worker, transactional_db):
         """A machine task is re-enqueued if the task cannot be locked."""
         monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
         monkeypatch.setattr(
@@ -118,11 +113,11 @@ class TestMachineTask:
         assert results[0].status == backends.TaskResultStatus.READY
         assert results[0].kwargs == {"task_pk": 1, "workflow_pk": 2}
 
-    def test_task_does_not_exist(self, worker):
+    def test_task_does_not_exist(self, stub_worker, transactional_db):
         assert django_tasks._machine_task.func(task_pk=1, workflow_pk=2) is None
         assert backends.get_backend().results == []
 
-    def test_retry__machine_task(self, monkeypatch, worker):
+    def test_retry__machine_task(self, monkeypatch, stub_worker, transactional_db):
         """A machine task that returns False is re-enqueued until it succeeds."""
         monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 0)
         attempts = 0
@@ -137,15 +132,15 @@ class TestMachineTask:
         waiting.with_task = True
         monkeypatch.setattr(workflows.WaitWorkflow, "wait", waiting)
         workflow = workflows.WaitWorkflow.start()
-        worker.wait()
+        stub_worker.wait()
         assert attempts == 2
         assert workflow.task_set.get(name="wait").status == Task.SUCCEEDED
 
-    def test_retry__deferred(self, monkeypatch, worker):
+    def test_retry__deferred(self, monkeypatch, stub_worker, transactional_db):
         """A machine task that keeps returning False is re-enqueued later."""
         monkeypatch.setattr(django_tasks, "_RETRY_DELAY", 3600)
         workflow = workflows.WaitWorkflow.start()
-        worker.wait()
+        stub_worker.wait()
         assert workflow.task_set.get(name="wait").status == Task.SCHEDULED
         retries = [
             result
