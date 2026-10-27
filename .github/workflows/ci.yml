@@ -56,7 +56,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv run ${{ matrix.extras }} --with Django~=${{ matrix.django-version }}.0 pytest
+      - run: uv run --with=pytest-github-actions-annotate-failures ${{ matrix.extras }} --with Django~=${{ matrix.django-version }}.0 pytest
       - uses: codecov/codecov-action@v7
         with:
           use_oidc: true
